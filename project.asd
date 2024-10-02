@@ -12,4 +12,5 @@
 		:components
 		((:file "package")
 		 (:file "main")
-		 (:file "assets")))))
+		 (:file "assets")
+		 (:file "object")))))

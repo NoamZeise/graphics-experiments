@@ -1,8 +1,7 @@
 (in-package :project)
 
-(defun setup-assets ()
-  (setf *assets* (make-hash-table))
-  (load-model 'sphere #p"sphere.obj"))
+(defun setup-asset-table ()
+  (setf *assets* (make-hash-table)))
 
 (defun cleanup-assets ()
   (loop for vd being the hash-value of *assets* do
@@ -14,8 +13,11 @@
   (setf (gethash key *assets*) vertex-data))
 
 (defun load-model (key filename)
-  (add-asset key (gficl/load:model (merge-pathnames filename +asset-folder+)
-				   :vertex-form '(:position :normal))))
+  (add-asset
+   key
+   (let  ((data (gficl/load:model (merge-pathnames filename +asset-folder+)
+				  :vertex-form '(:position :normal :uv))))
+     (if (= 1 (length data)) (car data) data))))
 
 (defun get-asset (key)
   (gethash key *assets*))

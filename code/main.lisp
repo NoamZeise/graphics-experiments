@@ -2,7 +2,10 @@
 
 (defun run ()
   (gficl:with-window
-   (:title "project" :resize-callback #'resize)
+   (:title "project"
+    :resize-callback #'resize
+    :opengl-version-major 4
+    :opengl-version-minor 6)
    (setup)
    (loop until (gficl:closedp)
 	 do (update)

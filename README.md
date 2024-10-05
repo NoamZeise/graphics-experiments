@@ -21,6 +21,7 @@ it also clones the `gficl` library from github into the project root.
 
 - Do `make clean` to remove the `bin` directory
 - Do `make cleanall` to remove all extra files
+- Do `make repl` to open a repl with the project loaded
 
 
 ### Build With Docker

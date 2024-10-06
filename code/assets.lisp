@@ -20,7 +20,8 @@
      (if (= 1 (length data)) (car data) data))))
 
 (defun get-asset (key)
-  (gethash key *assets*))
+  (let ((a (gethash key *assets*)))
+    (if (not a) (error "asset not found ~a" key) a)))
 
 ;;; ---- Globals ----
 

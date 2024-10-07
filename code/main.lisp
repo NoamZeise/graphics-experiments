@@ -18,7 +18,9 @@
   (load-model 'cube #p"cube.obj")
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
-  (load-model 'plane #p"plane.obj"))
+  (load-model 'plane #p"plane.obj")
+
+  (load-image 'test-tex #p"assets/test.png"))
 
 (defmacro object-matrix (position &optional (size ''(1 1 1)))
   `(gficl:*mat (gficl:translation-matrix ,position)
@@ -35,18 +37,18 @@
 
   (setf *meta-shader* (gficl/load:shader #p"vert.vs" #p"metatexture.fs"
 					 :shader-folder +shader-folder+))
-  (setf *meta-tex* (gficl/load::image "assets/test.png"))
+  (setf *meta-tex* (get-asset 'test-tex))
   (gficl:bind-gl *meta-shader*)
   (gl:uniformi (gficl:shader-loc *meta-shader* "tex") 0)
   
   (setf *scene*
 	(list
 	 ;(make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
-	 (make-object (get-asset 'cube) (object-matrix ;'(0 0 -2)
-					 '(0 0 0)
+	 (make-object (get-asset 'cube) (object-matrix '(0 0 -2)
+					 ;'(0 0 0)
 					 ))
 	 ;(make-object (get-asset 'cone) (object-matrix '(0 2 -2) '(1 1.5 1)))
-	 ;(make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
+	 (make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
 	 (make-object (get-asset 'plane)
 		      (let* ((size 50) (offset (- (/ size 2))))
 			(object-matrix (gficl:make-vec `(,offset -1.2 ,offset))
@@ -65,8 +67,7 @@
 (defun cleanup ()
   (cleanup-assets)
   (gficl:delete-gl *shader*)
-  (gficl:delete-gl *meta-shader*)
-  (gficl:delete-gl *meta-tex*))
+  (gficl:delete-gl *meta-shader*))
 
 (defun resize (w h)
   (setf *projection-mat* (gficl:screen-perspective-matrix w h (* pi 0.3) 0.05))

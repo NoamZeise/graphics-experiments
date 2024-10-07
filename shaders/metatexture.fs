@@ -19,6 +19,7 @@ float blend_factor(float x) {
 }
 
 vec4 lerp(float t, vec4 v1, vec4 v2) {
+  t = blend_factor(t);
   return t*v1 + (1-t)*v2;
 }
 
@@ -64,7 +65,7 @@ void main() {
   vec2 E = 1 / vec2(w*delM.x, h*delM.y);
   E = vec2(log2(E.x), log2(E.y));  
   vec2 Ef = vec2(floor(E.x), floor(E.y));
-  vec2 blend = vec2(blend_factor(E.x - Ef.x), blend_factor(E.y - Ef.y));
+  vec2 blend = vec2(E.x - Ef.x, E.y - Ef.y);
 
   vec2[4] uvs0 = vec2[4](vec2(0, 0), vec2(0, 0), vec2(0, 0), vec2(0, 0));
   calc_uvs(uvs0, Ef, fuv);

@@ -9,8 +9,8 @@
 	    (loop for v in vd do (gficl:delete-gl v))
 	    (gficl:delete-gl vd))))
 
-(defun add-asset (key vertex-data)
-  (setf (gethash key *assets*) vertex-data))
+(defun add-asset (key asset)
+  (setf (gethash key *assets*) asset))
 
 (defun load-model (key filename)
   (add-asset
@@ -18,6 +18,9 @@
    (let  ((data (gficl/load:model (merge-pathnames filename +asset-folder+)
 				  :vertex-form '(:position :normal :uv))))
      (if (= 1 (length data)) (car data) data))))
+
+(defun load-image (key filename)
+  (add-asset key (gficl/load:image filename)))
 
 (defun get-asset (key)
   (let ((a (gethash key *assets*)))

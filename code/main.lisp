@@ -39,7 +39,6 @@
 					 :shader-folder +shader-folder+))
   (setf *meta-tex* (get-asset 'test-tex))
   (gficl:bind-gl *meta-shader*)
-  (gl:uniformi (gficl:shader-loc *meta-shader* "tex") 0)
   
   (setf *scene*
 	(list
@@ -61,7 +60,7 @@
   (setf *cam-pos* (gficl:make-vec '(4 0 0)	;'(4 2 4)
 		   ))
   (setf *cam-target* (gficl:make-vec '(0 0 0)))
-  (resize (gficl:window-width) (gficl:window-height))
+  (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
 
 (defun cleanup ()
@@ -132,5 +131,3 @@
 (defparameter *scene* nil)
 
 (defparameter *world-up* (gficl:make-vec'(0 1 0)))
-
-(defconstant +shader-folder+ #p"shaders/")

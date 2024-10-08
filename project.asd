@@ -19,4 +19,5 @@
 		 (:file "assets")
 		 (:file "object")
 		 (:file "shader")
-		 (:file "pass")))))
+		 (:file "pass")
+		 (:file "metatexture")))))

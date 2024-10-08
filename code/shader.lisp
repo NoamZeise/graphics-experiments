@@ -1,7 +1,7 @@
 (in-package :project)
 
 (defclass shader ()
-  ((shader :accessor shader :type gficl:shader)))
+  ((shader :accessor shader :type gficl:shader :initarg :shader)))
 
 (defmethod draw :before ((obj shader) scene)
 	   (gficl:bind-gl (shader obj)))
@@ -12,3 +12,5 @@
 
 (defmethod free ((obj shader))
 	   (gficl:delete-gl (shader obj)))
+
+(defconstant +shader-folder+ #p"shaders/")

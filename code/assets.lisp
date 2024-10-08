@@ -10,6 +10,10 @@
 	    (gficl:delete-gl vd))))
 
 (defun add-asset (key asset)
+  (cond ((gethash key *assets*)
+	 (warn "Added asset (~a) with key that already exits (~a), deleting old asset."
+	       asset key)
+	 (gficl:delete-gl (gethash key *assets*))))
   (setf (gethash key *assets*) asset))
 
 (defun load-model (key filename)

@@ -6,7 +6,7 @@
 (defmethod draw :before ((obj shader) scene)
 	   (gficl:bind-gl (shader obj)))
 
-(defmethod draw :after ((obj shader) scene)
+(defmethod draw ((obj shader) scene)
 	   (loop for o in scene do
 		 (draw o (shader obj))))
 

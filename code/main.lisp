@@ -26,27 +26,25 @@
   `(gficl:*mat (gficl:translation-matrix ,position)
 	       (gficl:scale-matrix ,size)))
 
-(defparameter *meta-tex* nil)
-(defparameter *meta-shader* nil)
 (defparameter *tex-size* nil)
+(defparameter *metatexture-pass* nil)
 
 (defun setup ()
   (load-assets)
   (setf *shader* (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+))
-  (gficl:bind-gl *shader*)
 
-  (setf *meta-shader* (gficl/load:shader #p"vert.vs" #p"metatexture.fs"
-					 :shader-folder +shader-folder+))
+  (setf *metatexture-pass* (make-metatexture-pass))
   (setf *meta-tex* (get-asset 'test-tex))
   (gficl:bind-gl *meta-shader*)
+  (gl:uniformi (gficl:shader-loc *meta-shader* "tex") 0)
   
   (setf *scene*
 	(list
-	 ;(make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
+					;(make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
 	 (make-object (get-asset 'cube) (object-matrix '(0 0 -2)
-					 ;'(0 0 0)
-					 ))
-	 ;(make-object (get-asset 'cone) (object-matrix '(0 2 -2) '(1 1.5 1)))
+					;'(0 0 0)
+						       ))
+					;(make-object (get-asset 'cone) (object-matrix '(0 2 -2) '(1 1.5 1)))
 	 (make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
 	 (make-object (get-asset 'plane)
 		      (let* ((size 50) (offset (- (/ size 2))))
@@ -57,8 +55,8 @@
   (setf *tex-size* 100)
   (update-size)
   
-  (setf *cam-pos* (gficl:make-vec '(4 0 0)	;'(4 2 4)
-		   ))
+  (setf *cam-pos* (gficl:make-vec '(4 0 0) ;'(4 2 4)
+				  ))
   (setf *cam-target* (gficl:make-vec '(0 0 0)))
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
@@ -66,11 +64,12 @@
 (defun cleanup ()
   (cleanup-assets)
   (gficl:delete-gl *shader*)
-  (gficl:delete-gl *meta-shader*))
+  (free *metatexture-pass*))
 
 (defun resize-callback (w h)
   (setf *projection-mat* (gficl:screen-perspective-matrix w h (* pi 0.3) 0.05))
-  (setf *ortho-mat* (gficl:screen-orthographic-matrix w h)))
+  (setf *ortho-mat* (gficl:screen-orthographic-matrix w h))
+  (resize *metatexture-pass* w h))
 
 (defun update-size ()
   (update-model
@@ -98,23 +97,17 @@
     (:space (setf *cam-pos* (gficl:rotate-vec *cam-pos* (* dt 0.1) *world-up*))))
    (setf *view-mat*
 	 (gficl:view-matrix *cam-pos* (gficl:-vec *cam-target* *cam-pos*) *world-up*))
-   (gficl:bind-gl *meta-shader*)
-   (gficl:bind-matrix *meta-shader* "viewproj" (gficl:*mat *projection-mat* *view-mat*))
+   
+   ;;(gficl:bind-gl *meta-shader*)
+   ;;(gficl:bind-matrix *meta-shader* "viewproj" (gficl:*mat *projection-mat* *view-mat*))
    ;;(gficl:bind-vec *shader* "cam" *cam-pos*)
    ))
 
 (defun render ()
   (gficl:with-render
-   (gl:clear :color-buffer :depth-buffer)
-   (gl:enable :depth-test)
-   (gficl:bind-gl *meta-shader*)
-   (gl:active-texture :texture0)
-   (gficl:bind-gl *meta-tex*) 
-   (loop for obj in *scene* do
-	 (draw obj *meta-shader*))
-   (gl:disable :depth-test)
-   (gficl:bind-matrix *meta-shader* "viewproj" *ortho-mat*)
-   (draw *quad* *meta-shader*)))
+   (draw *metatexture-pass* *scene*)
+   (gficl:blit-framebuffers (framebuffer *metatexture-pass*) nil
+			    (gficl:window-width) (gficl:window-height))))
 
 ;;; Global Variables
 

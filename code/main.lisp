@@ -3,7 +3,7 @@
 (defun run ()
   (gficl:with-window
    (:title "project"
-    :resize-callback #'resize
+    :resize-callback #'resize-callback
     :opengl-version-major 4
     :opengl-version-minor 6)
    (setup)
@@ -69,20 +69,21 @@
   (gficl:delete-gl *shader*)
   (gficl:delete-gl *meta-shader*))
 
-(defun resize (w h)
+(defun resize-callback (w h)
   (setf *projection-mat* (gficl:screen-perspective-matrix w h (* pi 0.3) 0.05))
   (setf *ortho-mat* (gficl:screen-orthographic-matrix w h)))
 
 (defun update-size ()
-  (update-model *quad*
-		(gficl:*mat
-		 (gficl:translation-matrix (list *tex-size* *tex-size* 0))
-		 (gficl:scale-matrix (list *tex-size* *tex-size* 1))
-		 (gficl:make-matrix-from-data
-		  `((1 0 0 0)
-		    (0 0 1 0)
-		    (0 1 0 0)
-		    (0 0 0 1))))))
+  (update-model
+   *quad*
+   (gficl:*mat
+    (gficl:translation-matrix (list *tex-size* *tex-size* 0))
+    (gficl:scale-matrix (list *tex-size* *tex-size* 1))
+    (gficl:make-matrix-from-data
+     `((1 0 0 0)
+       (0 0 1 0)
+       (0 1 0 0)
+       (0 0 0 1))))))
 
 (defun update ()
   (gficl:with-update
@@ -109,7 +110,7 @@
    (gl:enable :depth-test)
    (gficl:bind-gl *meta-shader*)
    (gl:active-texture :texture0)
-   (gficl:bind-gl *meta-tex*)
+   (gficl:bind-gl *meta-tex*) 
    (loop for obj in *scene* do
 	 (draw obj *meta-shader*))
    (gl:disable :depth-test)

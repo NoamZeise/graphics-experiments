@@ -14,6 +14,9 @@
   :components ((:module "code"
 		:components
 		((:file "package")
+		 (:file "generic")
 		 (:file "main")
 		 (:file "assets")
-		 (:file "object")))))
+		 (:file "object")
+		 (:file "shader")
+		 (:file "pass")))))

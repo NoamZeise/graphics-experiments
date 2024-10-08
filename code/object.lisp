@@ -14,12 +14,8 @@
   (setf (slot-value obj 'model) model-matrix)
   (setf (slot-value obj 'normal) (gficl:transpose-matrix (gficl:inverse-matrix model-matrix))))
 
-(defgeneric draw (obj shader)
-   (:documentation "Draw the object using the supplied shader."))
-
 (defmethod draw ((obj object) shader)
   (with-slots (meshes model normal) obj
-    (gficl:bind-gl shader)
     (gficl:bind-matrix shader "model" model)
     ;;(gficl:bind-matrix shader "norm_mat" normal)
     (if (listp meshes)

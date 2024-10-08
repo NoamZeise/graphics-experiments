@@ -56,12 +56,11 @@
 		(width obj) (height obj))))
 
 (defmethod get-framebuffer-textures ((pass pass))
-	   (loop for i from 0 for a in (fb-attachments (description pass))
-		 when (eq :texture (gficl:attach-desc-type a))
-		 collecting (gficl:framebuffer-texture-id
-			     (if (< 1 (fb-samples (description pass)))
-				 (resolve-framebuffer pass) (framebuffer pass))
-			     i)))
+	   (let ((fb (if (= 1 (fb-samples (description pass)))
+			 (framebuffer pass) (resolve-framebuffer pass))))
+	     (loop for i from 0 for a in (fb-attachments (description pass))
+		   when (eq :texture (gficl:attach-desc-type a))
+		   collecting (gficl:framebuffer-texture-id fb i))))
 
 (defmethod free ((obj pass))
 	   (if (framebuffer obj)

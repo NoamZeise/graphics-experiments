@@ -20,4 +20,5 @@
 		 (:file "object")
 		 (:file "shader")
 		 (:file "pass")
+		 (:file "basic-pass")
 		 (:file "metatexture")))))

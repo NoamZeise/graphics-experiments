@@ -24,7 +24,7 @@
 	   (call-next-method)
 	   
 	   ;;another hack
-	   (gl:disable :depth-test)
+	   ;;(gl:disable :depth-test)
 	   (gficl:bind-matrix (shader obj) "viewproj" *ortho-mat*)
 	   (draw *quad* (shader obj)))
 

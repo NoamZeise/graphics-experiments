@@ -29,6 +29,10 @@
 (defparameter *tex-size* nil)
 (defparameter *metatexture-pass* nil)
 (defparameter *basic-pass* nil)
+(defparameter *quad* nil)
+(defparameter *ortho-mat* nil)
+
+(defparameter *3d-scene* nil)
 
 (defun setup ()
   (load-assets)
@@ -36,16 +40,8 @@
   (setf *basic-pass* (make-basic-pass))
   (setf *metatexture-pass* (make-metatexture-pass))
   
-  (setf *scene*
-	(list
-	 (make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
-	 (make-object (get-asset 'cube) (object-matrix '(0 0 -2)))
-	 ;(make-object (get-asset 'cone) (object-matrix '(0 2 -2) '(1 1.5 1)))
-	 (make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
-	 (make-object (get-asset 'plane)
-		      (let* ((size 50) (offset (- (/ size 2))))
-			(object-matrix (gficl:make-vec `(,offset -1.2 ,offset))
-				       (gficl:make-vec `(,size ,size ,size)))))))
+  (setf *3d-scene* (make-plane-scene))
+  
   (setf *quad* (make-object (get-asset 'plane) (gficl:make-matrix)))
   (setf *tex-size* 100)
   (update-size)
@@ -64,7 +60,8 @@
   (setf *projection-mat* (gficl:screen-perspective-matrix w h (* pi 0.3) 0.05))
   (setf *ortho-mat* (gficl:screen-orthographic-matrix w h))
   (resize *metatexture-pass* w h)
-  (resize *basic-pass* w h))
+  (resize *basic-pass* w h)
+  (resize *3d-scene* w h))
 
 (defun update-size ()
   (update-model
@@ -88,33 +85,17 @@
     (:equal (setf *tex-size* (+ *tex-size* (* 100 dt)))
 	    (update-size))
     (:minus (setf *tex-size* (- *tex-size* (* 100 dt)))
-	    (update-size))
-    (:space (setf *cam-pos* (gficl:rotate-vec *cam-pos* (* dt 0.1) *world-up*))))
-   (setf *view-mat*
-	 (gficl:view-matrix *cam-pos* (gficl:-vec *cam-target* *cam-pos*) *world-up*))
-   
-   ;;(gficl:bind-gl *meta-shader*)
-   ;;(gficl:bind-matrix *meta-shader* "viewproj" (gficl:*mat *projection-mat* *view-mat*))
-   ;;(gficl:bind-vec *shader* "cam" *cam-pos*)
-   ))
+	    (update-size)))
+   (update-scene *3d-scene* dt)))
 
 (defun render ()
   (gficl:with-render
    (let ((pass *metatexture-pass*))
-     (draw pass *scene*)
+     (draw pass *3d-scene*)
      (gficl:blit-framebuffers (framebuffer pass) nil
 			      (gficl:window-width) (gficl:window-height)))))
 
 ;;; Global Variables
 
-(defparameter *cam-pos* nil)
-(defparameter *cam-target* nil)
-(defparameter *view-mat* nil)
-(defparameter *projection-mat* nil)
-
-(defparameter *quad* nil)
-(defparameter *ortho-mat* nil)
-
-(defparameter *scene* nil)
-
-(defparameter *world-up* (gficl:make-vec'(0 1 0)))
+(alexandria:define-constant +world-up+ (gficl:make-vec'(0 1 0))
+			    :test #'(lambda (x y) (gficl:=vec x y)))

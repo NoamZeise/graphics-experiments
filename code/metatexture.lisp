@@ -1,6 +1,6 @@
 (in-package :project)
 
-(defclass metatexture-shader (shader-no-normals)
+(defclass metatexture-shader (shader)
   ())
 
 (defun make-metatexture-shader ()
@@ -25,19 +25,18 @@
 	   
 	   ;;another hack
 	   (gficl:bind-matrix (shader obj) "viewproj" *ortho-mat*)
-	   (draw *quad* (shader obj)))
+	   (draw *quad* obj))
 
 (defclass metatexture-pass (pass)
   ())
 
 (defun make-metatexture-pass ()
-  (let ((shaders (list (make-metatexture-shader))))
-    (make-instance
-     'metatexture-pass
-     :shaders shaders
-     :description
-     (make-framebuffer-descrption
-      :attachments
-      (list (gficl:make-attachment-description :type :texture)
-	    (gficl:make-attachment-description :position :depth-attachment))
-      :samples 4))))
+  (make-instance
+   'metatexture-pass
+   :shaders (list (make-metatexture-shader))
+   :description
+   (make-framebuffer-descrption
+    :attachments
+    (list (gficl:make-attachment-description :type :texture)
+	  (gficl:make-attachment-description :position :depth-attachment))
+    :samples 4)))

@@ -16,8 +16,7 @@
 
 (defmethod draw ((obj object) shader)
   (with-slots (meshes model normal) obj
-    (gficl:bind-matrix shader "model" model)
-    (gficl:bind-matrix shader "norm_mat" normal)
+    (shader-model-props shader model normal)
     (if (listp meshes)
 	(loop for mesh in meshes do
 	      (gficl:draw-vertex-data mesh))

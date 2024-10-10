@@ -30,4 +30,4 @@
 		  :attachments
 		  (list (gficl:make-attachment-description)
 			(gficl:make-attachment-description :position :depth-attachment))
-		  :samples 4)))
+		  :samples 1)))

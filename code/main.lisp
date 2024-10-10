@@ -50,7 +50,7 @@
   (setf *tex-size* 100)
   (update-size)
   
-  (setf *cam-pos* (gficl:make-vec '(5 1 5)))
+  (setf *cam-pos* (gficl:make-vec '(5 0 5)))
   (setf *cam-target* (gficl:make-vec '(0 0 0)))
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))

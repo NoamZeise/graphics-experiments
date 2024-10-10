@@ -1,6 +1,6 @@
 (in-package :project)
 
-(defclass metatexture-shader (shader)
+(defclass metatexture-shader (shader-no-normals)
   ())
 
 (defun make-metatexture-shader ()
@@ -13,7 +13,7 @@
 (defmethod draw ((obj metatexture-shader) scene)
 	   (gl:enable :depth-test)
 	   (gl:clear :color-buffer-bit :depth-buffer-bit)
-	   ;;hack
+	   ;;hack - until scenes formalized
 	   (gficl:bind-gl (shader obj))
 	   (gficl:bind-matrix (shader obj) "viewproj"
 			      (gficl:*mat *projection-mat* *view-mat*))
@@ -24,7 +24,6 @@
 	   (call-next-method)
 	   
 	   ;;another hack
-	   ;;(gl:disable :depth-test)
 	   (gficl:bind-matrix (shader obj) "viewproj" *ortho-mat*)
 	   (draw *quad* (shader obj)))
 

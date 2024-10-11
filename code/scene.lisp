@@ -28,7 +28,7 @@
   (setf (slot-value obj 'projection-mat)
 	(gficl:screen-perspective-matrix w h (* pi 0.3) 0.05)))
 
-(defmethod update-scene ((obj scene-3d) (dt number))
+(defmethod update-scene :after ((obj scene-3d) (dt number))
   (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target) obj
     (let ((view (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+)))
       (setf vp (gficl:*mat proj view)))))
@@ -41,6 +41,6 @@
   (setf (slot-value obj 'projection-mat)
 	(gficl:screen-orthographic-matrix w h)))
 
-(defmethod update-scene ((obj scene-2d) dt)
+(defmethod update-scene :after((obj scene-2d) dt)
   (with-slots ((vp view-projection) (proj projection-mat) (cam cam-target)) obj
     (setf vp (gficl:*mat proj (gficl:translation-matrix (gficl:get-n-vec 3 cam))))))

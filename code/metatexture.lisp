@@ -27,4 +27,4 @@
     :attachments
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples 4)))
+    :samples (msaa-samples 8))))

@@ -23,4 +23,4 @@
     :attachments
     (list (gficl:make-attachment-description)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples 1)))
+    :samples (msaa-samples 16))))

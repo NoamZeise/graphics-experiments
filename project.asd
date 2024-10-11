@@ -15,6 +15,7 @@
 		:components
 		((:file "package")
 		 (:file "constants")
+		 (:file "hardware")
 		 (:file "generic")
 		 (:file "main")
 		 (:file "assets")

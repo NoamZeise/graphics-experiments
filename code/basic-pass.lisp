@@ -1,6 +1,6 @@
 (in-package :project)
 
-(defclass basic-shader (lighting-shader)
+(defclass basic-shader (normals-shader)
   ())
 
 (defun make-basic-shader ()

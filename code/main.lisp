@@ -18,6 +18,7 @@
   (load-model 'cube #p"cube.obj")
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
+  (load-model 'bunny2 #p"bunny_uvs.obj")
   (load-model 'plane #p"plane.obj")
   (load-image 'metatexture-noise #p"assets/test.png"))
 

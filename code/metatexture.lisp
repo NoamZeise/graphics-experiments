@@ -1,12 +1,13 @@
 (in-package :project)
 
-(defclass metatexture-shader (shader)
+(defclass metatexture-shader (normals-shader)
   ())
 
 (defun make-metatexture-shader ()
   (let ((shader (gficl/load:shader #p"vert.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
+    (gficl:bind-vec shader "tex_dim" '(100 100))
     (make-instance 'metatexture-shader :shader shader)))
 
 (defmethod draw ((obj metatexture-shader) scene)

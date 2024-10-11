@@ -6,6 +6,8 @@ in vec2 fuv;
 out vec4 colour;
 
 uniform sampler2D tex;
+uniform vec3 cam;
+uniform vec2 tex_dim;
 
 void calc_uvs(inout vec2[4] uvs, vec2 E, vec2 uv) {
   uvs[0] = vec2(exp2(E.x)*uv.x,exp2(E.y)*uv.y);  
@@ -53,12 +55,15 @@ void skew_uvs(inout vec2[4] uvs, float phi) {
 }
 
 void main() {
-  int w = 100;
-  int h = 100;
+  float scale = 1 - dot(normalize(fnorm), normalize(cam - fpos));
+  scale *= scale * scale*scale*scale;
+  
+  int w = int(tex_dim.x);
+  int h = int(tex_dim.y);
 
   float u = fuv.x;
   float v = fuv.y;
-  
+
   vec2 delu = vec2(dFdx(u), dFdy(u));
   vec2 delv = vec2(dFdx(v), dFdy(v));
   vec2 delM = vec2(length(delu), length(delv));
@@ -80,5 +85,6 @@ void main() {
   vec4 T0 = metatexture(blend, uvs0);
   vec4 T1 = metatexture(blend, uvs1);
 
-  colour = lerp(phi.z, T1, T0); 
+  colour = lerp(phi.z, T1, T0);
+  colour += vec4(scale*0.006, 0, 0, 1);
 }

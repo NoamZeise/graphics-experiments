@@ -6,13 +6,13 @@
 (defun make-plane-scene ()
   (make-instance
    'plane-scene
-   :cam-pos (gficl:make-vec '(5 0 5))
+   :cam-pos (gficl:make-vec '(4 2 4))
    :cam-target (gficl:make-vec '(0 0 0))
    :objects
    (list
     (make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
     (make-object (get-asset 'cube) (object-matrix '(0 0 -2)))
-    (make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
+    (make-object (get-asset 'bunny2) (object-matrix '(-1 0 1) '(3 3 3)))
     (make-object (get-asset 'plane) (let* ((size 50) (offset (- (/ size 2))))
 				      (object-matrix (gficl:make-vec `(,offset -1 ,offset))
 						     (gficl:make-vec `(,size ,size ,size))))))))
@@ -28,6 +28,7 @@
 (defun make-square-scene ()
   (make-instance
    'square-scene
+   :cam-pos (gficl:make-vec '(0 0 0))
    :objects
    (list (make-object (get-asset 'plane) (gficl:make-matrix)))))
 

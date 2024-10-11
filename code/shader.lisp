@@ -24,14 +24,14 @@
 (defmethod free ((obj shader))
   (gficl:delete-gl (slot-value obj 'shader)))
 
-(defclass lighting-shader (shader)
+(defclass normals-shader (shader)
   () (:documentation
       "A shader that uses normal vectors for lighting"))
 
-(defmethod shader-model-props ((obj lighting-shader) model normal)	   
+(defmethod shader-model-props ((obj normals-shader) model normal)	   
   (gficl:bind-matrix (slot-value obj 'shader) "norm_mat" normal)
   (call-next-method))
 
-(defmethod shader-scene-props ((obj lighting-shader) (scene scene))
-  ;; (gficl:bind-vec (shader obj) "cam" (cam-pos scene))
+(defmethod shader-scene-props ((obj normals-shader) (scene scene))
+  (gficl:bind-vec (slot-value obj 'shader) "cam" (cam-pos scene))
   (call-next-method))

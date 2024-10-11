@@ -5,16 +5,21 @@
 	   (samples 1 :type integer))
 
 (defclass pass ()
-  ((description :accessor description :type framebuffer-descrption :initarg :description)
-   (framebuffer :initform nil :accessor framebuffer)
-   (resolve-framebuffer :initform nil :accessor resolve-framebuffer)
-   (shaders :accessor shaders :initarg :shaders)
-   (width  :initform 0 :accessor width :type integer)
-   (height :initform 0 :accessor height :type integer)
-   (clear-buffers :initform () :accessor clear-buffers)))
+  ((description :type framebuffer-descrption :initarg :description)
+   (framebuffer :initform nil)
+   (resolve-framebuffer :initform nil)
+   (shaders :initarg :shaders)
+   (width  :initform 0 :type integer)
+   (height :initform 0 :type integer)
+   (clear-buffers :initform ())
+   (resolve-multisamples :initform t :type boolean :documentation
+			 "If t, blit multisampled framebuffers into a resolve buffer")))
 
 (defgeneric get-framebuffer-textures (pass)
 	    (:documentation "Return a list of textures for each attachment of type texture."))
+
+(defgeneric get-final-framebuffer (pass)
+	    (:documentation "Return resulting framebuffer"))
 
 (defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)
 	   (resize instance (gficl:window-width) (gficl:window-height)))
@@ -29,42 +34,45 @@
 			 (t a)))
 	 attachments)))
 
-(defmethod resize ((obj pass) (width integer) (height integer))
-	   (setf (width obj) width)
-	   (setf (height obj) height)
-	   (with-slots (samples attachments) (description obj)
-	     (if (framebuffer obj) (gficl:delete-gl (framebuffer obj)))
-	     (setf (framebuffer obj) (gficl:make-framebuffer
-				      (correct-multisample-attachments samples attachments)
-				      width height :samples samples))
-	     (cond ((> samples 1)
-		    (if (resolve-framebuffer obj) (gficl:delete-gl (resolve-framebuffer obj)))
-		    (setf (resolve-framebuffer obj)
-			  (gficl:make-framebuffer attachments width height :samples 1))))))
+(defmethod resize ((obj pass) (w integer) (h integer))
+	   (with-slots (width height description (fb framebuffer) (rfb resolve-framebuffer)) obj 
+	     (with-slots (samples attachments) description
+	       (setf width w)
+	       (setf height h)
+	       (if fb (gficl:delete-gl fb))
+	       (setf fb (gficl:make-framebuffer
+			 (correct-multisample-attachments samples attachments)
+			 width height :samples samples))
+	       (cond ((and (slot-value obj 'resolve-multisamples) (> samples 1))
+		      (if rfb (gficl:delete-gl rfb))
+		      (setf rfb (gficl:make-framebuffer attachments width height :samples 1)))))))
 
-(defmethod draw :before ((obj pass) scene)
-	   (gficl:bind-gl (framebuffer obj)))
+(defmethod draw :before ((obj pass) scenes)
+	   (gficl:bind-gl (slot-value obj 'framebuffer))
+	   (gl:clear :color-buffer-bit :depth-buffer-bit))
 
-(defmethod draw ((obj pass) scene)
-	   (loop for shader in (shaders obj) do
-		 (draw shader scene)))
+(defmethod draw ((obj pass) scenes)
+	   (loop for shader in (slot-value obj 'shaders) do
+		 (loop for scene in scenes do
+		       (draw shader scene))))
 
-(defmethod draw :after ((obj pass) scene)
-	   (if (resolve-framebuffer obj)
-	       (gficl:blit-framebuffers
-		(framebuffer obj) (resolve-framebuffer obj)
-		(width obj) (height obj))))
+(defmethod draw :after ((obj pass) scenes)
+	   (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
+	     (if rfb (gficl:blit-framebuffers fb rfb width height))))
 
 (defmethod get-framebuffer-textures ((pass pass))
-	   (let ((fb (if (= 1 (fb-samples (description pass)))
-			 (framebuffer pass) (resolve-framebuffer pass))))
-	     (loop for i from 0 for a in (fb-attachments (description pass))
-		   when (eq :texture (gficl:attach-desc-type a))
-		   collecting (gficl:framebuffer-texture-id fb i))))
+  (with-slots (description (final-fb framebuffer) (resolve-fb resolve-framebuffer)) pass
+    (let ((fb (if (= 1 (fb-samples description)) final-fb resolve-fb)))
+      (loop for i from 0 for a in (fb-attachments description)
+	    when (eq :texture (gficl:attach-desc-type a))
+	    collecting (gficl:framebuffer-texture-id fb i)))))
+
+(defmethod get-final-framebuffer ((pass pass))
+  (with-slots ((fb framebuffer) (rfb resolve-framebuffer)) pass
+    (if rfb rfb fb)))
 
 (defmethod free ((obj pass))
-	   (if (framebuffer obj)
-	       (gficl:delete-gl (framebuffer obj)))
-	   (if (resolve-framebuffer obj)
-	       (gficl:delete-gl (resolve-framebuffer obj)))
-	   (loop for shader in (shaders obj) do (free shader)))
+  (with-slots (shaders (fb framebuffer) (rfb resolve-framebuffer)) obj
+    (if fb (gficl:delete-gl fb))
+    (if rfb (gficl:delete-gl rfb))
+    (loop for shader in shaders do (free shader))))

@@ -18,5 +18,39 @@
 						(gficl:make-vec `(,size ,size ,size))))))))
 
 (defmethod update-scene ((obj plane-scene) dt)
-	   (gficl:map-keys-down
-	    (:space (setf *cam-pos* (gficl:rotate-vec *cam-pos* (* dt 0.1) +world-up+)))))
+	   (call-next-method)
+	   (with-slots (cam-pos) obj
+	     (gficl:map-keys-down
+	      (:space
+	       (setf cam-pos (gficl:rotate-vec cam-pos (* dt 0.1) +world-up+))))))
+
+(defclass square-scene (scene-2d)
+  ((quad-size :initform 100 :type number)))
+
+(defun make-square-scene ()
+  (make-instance 'square-scene
+		 :objects
+		 (list (make-object (get-asset 'plane) (gficl:make-matrix)))))
+
+(defmethod initialize-instance :after ((instance square-scene) &key &allow-other-keys)
+	   (update-square-scene-quad
+	    (car (slot-value instance 'objects)) (slot-value instance 'quad-size)))
+
+(defun update-square-scene-quad (obj size)
+  (update-model obj (gficl:*mat
+		     (gficl:translation-matrix (list size size 0))
+		     (gficl:scale-matrix (list size size 1))
+		     (gficl:make-matrix-from-data
+		      `((1 0 0 0)
+			(0 0 1 0)
+			(0 1 0 0)
+			(0 0 0 1))))))
+
+(defmethod update-scene ((obj square-scene) dt)
+	   (call-next-method)
+	   (with-slots (objects (size quad-size)) obj
+	     (gficl:map-keys-down
+	      (:equal (setf size (+ size (* 100 dt)))
+		      (update-square-scene-quad (car objects) size))
+	      (:minus (setf size (- size (* 100 dt)))
+		      (update-square-scene-quad (car objects) size)))))

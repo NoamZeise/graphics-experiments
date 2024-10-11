@@ -32,8 +32,6 @@
 	   (gficl:bind-matrix (shader obj) "norm_mat" normal)
 	   (call-next-method))
 
-(defmethod shader-scene-props ((obj shader) (scene scene))
+(defmethod shader-scene-props ((obj lighting-shader) (scene scene))
 	   ;(gficl:bind-vec (shader obj) "cam" (cam-pos scene))
 	   (call-next-method))
-
-(defconstant +shader-folder+ #p"shaders/")

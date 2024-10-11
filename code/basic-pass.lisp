@@ -9,14 +9,6 @@
 
 (defmethod draw ((obj basic-shader) scene)
 	   (gl:enable :depth-test)
-	   (gl:clear :color-buffer-bit :depth-buffer-bit)
-	   
-	   ;;hack
-	   (gficl:bind-gl (shader obj))
-	   (gficl:bind-matrix (shader obj) "viewproj"
-			      (gficl:*mat *projection-mat* *view-mat*))
-	   ;(gficl:bind-vec (shader obj) "cam" *cam-pos*)
-
 	   (call-next-method))
 
 (defclass basic-pass (pass)

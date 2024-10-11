@@ -21,3 +21,7 @@
 	(loop for mesh in meshes do
 	      (gficl:draw-vertex-data mesh))
       (gficl:draw-vertex-data meshes))))
+
+(defmacro object-matrix (position &optional (size ''(1 1 1)))
+  `(gficl:*mat (gficl:translation-matrix ,position)
+	       (gficl:scale-matrix ,size)))

@@ -34,5 +34,3 @@
 
 (defparameter *assets* nil
 	      "Holds the loaded game assets.")
-
-(defconstant +asset-folder+ #p"assets/")

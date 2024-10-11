@@ -16,13 +16,17 @@
 			 "If t, blit multisampled framebuffers into a resolve buffer")))
 
 (defgeneric get-framebuffer-textures (pass)
-	    (:documentation "Return a list of textures for each attachment of type texture."))
+  (:documentation "Return a list of textures for each attachment of type texture."))
 
 (defgeneric get-final-framebuffer (pass)
-	    (:documentation "Return resulting framebuffer"))
+  (:documentation "Return resulting framebuffer"))
 
-(defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)
-	   (resize instance (gficl:window-width) (gficl:window-height)))
+(defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)	   
+  (resize instance (gficl:window-width) (gficl:window-height))
+  (with-slots (description clear-buffers) instance
+    (setf clear-buffers
+	  (loop for a in (fb-attachments description) nconcing
+		(gficl:attach-desc-clear-bits a)))))
 
 (defun correct-multisample-attachments (samples attachments)
   "Change any :texture types from multisamples attachments to :renderbuffer"
@@ -35,30 +39,29 @@
 	 attachments)))
 
 (defmethod resize ((obj pass) (w integer) (h integer))
-	   (with-slots (width height description (fb framebuffer) (rfb resolve-framebuffer)) obj 
-	     (with-slots (samples attachments) description
-	       (setf width w)
-	       (setf height h)
-	       (if fb (gficl:delete-gl fb))
-	       (setf fb (gficl:make-framebuffer
-			 (correct-multisample-attachments samples attachments)
-			 width height :samples samples))
-	       (cond ((and (slot-value obj 'resolve-multisamples) (> samples 1))
-		      (if rfb (gficl:delete-gl rfb))
-		      (setf rfb (gficl:make-framebuffer attachments width height :samples 1)))))))
+  (with-slots (width height description (fb framebuffer) (rfb resolve-framebuffer)) obj 
+    (with-slots (samples attachments) description
+      (setf width w) (setf height h)
+      (if fb (gficl:delete-gl fb))
+      (setf fb (gficl:make-framebuffer
+		(correct-multisample-attachments samples attachments) w h :samples samples))
+      (cond ((and (slot-value obj 'resolve-multisamples) (> samples 1))
+	     (if rfb (gficl:delete-gl rfb))
+	     (setf rfb (gficl:make-framebuffer attachments w h :samples 1)))))))
 
 (defmethod draw :before ((obj pass) scenes)
-	   (gficl:bind-gl (slot-value obj 'framebuffer))
-	   (gl:clear :color-buffer-bit :depth-buffer-bit))
+  (with-slots (framebuffer clear-buffers) obj
+    (gficl:bind-gl framebuffer)
+    (apply #'gl:clear clear-buffers)))
 
 (defmethod draw ((obj pass) scenes)
-	   (loop for shader in (slot-value obj 'shaders) do
-		 (loop for scene in scenes do
-		       (draw shader scene))))
+  (loop for shader in (slot-value obj 'shaders) do
+	(loop for scene in scenes do
+	      (draw shader scene))))
 
 (defmethod draw :after ((obj pass) scenes)
-	   (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
-	     (if rfb (gficl:blit-framebuffers fb rfb width height))))
+  (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
+    (if rfb (gficl:blit-framebuffers fb rfb width height))))
 
 (defmethod get-framebuffer-textures ((pass pass))
   (with-slots (description (final-fb framebuffer) (resolve-fb resolve-framebuffer)) pass

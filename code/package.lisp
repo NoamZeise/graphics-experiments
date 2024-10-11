@@ -2,5 +2,5 @@
 #+windows (deploy:define-library deploy::libwinpthread :dont-deploy t)
 
 (defpackage project
-	    (:use :cl)
-	    (:export #:run))
+  (:use :cl)
+  (:export #:run))

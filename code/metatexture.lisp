@@ -10,10 +10,10 @@
     (make-instance 'metatexture-shader :shader shader)))
 
 (defmethod draw ((obj metatexture-shader) scene)
-	   (gl:enable :depth-test)
-	   (gl:active-texture :texture0)
-	   (gficl:bind-gl (get-asset 'metatexture-noise))
-	   (call-next-method))
+  (gl:enable :depth-test)
+  (gl:active-texture :texture0)
+  (gficl:bind-gl (get-asset 'metatexture-noise))
+  (call-next-method))
 
 (defclass metatexture-pass (pass)
   ())

@@ -12,7 +12,7 @@
    (list
     (make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
     (make-object (get-asset 'cube) (object-matrix '(0 0 -2)))
-    (make-object (get-asset 'bunny2) (object-matrix '(-1 0 1) '(3 3 3)))
+    (make-object (get-asset 'bunny) (object-matrix '(-1 0 1) '(3 3 3)))
     (make-object (get-asset 'plane) (let* ((size 50) (offset (- (/ size 2))))
 				      (object-matrix (gficl:make-vec `(,offset -1 ,offset))
 						     (gficl:make-vec `(,size ,size ,size))))))))

@@ -15,7 +15,7 @@
    (resolve-multisamples :initform t :type boolean :documentation
 			 "If t, blit multisampled framebuffers into a resolve buffer")))
 
-(defgeneric get-framebuffer-textures (pass)
+(defgeneric get-textures (pass)
   (:documentation "Return a list of textures for each attachment of type texture."))
 
 (defgeneric get-final-framebuffer (pass)
@@ -56,14 +56,13 @@
 
 (defmethod draw ((obj pass) scenes)
   (loop for shader in (slot-value obj 'shaders) do
-	(loop for scene in scenes do
-	      (draw shader scene))))
+	(loop for scene in scenes do (draw shader scene))))
 
 (defmethod draw :after ((obj pass) scenes)
   (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
     (if rfb (gficl:blit-framebuffers fb rfb width height))))
 
-(defmethod get-framebuffer-textures ((pass pass))
+(defmethod get-textures ((pass pass))
   (with-slots (description (final-fb framebuffer) (resolve-fb resolve-framebuffer)) pass
     (let ((fb (if (= 1 (fb-samples description)) final-fb resolve-fb)))
       (loop for i from 0 for a in (fb-attachments description)
@@ -79,3 +78,8 @@
     (if fb (gficl:delete-gl fb))
     (if rfb (gficl:delete-gl rfb))
     (loop for shader in shaders do (free shader))))
+
+;;; post-process subclass
+
+;; (defclass post-pass (pass)
+;;   () (:documentation ""))

@@ -7,7 +7,7 @@
   (loop for vd being the hash-value of *assets* do
 	(if (listp vd)
 	    (loop for v in vd do (gficl:delete-gl v))
-	    (gficl:delete-gl vd))))
+	    (gficl:delete-gl vd)))) 
 
 (defun add-asset (key asset)
   (cond ((gethash key *assets*)

@@ -7,4 +7,4 @@
   (:documentation "draw using the given argument"))
 
 (defgeneric free (obj)
-  (:documentation "free the resources held by the object"))
+	    (:documentation "free the resources held by the object"))

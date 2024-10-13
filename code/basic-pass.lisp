@@ -21,6 +21,6 @@
    :description
    (make-framebuffer-descrption
     :attachments
-    (list (gficl:make-attachment-description)
+    (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples (msaa-samples 16))))

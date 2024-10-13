@@ -19,6 +19,9 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
+  (add-asset  'dummy-data
+   (gficl:make-vertex-data
+    (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   (load-image 'metatexture-noise #p"assets/test.png"))
 
 (defun setup ()
@@ -26,6 +29,8 @@
 
   (setf *basic-pass* (make-basic-pass))
   (setf *metatexture-pass* (make-metatexture-pass))
+
+  (setf *aos-pipeline* (make-aos-pipeline))
   
   (setf *3d-scene* (make-plane-scene))
   (setf *quad-scene* (make-square-scene))
@@ -36,13 +41,15 @@
 (defun cleanup ()
   (cleanup-assets)
   (free *metatexture-pass*)
-  (free *basic-pass*))
+  (free *basic-pass*)
+  (free *aos-pipeline*))
 
 (defun resize-callback (w h)
   (resize *metatexture-pass* w h)
   (resize *basic-pass* w h)
   (resize *3d-scene* w h)
-  (resize *quad-scene* w h))
+  (resize *quad-scene* w h)
+  (resize *aos-pipeline* w h))
 
 (defun update ()
   (gficl:with-update (dt)
@@ -55,15 +62,19 @@
 
 (defun render ()
   (gficl:with-render
-   (let ((pass *metatexture-pass*))
-     (draw pass (list *3d-scene* *quad-scene*))
-     (gficl:blit-framebuffers
-      (get-final-framebuffer pass) nil (gficl:window-width) (gficl:window-height)))))
+   (draw *aos-pipeline* (list *3d-scene* *quad-scene*)))
+  ;; (let ((pass *metatexture-pass*))
+  ;;    (draw pass (list *3d-scene* *quad-scene*))
+  ;;    (gficl:blit-framebuffers
+  ;;     (get-final-framebuffer pass) nil (gficl:window-width) (gficl:window-height))))
+  )
 
 ;;; Global Variables
 
 (defparameter *metatexture-pass* nil)
 (defparameter *basic-pass* nil)
+
+(defparameter *aos-pipeline* nil)
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)

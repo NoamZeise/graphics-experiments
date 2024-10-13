@@ -23,6 +23,8 @@
 		 (:file "scene")
 		 (:file "shader")
 		 (:file "pass")
+		 (:file "pipeline")
+		 
 		 (:file "basic-pass")
 		 (:file "metatexture")
 		 (:file "plane-scene")))))

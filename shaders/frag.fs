@@ -24,6 +24,6 @@ void main() {
   
   vec3 light = normalize(vec3(2, 3, 1));
   vec4 c_light = vec4(1);
-
+  
   colour = PI * brdf(light, view) * c_light * clamp(dot(normal,light), 0, 1);
 }

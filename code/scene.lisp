@@ -39,6 +39,6 @@
   (setf (slot-value obj 'projection-mat)
 	(gficl:screen-orthographic-matrix w h)))
 
-(defmethod update-scene :after((obj scene-2d) dt)
+(defmethod update-scene :after ((obj scene-2d) dt)
   (with-slots ((vp view-projection) (proj projection-mat) (cam cam-pos)) obj
     (setf vp (gficl:*mat proj (gficl:translation-matrix (gficl:get-n-vec 3 cam))))))

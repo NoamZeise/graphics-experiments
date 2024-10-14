@@ -32,9 +32,9 @@
 
 (defun load-image (key filename)
   (add-asset key
-	     (multiple-value-bind (tex w h) (gficl/load:image filename)
-	       (add-asset-props key (pairlis '(:width :height) (list w h)))
-	       tex)))
+    (multiple-value-bind (tex w h) (gficl/load:image filename)
+      (add-asset-props key (pairlis '(:width :height) (list w h)))
+      tex)))
 
 (defun get-asset (key)
   (let ((a (gethash key *assets*)))

@@ -5,10 +5,14 @@
 
 (defun make-basic-shader ()
   (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
+    (gficl:bind-gl shader)
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (make-instance 'basic-shader :shader shader)))
 
 (defmethod draw ((obj basic-shader) scene)
   (gl:enable :depth-test)
+  (gl:active-texture :texture0)
+  (gficl:bind-gl (get-asset 'uv))
   (call-next-method))
 
 (defclass basic-pass (pass)

@@ -7,10 +7,12 @@ out vec4 colour;
 
 uniform vec3 cam;
 
+uniform sampler2D tex;
+
 #define PI 3.14159265358979
 
 vec4 lambertian() {
- vec4 c_obj = vec4(1, 0, 0, 1);
+ vec4 c_obj = texture(tex, fuv);
  return c_obj * (1/PI);
 }
 
@@ -25,5 +27,5 @@ void main() {
   vec3 light = normalize(vec3(2, 3, 1));
   vec4 c_light = vec4(1);
   
-  colour = PI * brdf(light, view) * c_light * clamp(dot(normal,light), 0, 1);
+  colour = PI * brdf(light, view) * c_light * clamp(dot(normal,light), 0.2, 1);
 }

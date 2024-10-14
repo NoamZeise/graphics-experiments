@@ -6,7 +6,8 @@
   ())
 
 (defun make-metatexture-shader ()
-  (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
+  (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
+				   :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gficl:bind-vec shader "tex_dim"

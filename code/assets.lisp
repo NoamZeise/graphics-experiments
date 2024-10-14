@@ -1,7 +1,8 @@
 (in-package :project)
 
 (defun setup-asset-table ()
-  (setf *assets* (make-hash-table)))
+  (setf *assets* (make-hash-table))
+  (setf *asset-props* (make-hash-table)))
 
 (defun cleanup-assets ()
   (loop for vd being the hash-value of *assets* do
@@ -16,6 +17,12 @@
 	 (gficl:delete-gl (gethash key *assets*))))
   (setf (gethash key *assets*) asset))
 
+(defun add-asset-props (key props)
+  (setf (gethash key *asset-props*) props))
+
+(defun get-asset-prop (key prop)
+  (cdr (assoc prop (gethash key *asset-props*))))
+
 (defun load-model (key filename)
   (add-asset
    key
@@ -24,7 +31,10 @@
      (if (= 1 (length data)) (car data) data))))
 
 (defun load-image (key filename)
-  (add-asset key (gficl/load:image filename)))
+  (add-asset key
+	     (multiple-value-bind (tex w h) (gficl/load:image filename)
+	       (add-asset-props key (pairlis '(:width :height) (list w h)))
+	       tex)))
 
 (defun get-asset (key)
   (let ((a (gethash key *assets*)))
@@ -34,3 +44,5 @@
 
 (defparameter *assets* nil
 	      "Holds the loaded game assets.")
+
+(defparameter *asset-props* nil)

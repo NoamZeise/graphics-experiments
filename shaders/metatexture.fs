@@ -28,7 +28,7 @@ vec4 lerp(float t, vec4 v1, vec4 v2) {
 vec4 metatexture(vec2 blend, vec2[4] u) {
   vec4 T[4];
   for(int i = 0; i < 4; i++) {
-    T[i] = texture(tex, u[i]);
+    T[i] = vec4(texture(tex, u[i]).rg, 0, 1);
   }
   return lerp(blend.x,
 	      lerp(blend.y, T[3], T[1]),
@@ -86,5 +86,4 @@ void main() {
   vec4 T1 = metatexture(blend, uvs1);
 
   colour = lerp(phi.z, T1, T0);
-  colour += vec4(scale*0.006, 0, 0, 1);
 }

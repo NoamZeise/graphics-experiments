@@ -6,10 +6,12 @@
   ())
 
 (defun make-metatexture-shader ()
-  (let ((shader (gficl/load:shader #p"vert.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
+  (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
-    (gficl:bind-vec shader "tex_dim" '(100 100))
+    (gficl:bind-vec shader "tex_dim"
+		    (list (get-asset-prop 'metatexture-noise :width)
+			  (get-asset-prop 'metatexture-noise :height)))
     (make-instance 'metatexture-shader :shader shader)))
 
 (defmethod draw ((obj metatexture-shader) scene)

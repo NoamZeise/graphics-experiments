@@ -22,7 +22,8 @@
   (add-asset  'dummy-data
    (gficl:make-vertex-data
     (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
-  (load-image 'metatexture-noise #p"assets/test.png"))
+  (load-image 'test #p"assets/test.png")
+  (load-image 'metatexture-noise #p"assets/noise.png"))
 
 (defun setup ()
   (load-assets)

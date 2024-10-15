@@ -42,6 +42,7 @@
 (defclass post-shader (shader)
   () (:documentation "draw method draws 3 dummy verts for a post processing step"))
 
-(defmethod draw ((shader post-shader) arg)
+(defmethod draw ((shader post-shader) (scene post-scene))
+  (draw scene shader)
   (gficl:bind-gl (get-asset 'dummy-data))
   (gl:draw-arrays :triangles 0 3))

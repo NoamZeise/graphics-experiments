@@ -44,3 +44,26 @@
 (defmethod update-scene :after ((obj scene-2d) dt)
   (with-slots ((vp view-projection) (proj projection-mat) (cam cam-pos)) obj
     (setf vp (gficl:*mat proj (gficl:translation-matrix (gficl:get-n-vec 3 cam))))))
+
+;;; post-processing scene
+
+(defclass post-scene (scene)
+  ((target-width :initarg :target-width :initform 0 :type number)
+   (target-height :initarg :target-height :initform 0 :type number)
+   (transform :initform (gficl:make-matrix) :type gficl:matrix)
+   (tex-alist :initform nil)))
+
+(defmethod resize ((obj post-scene) w h)
+  (with-slots ((tw target-width) (th target-height) transform) obj
+    (if (and (> tw 0) (> th 0)) 
+	(setf transform (gficl:target-resolution-matrix tw th w h)))))
+
+(defun set-post-texs (post-scene tex-alist)
+  (setf (slot-value post-scene 'tex-alist) tex-alist))
+
+(defun get-post-tex (post-scene key)
+  (cadr (assoc key (slot-value post-scene 'tex-alist))))
+
+(defmethod draw ((scene post-scene) shader)
+  "draw scene without calling draw on objects (only calls shader scene props)"
+  (shader-scene-props shader scene))

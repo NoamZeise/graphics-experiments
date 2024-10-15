@@ -1,7 +1,11 @@
 (in-package :project)
 
 (defclass shader ()
-  ((shader :initarg :shader :type gficl:shader)))
+  ((shader :initarg :shader :type gficl:shader))
+  (:documentation "encapsulates an opengl shader object.
+Update shader uniforms with the following:
+- Model props is called each time an object is draw.
+- Scene props is called each time a scene is draw with the shader."))
 
 (defgeneric shader-model-props (obj model normal)
   (:documentation "set shader model uniforms"))

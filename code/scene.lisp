@@ -3,7 +3,8 @@
 (defclass scene ()
   ((objects :initarg :objects)
    (view-projection :accessor view-projection :initform (gficl:make-matrix) :type gficl:matrix)
-   (cam-pos :accessor cam-pos :initarg :cam-pos :type gficl:vec)))
+   (cam-pos :accessor cam-pos :initarg :cam-pos :type gficl:vec))
+  (:documentation "A state to be drawn by a shader. Usually a list of objects and a camera. Also encapsulates updating the scene each frame (ie in response to user input)."))
 
 (defgeneric update-scene (scene dt)
   (:documentation "Update the scene's objects"))

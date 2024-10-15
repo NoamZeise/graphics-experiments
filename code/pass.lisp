@@ -13,10 +13,13 @@
    (height :initform 0 :type integer)
    (clear-buffers :initform ())
    (resolve-multisamples :initform t :type boolean :documentation
-			 "If t, blit multisampled framebuffers into a resolve buffer")))
+			 "If t, blit multisampled framebuffers into a resolve buffer"))
+  (:documentation
+   "A framebuffer-backed object that holds a list of shaders.
+When drawn with, draws the scene using all of it's shaders"))
 
 (defgeneric get-textures (pass)
-  (:documentation "Return a list of textures for each attachment of type texture."))
+	    (:documentation "Return a list of textures for each attachment of type texture."))
 
 (defgeneric get-final-framebuffer (pass)
   (:documentation "Return resulting framebuffer"))

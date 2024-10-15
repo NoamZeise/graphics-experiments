@@ -1,7 +1,9 @@
 (in-package :project)
 
 (defclass pipeline ()
-  ((passes :initarg :passes :documentation "alist of keys and passes")))
+  ((passes :initarg :passes :documentation "alist of keys and passes"))
+  (:documentation "Ecapsulates an entire graphics pipeline for drawing a list of scenes.
+Comprises of multiple passes."))
 
 (defmacro foreach-pass (pipeline (p) fn)
   (let ((pass (gensym)))

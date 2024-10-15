@@ -65,3 +65,8 @@ pull: gficl
 	git pull
 	cd gficl
 	git pull
+
+.PHONY: docker
+docker:
+	docker build . -t project
+	docker run -it --rm -v=.:/project project

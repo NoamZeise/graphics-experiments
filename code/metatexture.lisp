@@ -1,13 +1,42 @@
 (in-package :project)
 
-;;; Metatexture Noise Pass
+;;; Colour Pass
 
-(defclass metatexture-shader (normals-shader)
-  ())
+(defclass mt-colour-shader (normals-shader) ())
+
+(defun make-mt-colour-shader ()
+  (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
+    (gficl:bind-gl shader)
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)
+    (make-instance 'mt-colour-shader :shader shader)))
+
+(defmethod draw ((obj mt-colour-shader) scene)
+  (gl:enable :depth-test)
+  (gl:active-texture :texture0)
+  (gficl:bind-gl (get-asset 'uv))
+  (call-next-method))
+
+(defclass mt-colour-pass (pass) ())
+
+(defun make-mt-colour-pass ()
+  (make-instance
+   'mt-colour-pass
+   :shaders (list (make-mt-colour-shader))
+   :description
+   (make-framebuffer-descrption
+    :attachments
+    (list (gficl:make-attachment-description :type :texture)
+	  (gficl:make-attachment-description :position :depth-attachment))
+    :samples (msaa-samples 16))))
+
+;;; Metatexture Pass
+
+
+(defclass metatexture-shader (normals-shader) ())
 
 (defun make-metatexture-shader ()
-  (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
-				   :shader-folder +shader-folder+)))
+  (let ((shader (gficl/load:shader
+		 #p"metatexture.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gficl:bind-vec shader "tex_dim"
@@ -21,8 +50,7 @@
   (gficl:bind-gl (get-asset 'metatexture-noise))
   (call-next-method))
 
-(defclass metatexture-pass (pass)
-  ())
+(defclass metatexture-pass (pass) ())
 
 (defun make-metatexture-pass ()
   (make-instance
@@ -35,21 +63,21 @@
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples (msaa-samples 8))))
 
-;;; Metatexture Post Processing Pass
+;;; Post Processing Pass
 
-(defclass metatexture-post-shader (post-shader)
+(defclass mt-post-shader (post-shader)
   ())
 
-(defun make-metatexture-post-shader ()
+(defun make-mt-post-shader ()
   (let ((shader (gficl/load:shader
 		 #p"metatex-post.vs" #p"metatex-post.fs"
 		 :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "mt") 0)
     (gl:uniformi (gficl:shader-loc shader "col") 1)
-    (make-instance 'metatexture-post-shader :shader shader)))
+    (make-instance 'mt-post-shader :shader shader)))
 
-(defmethod shader-scene-props ((s metatexture-post-shader) (scene post-scene))
+(defmethod shader-scene-props ((s mt-post-shader) (scene post-scene))
   (with-slots (transform) scene
     (gficl:bind-gl (slot-value s 'shader))
     (gficl:bind-matrix (slot-value s 'shader) "transform" transform)
@@ -58,41 +86,41 @@
     (gl:active-texture :texture1)
     (gl:bind-texture :texture-2d (get-post-tex scene :col))))
 
-(defclass metatexture-post-scene (post-scene)
-  ())
+(defclass mt-post-pass (pass) ())
 
-(defclass metatexture-post-pass (pass)
-  ())
+(defun make-mt-post-pass ()
+  (make-instance
+   'mt-post-pass
+   :shaders (list (make-mt-post-shader))		
+   :description
+   (make-framebuffer-descrption
+    :attachments
+    (list (gficl:make-attachment-description)))))
 
-(defun make-metatexture-post-pass ()
-  (make-instance 'metatexture-post-pass
-		 :shaders (list (make-metatexture-post-shader))		
-		 :description
-		 (make-framebuffer-descrption
-		  :attachments
-		  (list (gficl:make-attachment-description)))))
-
-(defmethod resize ((pass metatexture-post-pass) w h)	   
+(defmethod resize ((pass mt-post-pass) w h)	   
   (call-next-method))
 
-(defmethod draw ((pass metatexture-post-pass) (scene post-scene))
+(defmethod draw ((pass mt-post-pass) (scene post-scene))
   (with-slots (shaders) pass
     (gl:disable :depth-test)
-    (loop for shader in	 shaders do
-	  (draw shader scene))))
+    (loop for shader in	shaders do (draw shader scene))))
 
-;;; Pipline
+;;; Post Scene
+
+(defclass mt-post-scene (post-scene) ())
+
+;;; Pipeline
 
 (defclass aos-pipeline (pipeline)
-  ((post-scene :initarg :post-scene :type metatexture-post-scene)))
+  ((post-scene :initarg :post-scene :type mt-post-scene)))
 
 (defun make-aos-pipeline ()  
   (make-instance
    'aos-pipeline
-   :post-scene (make-instance 'metatexture-post-scene)
-   :passes (list (cons :mt (make-metatexture-pass))
-		 (cons :col (make-basic-pass))
-		 (cons :post (make-metatexture-post-pass)))))
+   :post-scene (make-instance 'mt-post-scene)
+   :passes (list (cons :col (make-mt-colour-pass))
+		 (cons :mt (make-metatexture-pass))		 
+		 (cons :post (make-mt-post-pass)))))
 
 (defmethod resize ((pl aos-pipeline) w h)
   (call-next-method)
@@ -101,9 +129,9 @@
     (set-post-texs scene (alist-fb-textures pl '(:mt :col)))))
 
 (defmethod draw ((pl aos-pipeline) scenes)
-	   (draw (get-pass pl :mt) scenes)
-	   (draw (get-pass pl :col) scenes)
-	   (draw (get-pass pl :post) (slot-value pl 'post-scene))
-	   (gficl:blit-framebuffers
-	    (get-final-framebuffer (get-pass pl :post))
-	    nil (gficl:window-width) (gficl:window-height)))
+  (draw (get-pass pl :mt) scenes)
+  (draw (get-pass pl :col) scenes)
+  (draw (get-pass pl :post) (slot-value pl 'post-scene))
+  (gficl:blit-framebuffers
+   (get-final-framebuffer (get-pass pl :post))
+   nil (gficl:window-width) (gficl:window-height)))

@@ -28,12 +28,9 @@
 
 (defun setup ()
   (load-assets)
-
-  (setf *aos-pipeline* (make-aos-pipeline))
-  
+  (setf *aos-pipeline* (make-aos-pipeline))  
   (setf *3d-scene* (make-plane-scene))
-  (setf *quad-scene* (make-square-scene))
-  
+  (setf *quad-scene* (make-square-scene))  
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
 
@@ -50,7 +47,7 @@
   (gficl:with-update (dt)
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
-     (:f (gficl:toggle-fullscreen)))   
+     (:f (gficl:toggle-fullscreen)))
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)))
 

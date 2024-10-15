@@ -19,6 +19,8 @@
   (shader-scene-props shader scene)
   (loop for o in (slot-value scene 'objects) do (draw o shader)))
 
+;;; 3d camera scene
+
 (defclass scene-3d (scene)
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)
    (cam-target :initarg :cam-target :type gficl:vec)
@@ -33,6 +35,8 @@
   (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target) obj
     (let ((view (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+)))
       (setf vp (gficl:*mat proj view)))))
+
+;;; 2d camera scene
 
 (defclass scene-2d (scene)
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)))

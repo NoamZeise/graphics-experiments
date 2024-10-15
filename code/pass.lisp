@@ -78,8 +78,3 @@
     (if fb (gficl:delete-gl fb))
     (if rfb (gficl:delete-gl rfb))
     (loop for shader in shaders do (free shader))))
-
-;;; post-process subclass
-
-;; (defclass post-pass (pass)
-;;   () (:documentation ""))

@@ -92,9 +92,7 @@
 (defmethod draw ((pl aos-pipeline) scenes)
 	   (draw (get-pass pl :mt) scenes)
 	   (draw (get-pass pl :col) scenes)
-	   (draw (get-pass pl :post)
-		 (list (cons :mt (get-textures (get-pass pl :mt)))
-		       (cons :col (get-textures (get-pass pl :col)))))
+	   (draw (get-pass pl :post) (alist-fb-textures pl '(:mt :col)))
 	   (gficl:blit-framebuffers
 	    (get-final-framebuffer (get-pass pl :post))
 	    nil (gficl:window-width) (gficl:window-height)))

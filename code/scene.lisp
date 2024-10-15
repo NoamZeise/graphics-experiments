@@ -21,11 +21,13 @@
 
 (defclass scene-3d (scene)
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)
-   (cam-target :initarg :cam-target :type gficl:vec)))
+   (cam-target :initarg :cam-target :type gficl:vec)
+   (cam-fov :initform 0.3 :type float)
+   (cam-near :initform 0.05 :type float)))
 
 (defmethod resize ((obj scene-3d) w h)
-  (setf (slot-value obj 'projection-mat)
-	(gficl:screen-perspective-matrix w h (* pi 0.3) 0.05)))
+  (with-slots ((proj projection-mat) (fov cam-fov) (near cam-near)) obj
+      (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near))))
 
 (defmethod update-scene :after ((obj scene-3d) (dt number))
   (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target) obj

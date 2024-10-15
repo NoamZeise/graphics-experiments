@@ -59,3 +59,9 @@ clean:
 .PHONY: cleanall
 cleanall: clean
 	rm -rf gficl/
+
+.PHONY: pull
+pull: gficl
+	git pull
+	cd gficl
+	git pull

@@ -18,9 +18,18 @@
 						     (gficl:make-vec `(,size ,size ,size))))))))
 
 (defmethod update-scene ((obj plane-scene) dt)
-  (with-slots (cam-pos) obj
-    (gficl:map-keys-down
-     (:space (setf cam-pos (gficl:rotate-vec cam-pos (* dt 0.1) +world-up+))))))
+  (with-slots (cam-pos cam-target cam-fov) obj
+    (let ((speed (* dt 2)) (fov-speed (/ dt 10)))
+      (gficl:map-keys-down
+       (:space (setf cam-pos (gficl:rotate-vec cam-pos (* dt 0.1) +world-up+)))
+       (:w (setf cam-target (gficl:+vec cam-target (list speed 0 0))))
+       (:a (setf cam-target (gficl:+vec cam-target (list 0 speed 0))))
+       (:s (setf cam-target (gficl:+vec cam-target (list (- speed) 0 0))))
+       (:d (setf cam-target (gficl:+vec cam-target (list 0 (- speed) 0))))
+       (:z (setf cam-fov (+ cam-fov fov-speed))
+	   (resize obj (gficl:window-width) (gficl:window-height)))
+       (:x (setf cam-fov (- cam-fov fov-speed))
+	   (resize obj (gficl:window-width) (gficl:window-height)))))))
 
 (defclass square-scene (scene-2d)
   ((quad-size :initform 100 :type number)))

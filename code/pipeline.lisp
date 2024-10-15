@@ -15,3 +15,10 @@
 
 (defmethod free ((pl pipeline))
   (foreach-pass pl (p) (free p)))
+
+(defun alist-fb-textures (pl passes)
+  "Given a PIPELINE and a list of keys for an alist,
+return an alist of GFICL:TEXTURE objects from each pass specificed by the keys in passes.
+The keys to the texture alist are the same as the keys used for the passes."
+  (loop for p in passes collecting
+	(cons p (get-textures (get-pass pl p)))))

@@ -16,7 +16,7 @@ void main() {
   vec4 world = model * vec4(pos, 1);
   fpos = vec3(world);
   fuv = uv;
-  fnorm = vec3(norm_mat * vec4(normal, 1));
-  vec4 ss_norm = viewproj * vec4(fnorm, 1);
-  gl_Position = (viewproj * world) + vec4(ss_norm.rg, 0, 0)/80;
+  fnorm = vec3(norm_mat * vec4(normal, 0));
+  vec4 ss_norm = viewproj * vec4(fnorm, 0);
+  gl_Position = (viewproj * world) + vec4(ss_norm.xy, 0, 0)/80;
 }

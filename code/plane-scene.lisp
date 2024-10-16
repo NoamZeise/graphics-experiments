@@ -23,9 +23,9 @@
       (gficl:map-keys-down
        (:space (setf cam-pos (gficl:rotate-vec cam-pos (* dt 0.1) +world-up+)))
        (:w (setf cam-target (gficl:+vec cam-target (list speed 0 0))))
-       (:a (setf cam-target (gficl:+vec cam-target (list 0 speed 0))))
+       (:a (setf cam-target (gficl:+vec cam-target (list 0 0 speed))))
        (:s (setf cam-target (gficl:+vec cam-target (list (- speed) 0 0))))
-       (:d (setf cam-target (gficl:+vec cam-target (list 0 (- speed) 0))))
+       (:d (setf cam-target (gficl:+vec cam-target (list 0 0 (- speed)))))
        (:z (setf cam-fov (+ cam-fov fov-speed))
 	   (resize obj (gficl:window-width) (gficl:window-height)))
        (:x (setf cam-fov (- cam-fov fov-speed))

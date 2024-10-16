@@ -61,7 +61,7 @@
     :attachments
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples (msaa-samples 8))))
+    :samples (msaa-samples 16))))
 
 ;;; Post Processing Pass
 

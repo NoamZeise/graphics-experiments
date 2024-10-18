@@ -11,7 +11,7 @@
    (shaders :initarg :shaders)
    (width  :initform 0 :type integer)
    (height :initform 0 :type integer)
-   (clear-buffers :initform ())
+   (clear-buffers)
    (resolve-multisamples :initform t :type boolean :documentation
 			 "If t, blit multisampled framebuffers into a resolve buffer"))
   (:documentation
@@ -19,7 +19,7 @@
 When drawn with, draws the scene using all of it's shaders"))
 
 (defgeneric get-textures (pass)
-	    (:documentation "Return a list of textures for each attachment of type texture."))
+  (:documentation "Return a list of textures for each attachment of type texture."))
 
 (defgeneric get-final-framebuffer (pass)
   (:documentation "Return resulting framebuffer"))
@@ -40,6 +40,9 @@ When drawn with, draws the scene using all of it's shaders"))
 			    (setf (gficl:attach-desc-type ad) :renderbuffer) ad))
 			 (t a)))
 	 attachments)))
+
+(defmethod reload ((obj pass))
+  (with-slots (shaders) obj (loop for s in shaders do (reload s))))
 
 (defmethod resize ((obj pass) (w integer) (h integer))
   (with-slots (width height description (fb framebuffer) (rfb resolve-framebuffer)) obj 

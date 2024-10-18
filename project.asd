@@ -10,7 +10,8 @@
   :entry-point "project:run"
   :depends-on (:gficl
 	       :gficl/load
-	       :alexandria)
+	       :alexandria
+	       :trivial-main-thread)
   :components ((:module "code"
 		:components
 		((:file "package")

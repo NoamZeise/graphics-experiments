@@ -1,16 +1,19 @@
 (in-package :project)
 
 (defun run ()
-  (gficl:with-window
-   (:title "project"
-    :resize-callback #'resize-callback
-    :opengl-version-major 4
-    :opengl-version-minor 6)
-   (setup)
-   (loop until (gficl:closedp)
-	 do (update)
-	 do (render))
-   (cleanup)))
+  (setf trivial-main-thread:*on-error* #'invoke-debugger)
+  (trivial-main-thread:with-body-in-main-thread
+   ()
+   (gficl:with-window
+    (:title "project"
+	    :resize-callback #'resize-callback
+	    :opengl-version-major 4
+	    :opengl-version-minor 6)
+    (setup)
+    (loop until (gficl:closedp)
+	  do (update)
+	  do (render))
+    (cleanup))))
 
 (defun load-assets ()
   (setup-asset-table)
@@ -20,8 +23,8 @@
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
   (add-asset  'dummy-data
-   (gficl:make-vertex-data
-    (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
+	      (gficl:make-vertex-data
+	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   (load-image 'test #p"assets/test.png")
   (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png"))
@@ -30,7 +33,8 @@
   (load-assets)
   (setf *aos-pipeline* (make-aos-pipeline))  
   (setf *3d-scene* (make-plane-scene))
-  (setf *quad-scene* (make-square-scene))  
+  (setf *quad-scene* (make-square-scene))
+  (setf *should-reload* nil)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
 
@@ -49,11 +53,21 @@
      (:escape (glfw:set-window-should-close))
      (:f (gficl:toggle-fullscreen)))
     (update-scene *3d-scene* dt)
-    (update-scene *quad-scene* dt)))
+    (update-scene *quad-scene* dt)
+    (cond (*should-reload* (loop for pl in *should-reload* do (reload pl))
+			   (setf *should-reload* nil)))))
 
 (defun render ()
   (gficl:with-render
    (draw *aos-pipeline* (list *3d-scene* *quad-scene*))))
+
+;;; signal running program functions
+
+(defun signal-quit ()
+  (glfw:set-window-should-close))
+
+(defun signal-reload (pipeline)
+  (setf *should-reload* (cons pipeline *should-reload*)))
 
 ;;; Global Variables
 
@@ -61,3 +75,5 @@
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)
+
+(defparameter *should-reload* nil)

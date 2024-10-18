@@ -4,11 +4,11 @@
 
 (defclass mt-colour-shader (normals-shader) ())
 
-(defun make-mt-colour-shader ()
+(defmethod reload ((s mt-colour-shader))
   (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
-    (make-instance 'mt-colour-shader :shader shader)))
+    (setf (slot-value s 'shader) shader)))
 
 (defmethod draw ((obj mt-colour-shader) scene)
   (gl:enable :depth-test)
@@ -21,7 +21,7 @@
 (defun make-mt-colour-pass ()
   (make-instance
    'mt-colour-pass
-   :shaders (list (make-mt-colour-shader))
+   :shaders (list (make-instance 'mt-colour-shader))
    :description
    (make-framebuffer-descrption
     :attachments
@@ -31,10 +31,9 @@
 
 ;;; Metatexture Pass
 
-
 (defclass metatexture-shader (normals-shader) ())
 
-(defun make-metatexture-shader ()
+(defmethod reload ((s metatexture-shader))
   (let ((shader (gficl/load:shader
 		 #p"metatexture.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
@@ -42,7 +41,7 @@
     (gficl:bind-vec shader "tex_dim"
 		    (list (get-asset-prop 'metatexture-noise :width)
 			  (get-asset-prop 'metatexture-noise :height)))
-    (make-instance 'metatexture-shader :shader shader)))
+    (setf (slot-value s 'shader) shader)))
 
 (defmethod draw ((obj metatexture-shader) scene)
   (gl:enable :depth-test)
@@ -55,7 +54,7 @@
 (defun make-metatexture-pass ()
   (make-instance
    'metatexture-pass
-   :shaders (list (make-metatexture-shader))
+   :shaders (list (make-instance 'metatexture-shader))
    :description
    (make-framebuffer-descrption
     :attachments
@@ -68,14 +67,13 @@
 (defclass mt-post-shader (post-shader)
   ())
 
-(defun make-mt-post-shader ()
+(defmethod reload ((s mt-post-shader))
   (let ((shader (gficl/load:shader
-		 #p"metatex-post.vs" #p"metatex-post.fs"
-		 :shader-folder +shader-folder+)))
+		 #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder +shader-folder+)))
     (gficl:bind-gl shader)
     (gl:uniformi (gficl:shader-loc shader "mt") 0)
     (gl:uniformi (gficl:shader-loc shader "col") 1)
-    (make-instance 'mt-post-shader :shader shader)))
+    (setf (slot-value s 'shader) shader)))
 
 (defmethod shader-scene-props ((s mt-post-shader) (scene post-scene))
   (with-slots (transform) scene
@@ -91,7 +89,7 @@
 (defun make-mt-post-pass ()
   (make-instance
    'mt-post-pass
-   :shaders (list (make-mt-post-shader))		
+   :shaders (list (make-instance 'mt-post-shader))		
    :description
    (make-framebuffer-descrption
     :attachments

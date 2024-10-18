@@ -12,6 +12,9 @@ Comprises of multiple passes."))
 (defun get-pass (pipeline key)
   (cdr (assoc key (slot-value pipeline 'passes))))
 
+(defmethod reload ((pl pipeline))
+  (foreach-pass pl (p) (reload p)))
+
 (defmethod resize ((pl pipeline) (w integer) (h integer))
   (foreach-pass pl (p) (resize p w h)))
 

@@ -17,12 +17,12 @@ Update shader uniforms with the following:
 (defmethod initialize-instance :after ((obj shader) &key &allow-other-keys)
   (reload obj))
 
-(defmethod reload-shader :before ((obj shader))
+(defmethod reload :before ((obj shader))
   (with-slots (new-obj) obj
     (if new-obj (setf new-obj nil) (gficl:delete-gl (slot-value obj 'shader)))))
 
 (defmethod shader-model-props ((obj shader) model normal)
-	   (gficl:bind-matrix (slot-value obj 'shader) "model" model))
+  (gficl:bind-matrix (slot-value obj 'shader) "model" model))
 
 (defmethod shader-scene-props ((obj shader) (scene scene))
   (gficl:bind-matrix (slot-value obj 'shader) "viewproj" (view-projection scene)))

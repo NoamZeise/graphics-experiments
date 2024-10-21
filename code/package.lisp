@@ -3,4 +3,5 @@
 
 (defpackage project
   (:use :cl)
+  (:local-nicknames (:notify :org.shirakumo.file-notify))
   (:export #:run))

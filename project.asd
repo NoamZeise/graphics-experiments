@@ -11,7 +11,8 @@
   :depends-on (:gficl
 	       :gficl/load
 	       :alexandria
-	       :trivial-main-thread)
+	       :trivial-main-thread
+	       :file-notify)
   :components ((:module "code"
 		:components
 		((:file "package")

@@ -26,6 +26,7 @@
 		 (:file "shader")
 		 (:file "pass")
 		 (:file "pipeline")
+		 (:file "hot-reload")
 		 
 		 (:file "metatexture")
 		 (:file "plane-scene")))))

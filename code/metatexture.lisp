@@ -5,10 +5,13 @@
 (defclass mt-colour-shader (normals-shader) ())
 
 (defmethod reload ((s mt-colour-shader))
-  (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
-    (gficl:bind-gl shader)
-    (gl:uniformi (gficl:shader-loc shader "tex") 0)
-    (setf (slot-value s 'shader) shader)))
+   (watch-files '(#p"vert.vs" #p"frag.fs"))
+   (if (files-modified '(#p"vert.vs" #p"frag.fs"))
+     (call-next-method)
+     (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
+       (gficl:bind-gl shader)
+       (gl:uniformi (gficl:shader-loc shader "tex") 0)
+       (setf (slot-value s 'shader) shader))))
 
 (defmethod draw ((obj mt-colour-shader) scene)
   (gl:enable :depth-test)

@@ -30,6 +30,7 @@
   (load-image 'uv #p"assets/uv.png"))
 
 (defun setup ()
+  (init-watched)
   (load-assets)
   (setf *aos-pipeline* (make-aos-pipeline))  
   (setf *3d-scene* (make-plane-scene))
@@ -60,19 +61,6 @@
 (defun render ()
   (gficl:with-render
    (draw *aos-pipeline* (list *3d-scene* *quad-scene*))))
-
-(defun watch ()
-  (notify:watch #p"shaders/vert.vs"))
-
-(defun unwatch-all ()
-  (loop while (notify:unwatch (car (notify:list-watched)))))
-
-(defun process-watched ()
-  (flet ((process
-	  (f e)
-	  (print (list "->" f e))
-	  (cond ((eql e :modify) (print f)))))
-	(notify:process-events #'process)))
 
 ;;; signal running program functions
 

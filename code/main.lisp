@@ -35,7 +35,6 @@
   (setf *aos-pipeline* (make-aos-pipeline))  
   (setf *3d-scene* (make-plane-scene))
   (setf *quad-scene* (make-square-scene))
-  (setf *should-reload* nil)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
 
@@ -55,8 +54,15 @@
      (:f (gficl:toggle-fullscreen)))
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)
-    (cond (*should-reload* (loop for pl in *should-reload* do (reload pl))
-			   (setf *should-reload* nil)))))
+    (process-watched)
+    (cond (*file-change*
+	   (setf *file-change* nil)
+	   (setf *should-reload* (list *aos-pipeline*))))
+    (cond
+     (*should-reload*
+      (loop for pl in *should-reload*
+	    do (reload pl))
+      (setf *should-reload* nil)))))
 
 (defun render ()
   (gficl:with-render
@@ -70,11 +76,12 @@
 (defun signal-reload (pipeline)
   (setf *should-reload* (cons pipeline *should-reload*)))
 
+(defun signal-reload-all ()
+  (setf *file-change* t))
+
 ;;; Global Variables
 
 (defparameter *aos-pipeline* nil)
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)
-
-(defparameter *should-reload* nil)

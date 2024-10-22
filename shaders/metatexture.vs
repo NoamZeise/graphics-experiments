@@ -18,5 +18,5 @@ void main() {
   fuv = uv;
   fnorm = vec3(norm_mat * vec4(normal, 0));
   vec4 ss_norm = viewproj * vec4(fnorm, 0);
-  gl_Position = (viewproj * world) + vec4(ss_norm.xy, 0, 0)/80;
+  gl_Position = (viewproj * world) + vec4(ss_norm.xy, 0, 0)/80;  
 }

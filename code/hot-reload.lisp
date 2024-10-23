@@ -19,8 +19,7 @@
 	       (make-watched :events events))
 	 (notify:watch file :events events))))
 
-(defun watch-files (files &key (events (list :modify))
-			  (folder +shader-folder+))
+(defun watch-files (files &key (events (list :modify)) (folder +shader-folder+))
   (loop for file in files do
 	(watch-file (probe-file (merge-pathnames folder file)) events)))
 

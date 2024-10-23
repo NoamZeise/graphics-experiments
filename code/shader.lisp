@@ -21,12 +21,12 @@ Update shader uniforms with the following:
   (with-slots (new-obj) obj
     (if new-obj (setf new-obj nil) (gficl:delete-gl (slot-value obj 'shader)))))
 
-(defmacro shader-reload-files (files &body body)
+(defmacro shader-reload-files ((files &key (folder +shader-folder+)) &body body)
   "Only recompile the shader if any of the files have been modified."
   `(progn
-     (watch-files ,files)
-     (cond ((files-modified ,files)
-	    (format t "loading shaders ~a~%" ,files)
+     (watch-files ,files :folder ,folder)
+     (cond ((files-modified ,files :folder ,folder)
+	    (format t "loading shaders ~a in ~a~%" ,files ,folder)
 	    (call-next-method)
 	    ,@body))))
 

@@ -35,15 +35,16 @@
 (defclass metatexture-shader (normals-shader) ())
 
 (defmethod reload ((s metatexture-shader))
-  (shader-reload-files '(#p"metatexture.vs" #p"metatexture.fs")
-    (let ((shader (gficl/load:shader
-		   #p"metatexture.vs" #p"metatexture.fs" :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "tex") 0)
-      (gficl:bind-vec shader "tex_dim"
-		      (list (get-asset-prop 'metatexture-noise :width)
-			    (get-asset-prop 'metatexture-noise :height)))
-      (setf (slot-value s 'shader) shader))))
+  (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
+    (shader-reload-files ('(#p"metatexture.vs" #p"metatexture.fs") :folder shader-folder)
+      (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
+				       :shader-folder shader-folder)))
+	(gficl:bind-gl shader)
+	(gl:uniformi (gficl:shader-loc shader "tex") 0)
+	(gficl:bind-vec shader "tex_dim"
+			(list (get-asset-prop 'metatexture-noise :width)
+			      (get-asset-prop 'metatexture-noise :height)))
+	(setf (slot-value s 'shader) shader)))))
 
 (defmethod draw ((obj metatexture-shader) scene)
   (gl:enable :depth-test)
@@ -70,13 +71,14 @@
   ())
 
 (defmethod reload ((s mt-post-shader))
-  (shader-reload-files '(#p"metatex-post.vs" #p"metatex-post.fs")
-    (let ((shader (gficl/load:shader
-		   #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "mt") 0)
-      (gl:uniformi (gficl:shader-loc shader "col") 1)
-      (setf (slot-value s 'shader) shader))))
+  (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
+    (shader-reload-files ('(#p"metatex-post.vs" #p"metatex-post.fs") :folder shader-folder)
+      (let ((shader (gficl/load:shader
+		     #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder shader-folder)))
+	(gficl:bind-gl shader)
+	(gl:uniformi (gficl:shader-loc shader "mt") 0)
+	(gl:uniformi (gficl:shader-loc shader "col") 1)
+	(setf (slot-value s 'shader) shader)))))
 
 (defmethod shader-scene-props ((s mt-post-shader) (scene post-scene))
   (with-slots (transform) scene

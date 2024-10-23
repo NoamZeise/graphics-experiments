@@ -2,15 +2,13 @@
 
 (defstruct watched
   events
-  (modified t :type boolean))
+  (modified nil :type boolean))
 
 (defparameter *watched* nil)
-(defparameter *should-reload* nil)
 (defparameter *file-change* nil)
 
 (defun init-watched ()
   (setf *watched* (make-hash-table))
-  (setf *should-reload* nil)
   (setf *file-change* nil))
 
 (defun watch-file (file events)
@@ -25,34 +23,34 @@
 
 (defun file-modified (file)
   (let ((fw (gethash file *watched*)))
-    (if fw (let ((modified (watched-modified fw)))
-	     (if modified
-		 (setf (watched-modified fw)
-		       ;; file watch not working on windows for now
-		       #+windows t
-		       #-windows nil
-		       ))
-	     modified)
-      fw)))
+    (if fw (watched-modified fw) nil)))
 
 (defun files-modified (files &key (folder +shader-folder+))
-  (let ((mod nil))
-    (loop for file in files
-	  when (file-modified (probe-file (merge-pathnames folder file)))
-	  do (setf mod t))
-    mod))
+  (loop for file in files
+	when (file-modified (probe-file (merge-pathnames folder file)))
+	return t finally 'nil))
+
+(defun set-all-unmodified ()
+  "after reloading shaders, set all to unmodified"
+  (loop for v being the hash-values of *watched* do
+	(setf (watched-modified v) nil)))
 
 (defun unwatch-all ()
   (loop while (notify:unwatch (car (notify:list-watched)))))
 
+(defun set-all-modified ()
+  "manual override incase hot reload not working"
+  (loop for v being the hash-values of *watched* do
+	(setf (watched-modified v) t))
+  (setf *file-change* t))
+
 (defun process-watched ()
   (flet ((process (f e)
-	   (print (list "->" f e))
-	   (let ((fw (gethash f *watched*)))
+           (print (list "->" f e))
+	   (let ((fw (gethash (probe-file f) *watched*)))
 	     (if (and fw (loop for ev in (watched-events fw)
 			       when (eql e ev) return t
 			       finally 'nil))
-		 (progn (print "to-update")
-			(setf *file-change* t)
+		 (progn (setf *file-change* t)
 			(setf (watched-modified fw) t))))))
 	(notify:process-events #'process)))

@@ -29,4 +29,5 @@
 		 (:file "hot-reload")
 		 
 		 (:file "metatexture")
+		 (:file "outline")
 		 (:file "plane-scene")))))

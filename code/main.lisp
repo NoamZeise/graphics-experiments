@@ -32,7 +32,8 @@
 (defun setup ()
   (init-watched)
   (load-assets)
-  (setf *aos-pipeline* (make-aos-pipeline))  
+  (setf *aos-pipeline* (make-aos-pipeline))
+  (setf *outline-pipeline* (make-outline-pipeline))
   (setf *3d-scene* (make-plane-scene))
   (setf *quad-scene* (make-square-scene))
   (resize-callback (gficl:window-width) (gficl:window-height))
@@ -40,12 +41,14 @@
 
 (defun cleanup ()
   (cleanup-assets)
-  (free *aos-pipeline*))
+  (free *aos-pipeline*)
+  (free *outline-pipeline*))
 
 (defun resize-callback (w h)
   (resize *3d-scene* w h)
   (resize *quad-scene* w h)
-  (resize *aos-pipeline* w h))
+  (resize *aos-pipeline* w h)
+  (resize *outline-pipeline* w h))
 
 (defun update ()
   (gficl:with-update (dt)
@@ -57,31 +60,27 @@
     (process-watched)
     (cond (*file-change*
 	   (setf *file-change* nil)
-	   (setf *should-reload* (list *aos-pipeline*))))
-    (cond
-     (*should-reload*
-      (loop for pl in *should-reload*
-	    do (reload pl))
-      (setf *should-reload* nil)))))
+	   (loop for pl in (list *aos-pipeline* *outline-pipeline*)
+		 do (reload pl))
+	   (set-all-unmodified)))))
 
 (defun render ()
   (gficl:with-render
-   (draw *aos-pipeline* (list *3d-scene* *quad-scene*))))
+   (draw *outline-pipeline* (list *3d-scene* *quad-scene*))))
 
 ;;; signal running program functions
 
 (defun signal-quit ()
   (glfw:set-window-should-close))
 
-(defun signal-reload (pipeline)
-  (setf *should-reload* (cons pipeline *should-reload*)))
-
-(defun signal-reload-all ()
-  (setf *file-change* t))
+(defun signal-reload ()
+  "manually trigger shader reload"
+  (set-all-modifed))
 
 ;;; Global Variables
 
 (defparameter *aos-pipeline* nil)
+(defparameter *outline-pipeline* nil)
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)

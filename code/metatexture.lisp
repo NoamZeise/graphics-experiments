@@ -5,14 +5,15 @@
 (defclass mt-colour-shader (normals-shader) ())
 
 (defmethod reload ((s mt-colour-shader))
-  (shader-reload-files '(#p"vert.vs" #p"frag.fs")			
+  (shader-reload-files (s '(#p"vert.vs" #p"frag.fs"))			
     (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
       (gficl:bind-gl shader)
       (gl:uniformi (gficl:shader-loc shader "tex") 0)
       (setf (slot-value s 'shader) shader))))
 
 (defmethod draw ((obj mt-colour-shader) scene)
-  (gl:enable :depth-test)
+  (gl:enable :depth-test :cull-face)
+  (gl:cull-face :front)
   (gl:active-texture :texture0)
   (gficl:bind-gl (get-asset 'uv))
   (call-next-method))
@@ -36,7 +37,7 @@
 
 (defmethod reload ((s metatexture-shader))
   (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
-    (shader-reload-files ('(#p"metatexture.vs" #p"metatexture.fs") :folder shader-folder)
+    (shader-reload-files (s '(#p"metatexture.vs" #p"metatexture.fs") :folder shader-folder)
       (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
 				       :shader-folder shader-folder)))
 	(gficl:bind-gl shader)
@@ -72,7 +73,7 @@
 
 (defmethod reload ((s mt-post-shader))
   (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
-    (shader-reload-files ('(#p"metatex-post.vs" #p"metatex-post.fs") :folder shader-folder)
+    (shader-reload-files (s '(#p"metatex-post.vs" #p"metatex-post.fs") :folder shader-folder)
       (let ((shader (gficl/load:shader
 		     #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder shader-folder)))
 	(gficl:bind-gl shader)

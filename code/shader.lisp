@@ -19,21 +19,23 @@ Update shader uniforms with the following:
 
 (defmethod reload ((obj shader))
   (with-slots (new-obj) obj
-    (if new-obj (setf new-obj nil) (gficl:delete-gl (slot-value obj 'shader)))))
+    (if new-obj (setf new-obj nil)
+      (gficl:delete-gl (slot-value obj 'shader)))))
 
-(defmacro shader-reload-files ((files &key (folder +shader-folder+)) &body body)
+(defmacro shader-reload-files ((shader files &key (folder +shader-folder+)) &body body)
   "Only recompile the shader if any of the files have been modified."
-  `(progn
-     (watch-files ,files :folder ,folder)
-     (cond ((files-modified ,files :folder ,folder)
-	    (format t "loading shaders ~a in ~a~%" ,files ,folder)
-	    (call-next-method)
-	    ,@body))))
+  (let ((n-o (gensym)))
+    `(with-slots ((,n-o new-obj)) ,shader
+      (if ,n-o (watch-files ,files :folder ,folder))
+      (cond ((or ,n-o (files-modified ,files :folder ,folder))
+	     (format t "loading shaders ~a in ~a~%" ,files ,folder)
+	     (call-next-method)
+	     ,@body)))))
 
 (defmacro reload-body (shader shader-files))
 
 (defmethod shader-model-props ((obj shader) model normal)
-	   (gficl:bind-matrix (slot-value obj 'shader) "model" model))
+  (gficl:bind-matrix (slot-value obj 'shader) "model" model))
 
 (defmethod shader-scene-props ((obj shader) (scene scene))
   (gficl:bind-matrix (slot-value obj 'shader) "viewproj" (view-projection scene)))

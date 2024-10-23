@@ -1,8 +1,14 @@
 (in-package :project)
 
-(defstruct (framebuffer-descrption (:conc-name fb-))
-	   (attachments)
+(defstruct (framebuffer-descrption (:conc-name fb-) (:constructor nil))
+	   (attachments ())
 	   (samples 1 :type integer))
+
+(defun make-framebuffer-descrption (attachments &key (samples 1))
+  (let ((fbd (make-instance 'framebuffer-descrption)))
+    (setf (fb-attachments fbd) attachments)
+    (setf (fb-samples fbd) (msaa-samples samples))
+    fbd))
 
 (defclass pass ()
   ((description :type framebuffer-descrption :initarg :description)
@@ -56,8 +62,9 @@ When drawn with, draws the scene using all of it's shaders"))
 	     (setf rfb (gficl:make-framebuffer attachments w h :samples 1)))))))
 
 (defmethod draw :before ((obj pass) scenes)
-  (with-slots (framebuffer clear-buffers) obj
+  (with-slots (framebuffer (rfb resolve-framebuffer) clear-buffers) obj
     (gficl:bind-gl framebuffer)
+    (if rfb (gl:enable :multisample) (gl:disable :multisample))
     (apply #'gl:clear clear-buffers)))
 
 (defmethod draw ((obj pass) scenes)

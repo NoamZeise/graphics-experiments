@@ -32,6 +32,7 @@
 (defun setup ()
   (init-watched)
   (load-assets)
+  (setf *signal-fn* nil)
   (setf *aos-pipeline* (make-aos-pipeline))
   (setf *outline-pipeline* (make-outline-pipeline))
   (setf *3d-scene* (make-plane-scene))
@@ -58,6 +59,9 @@
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)
     (process-watched)
+    (cond (*signal-fn*
+	   (funcall *signal-fn*)
+	   (setf *signal-fn* nil)))
     (cond (*file-change*
 	   (setf *file-change* nil)
 	   (loop for pl in (list *aos-pipeline* *outline-pipeline*)
@@ -75,7 +79,14 @@
 
 (defun signal-reload ()
   "manually trigger shader reload"
-  (set-all-modifed))
+  (set-all-modified))
+
+(defun signal-fn-lambda (fn)
+  (setf *signal-fn* fn))
+
+(defmacro signal-fn (&body body)
+  "call fn during next update loop"
+  `(signal-fn-lambda (function (lambda () ,@body))))
 
 ;;; Global Variables
 
@@ -84,3 +95,5 @@
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)
+
+(defparameter *signal-fn* nil)

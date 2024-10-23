@@ -2,7 +2,7 @@
 
 ;;; Colour Pass
 
-(defclass mt-colour-shader (normals-shader) ())
+(defclass mt-colour-shader (normals-cam-shader) ())
 
 (defmethod reload ((s mt-colour-shader))
   (shader-reload-files (s '(#p"vert.vs" #p"frag.fs"))			
@@ -26,10 +26,9 @@
    :shaders (list (make-instance 'mt-colour-shader))
    :description
    (make-framebuffer-descrption
-    :attachments
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples (msaa-samples 16))))
+    :samples 16)))
 
 ;;; Metatexture Pass
 
@@ -61,10 +60,9 @@
    :shaders (list (make-instance 'metatexture-shader))
    :description
    (make-framebuffer-descrption
-    :attachments
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples (msaa-samples 16))))
+    :samples 16)))
 
 ;;; Post Processing Pass
 
@@ -97,9 +95,7 @@
    'mt-post-pass
    :shaders (list (make-instance 'mt-post-shader))		
    :description
-   (make-framebuffer-descrption
-    :attachments
-    (list (gficl:make-attachment-description)))))
+   (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
 
 (defmethod resize ((pass mt-post-pass) w h)	   
   (call-next-method))

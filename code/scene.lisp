@@ -30,7 +30,7 @@
 
 (defmethod resize ((obj scene-3d) w h)
   (with-slots ((proj projection-mat) (fov cam-fov) (near cam-near)) obj
-      (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near))))
+      (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near 100))))
 
 (defmethod update-scene :after ((obj scene-3d) (dt number))
   (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target) obj

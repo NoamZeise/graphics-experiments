@@ -51,7 +51,7 @@
 	(gficl:translation-matrix (list size size 0))
 	(gficl:scale-matrix (list size size 1))
 	(gficl:make-matrix-from-data
-	 `((1 0 0 0)
+	 `((-1 0 0 0)
 	   (0 0 1 0)
 	   (0 1 0 0)
 	   (0 0 0 1))))))

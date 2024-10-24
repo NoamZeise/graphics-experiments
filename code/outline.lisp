@@ -19,7 +19,12 @@
   (call-next-method)
   (gl:polygon-offset 0 0)
   (gl:depth-func :less)
+  (gl:cull-face :front)
   (gl:disable :polygon-offset-fill))
+
+(defmethod draw ((obj backface-shader) (scene scene-2d))
+  ;; dont draw outline for 2d scenes
+  )
 
 ;; colour + backfaces pass
 
@@ -27,7 +32,7 @@
 
 (defun make-backface-colour-pass ()
   (make-instance 'backface-colour-pass
-     :shaders (list (make-instance 'mt-colour-shader)
+     :shaders (list (make-instance 'cel-shader)
 		    (make-instance 'backface-shader))
      :description
      (make-framebuffer-descrption
@@ -39,44 +44,15 @@
 	   (loop for shader in (slot-value obj 'shaders) do
 	(loop for scene in scenes do (draw shader scene))))
 
-;; normal shader
-
-(defclass show-normals (normals-shader) ())
-
-(defmethod reload ((s show-normals))
-  (let ((files (list #p"normals.vs" #p"normals.fs")))
-    (shader-reload-files (s files)
-      (let ((shader (gficl/load:shader (car files) (cadr files)
-				       :shader-folder +shader-folder+)))
-	(setf (slot-value s 'shader) shader)))))
-
-(defmethod draw ((obj show-normals) scene)
-  (gl:enable :depth-test :cull-face)
-  (gl:cull-face :front)
-  (call-next-method))
-
-(defclass normals-pass (pass) ())
-
-(defun make-normals-pass ()
-  (make-instance 'normals-pass
-   :shaders (list (make-instance 'show-normals))
-   :description
-   (make-framebuffer-descrption
-    (list (gficl:make-attachment-description)
-	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples 16)))
-
 ;; pipeline
 
 (defclass outline-pipeline (pipeline) ())
 
 (defun make-outline-pipeline ()
   (make-instance 'outline-pipeline
-  :passes (list (cons :col (make-backface-colour-pass))
-		(cons :norm (make-normals-pass)))))
+  :passes (list (cons :col (make-backface-colour-pass)))))
 
 (defmethod draw ((pl outline-pipeline) scenes)
-  (draw (get-pass pl :norm) scenes)
   (draw (get-pass pl :col) scenes)
   (gficl:blit-framebuffers
    (get-final-framebuffer (get-pass pl :col)) nil

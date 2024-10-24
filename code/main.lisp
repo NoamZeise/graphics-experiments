@@ -29,21 +29,29 @@
   (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png"))
 
+(defun create-pipelines ()
+  (setf *aos-pipeline* (make-aos-pipeline))
+  (setf *outline-pipeline* (make-outline-pipeline)))
+
+(defun create-scenes ()
+  (setf *3d-scene* (make-plane-scene))
+  (setf *quad-scene* (make-square-scene)))
+
 (defun setup ()
   (init-watched)
   (load-assets)
   (setf *signal-fn* nil)
-  (setf *aos-pipeline* (make-aos-pipeline))
-  (setf *outline-pipeline* (make-outline-pipeline))
-  (setf *3d-scene* (make-plane-scene))
-  (setf *quad-scene* (make-square-scene))
+  (create-pipelines)
+  (create-scenes)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test))
 
-(defun cleanup ()
-  (cleanup-assets)
+(defun cleanup-pipelines ()
   (free *aos-pipeline*)
   (free *outline-pipeline*))
+
+(defun cleanup ()
+  (cleanup-assets))
 
 (defun resize-callback (w h)
   (resize *3d-scene* w h)
@@ -87,6 +95,12 @@
 (defmacro signal-fn (&body body)
   "call fn during next update loop"
   `(signal-fn-lambda (function (lambda () ,@body))))
+
+(defun signal-recreate-scenes ()
+  (signal-fn (create-scenes)))
+
+(defun signal-recreate-pipelines ()
+  (signal-fn (cleanup-pipelines) (create-pipelines)))
 
 ;;; Global Variables
 

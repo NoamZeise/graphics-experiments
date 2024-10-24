@@ -2,28 +2,12 @@
 
 ;;; Colour Pass
 
-(defclass mt-colour-shader (normals-cam-shader) ())
-
-(defmethod reload ((s mt-colour-shader))
-  (shader-reload-files (s '(#p"vert.vs" #p"frag.fs"))			
-    (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "tex") 0)
-      (setf (slot-value s 'shader) shader))))
-
-(defmethod draw ((obj mt-colour-shader) scene)
-  (gl:enable :depth-test :cull-face)
-  (gl:cull-face :front)
-  (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'uv))
-  (call-next-method))
-
 (defclass mt-colour-pass (pass) ())
 
 (defun make-mt-colour-pass ()
   (make-instance
    'mt-colour-pass
-   :shaders (list (make-instance 'mt-colour-shader))
+   :shaders (list (make-instance 'standard-colour-shader))
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture)
@@ -47,7 +31,7 @@
 	(setf (slot-value s 'shader) shader)))))
 
 (defmethod draw ((obj metatexture-shader) scene)
-  (gl:enable :depth-test)
+  (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
   (gficl:bind-gl (get-asset 'metatexture-noise))
   (call-next-method))
@@ -102,7 +86,7 @@
 
 (defmethod draw ((pass mt-post-pass) (scene post-scene))
   (with-slots (shaders) pass
-    (gl:disable :depth-test)
+    (gl:disable :depth-test :cull-face)
     (loop for shader in	shaders do (draw shader scene))))
 
 ;;; Post Scene

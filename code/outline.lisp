@@ -22,9 +22,8 @@
   (gl:cull-face :front)
   (gl:disable :polygon-offset-fill))
 
-(defmethod draw ((obj backface-shader) (scene scene-2d))
-  ;; dont draw outline for 2d scenes
-  )
+;; dont draw outline for 2d scenes
+(defmethod draw ((obj backface-shader) (scene scene-2d)))
 
 ;; colour + backfaces pass
 
@@ -39,10 +38,6 @@
       (list (gficl:make-attachment-description)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))
-
-(defmethod draw ((obj backface-colour-pass) scenes)
-	   (loop for shader in (slot-value obj 'shaders) do
-	(loop for scene in scenes do (draw shader scene))))
 
 ;; pipeline
 

@@ -44,13 +44,15 @@
   (create-pipelines)
   (create-scenes)
   (resize-callback (gficl:window-width) (gficl:window-height))
-  (gl:enable :depth-test))
+  (gl:enable :depth-test)
+  (gl:front-face :ccw))
 
 (defun cleanup-pipelines ()
   (free *aos-pipeline*)
   (free *outline-pipeline*))
 
 (defun cleanup ()
+  (cleanup-pipelines)
   (cleanup-assets))
 
 (defun resize-callback (w h)

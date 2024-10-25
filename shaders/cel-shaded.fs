@@ -18,8 +18,8 @@ void main() {
   vec4 c_obj = texture(tex, fuv);
 
   float lambertian = dot(normal,light);
-  lambertian = smoothstep(0.3, 0.46, lambertian);
-  lambertian = clamp(lambertian, 0.1, 1.0);
+  lambertian = smoothstep(0.2, 0.46, lambertian);
+  lambertian = clamp(lambertian, 0.4, 1.0);
   
   colour = c_obj * c_light * lambertian;
 }

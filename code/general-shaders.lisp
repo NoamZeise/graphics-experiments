@@ -30,7 +30,6 @@
 
 (defmethod draw ((obj show-normals-shader) scene)
   (gl:enable :depth-test :cull-face)
-  (gl:cull-face :front)
   (call-next-method))
 
 ;;; cel shaded shader

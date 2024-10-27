@@ -2,7 +2,7 @@
 
 ;; backface pass
 
-(defclass backface-shader (normals-shader) ())
+(defclass backface-shader (normals-cam-shader) ())
 
 (defmethod reload ((s backface-shader))
   (let ((folder (merge-pathnames #p"outline/" +shader-folder+))

@@ -22,6 +22,7 @@
     (let ((speed (* dt 2)) (fov-speed (/ dt 10)))
       (gficl:map-keys-down
        (:space (setf cam-pos (gficl:rotate-vec cam-pos (* dt 0.1) +world-up+)))
+       (:left-shift (setf cam-pos (gficl:rotate-vec cam-pos (* dt -0.1) +world-up+)))
        (:w (setf cam-target (gficl:+vec cam-target (list speed 0 0))))
        (:a (setf cam-target (gficl:+vec cam-target (list 0 0 speed))))
        (:s (setf cam-target (gficl:+vec cam-target (list (- speed) 0 0))))

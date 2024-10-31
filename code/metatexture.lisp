@@ -48,10 +48,15 @@
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 16)))
 
+(defmethod draw :before ((obj metatexture-pass) scenes)
+  (gl:clear-color 0.5 0.5 0.5 0))
+
+(defmethod draw :after ((obj metatexture-pass) scenes)
+  (gl:clear-color 0 0 0 0))
+
 ;;; Post Processing Pass
 
-(defclass mt-post-shader (post-shader)
-  ())
+(defclass mt-post-shader (post-shader) ())
 
 (defmethod reload ((s mt-post-shader))
   (let ((shader-folder (merge-pathnames #p"metatexture/" (merge-pathnames +shader-folder+))))
@@ -59,6 +64,7 @@
       (let ((shader (gficl/load:shader
 		     #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder shader-folder)))
 	(gficl:bind-gl shader)
+	(gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.01)
 	(gl:uniformi (gficl:shader-loc shader "mt") 0)
 	(gl:uniformi (gficl:shader-loc shader "col") 1)
 	(setf (slot-value s 'shader) shader)))))
@@ -72,7 +78,7 @@
     (gl:active-texture :texture1)
     (gl:bind-texture :texture-2d (get-post-tex scene :col))))
 
-(defclass mt-post-pass (pass) ())
+(defclass mt-post-pass (post-pass) ())
 
 (defun make-mt-post-pass ()
   (make-instance
@@ -80,14 +86,6 @@
    :shaders (list (make-instance 'mt-post-shader))		
    :description
    (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
-
-(defmethod resize ((pass mt-post-pass) w h)	   
-  (call-next-method))
-
-(defmethod draw ((pass mt-post-pass) (scene post-scene))
-  (with-slots (shaders) pass
-    (gl:disable :depth-test :cull-face)
-    (loop for shader in	shaders do (draw shader scene))))
 
 ;;; Post Scene
 

@@ -47,5 +47,23 @@
 (defmethod draw ((obj cel-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'test))
+  (gficl:bind-gl (get-asset 'colours))
+  (call-next-method))
+
+;;; xtoon shader
+
+(defclass xtoon-shader (normals-cam-shader) ())
+
+(defmethod reload ((s xtoon-shader))
+  (shader-reload-files (s '(#p"cel-shaded.vs" #p"xtoon.fs"))			
+    (let ((shader (gficl/load:shader #p"cel-shaded.vs" #p"xtoon.fs"
+				     :shader-folder +shader-folder+)))
+      (gficl:bind-gl shader)
+      (gl:uniformi (gficl:shader-loc shader "toontex") 0)
+      (setf (slot-value s 'shader) shader))))
+
+(defmethod draw ((obj xtoon-shader) scene)
+  (gl:enable :depth-test :cull-face)
+  (gl:active-texture :texture0)
+  (gficl:bind-gl (get-asset 'xtoon))
   (call-next-method))

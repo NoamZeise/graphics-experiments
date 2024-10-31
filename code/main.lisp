@@ -26,12 +26,16 @@
 	      (gficl:make-vertex-data
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   (load-image 'test #p"assets/test.png")
-  (load-image 'metatexture-noise #p"assets/noise.png")
-  (load-image 'uv #p"assets/uv.png"))
+  (load-image 'metatexture-noise #p"assets/noise.png")	3
+  (load-image 'uv #p"assets/uv.png")
+  (load-image 'colours #p"assets/colours.png")
+  (load-image 'xtoon #p"assets/xtoon.png"))
 
 (defun create-pipelines ()
   (setf *aos-pipeline* (make-aos-pipeline))
-  (setf *outline-pipeline* (make-outline-pipeline)))
+  (setf *outline-pipeline* (make-outline-pipeline))
+  (setf *pipelines* (list *outline-pipeline* *aos-pipeline* (make-xtoon-pipeline)))
+  (setf *active-pipeline* *pipelines*))
 
 (defun create-scenes ()
   (setf *3d-scene* (make-plane-scene))
@@ -45,27 +49,27 @@
   (create-scenes)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test)
-  (gl:front-face :ccw))
-
-(defun cleanup-pipelines ()
-  (free *aos-pipeline*)
-  (free *outline-pipeline*))
-
+  (gl:front-face :ccw)
+  (gl:cull-face :front))
+  
 (defun cleanup ()
-  (cleanup-pipelines)
+  (loop for p in *pipelines* do (free p))
   (cleanup-assets))
 
 (defun resize-callback (w h)
   (resize *3d-scene* w h)
   (resize *quad-scene* w h)
-  (resize *aos-pipeline* w h)
-  (resize *outline-pipeline* w h))
+  (loop for p in *pipelines* do (resize p w h)))
 
 (defun update ()
   (gficl:with-update (dt)
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
-     (:f (gficl:toggle-fullscreen)))
+     (:f (gficl:toggle-fullscreen))
+     (:m
+      (print *active-pipeline*)
+      (setf *active-pipeline* (cdr *active-pipeline*))
+      (if (not *active-pipeline*) (setf *active-pipeline* *pipelines*))))
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)
     (process-watched)
@@ -74,13 +78,13 @@
 	   (setf *signal-fn* nil)))
     (cond (*file-change*
 	   (setf *file-change* nil)
-	   (loop for pl in (list *aos-pipeline* *outline-pipeline*)
-		 do (reload pl))
+	   (loop for p in *pipelines*
+		 do (reload p))
 	   (set-all-unmodified)))))
 
 (defun render ()
   (gficl:with-render
-   (draw *outline-pipeline* (list *3d-scene* *quad-scene*))))
+   (draw (car *active-pipeline*) (list *3d-scene* *quad-scene*))))
 
 ;;; signal running program functions
 
@@ -108,6 +112,9 @@
 
 (defparameter *aos-pipeline* nil)
 (defparameter *outline-pipeline* nil)
+(defparameter *pipelines* nil)
+
+(defparameter *active-pipeline* nil)
 
 (defparameter *3d-scene* nil)
 (defparameter *quad-scene* nil)

@@ -17,5 +17,5 @@ void main() {
   fpos = vec3(world);
   fuv = uv;
   fnorm = vec3(norm_mat * vec4(normal, 1));
-  gl_Position = viewproj * world;  
+  gl_Position = viewproj * world;
 }

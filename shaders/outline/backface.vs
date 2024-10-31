@@ -27,5 +27,5 @@ void main() {
   vec4 ss_norm = viewproj * vec4(fnorm, 0);
   
   gl_Position = screen
-    + vec4(ss_norm.xy, 0, 0)/200;
+    + vec4(ss_norm.xy, 0, 0)/normal_divisor;
 }

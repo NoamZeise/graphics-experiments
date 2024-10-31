@@ -69,7 +69,7 @@ When drawn with, draws the scene using all of it's shaders"))
 
 (defmethod draw ((obj pass) scenes)
   (loop for shader in (slot-value obj 'shaders) do
-	(loop for scene in scenes do (draw shader scene))))
+    (loop for scene in scenes do (draw shader scene))))
 
 (defmethod draw :after ((obj pass) scenes)
   (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
@@ -91,3 +91,12 @@ When drawn with, draws the scene using all of it's shaders"))
     (if fb (gficl:delete-gl fb))
     (if rfb (gficl:delete-gl rfb))
     (loop for shader in shaders do (free shader))))
+
+;;; --- post-processing pass ---
+
+(defclass post-pass (pass) ())
+
+(defmethod draw ((pass post-pass) (scene post-scene))
+  (with-slots (shaders) pass
+    (gl:disable :depth-test :cull-face)
+    (loop for shader in	shaders do (draw shader scene))))

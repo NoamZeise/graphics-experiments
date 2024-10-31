@@ -27,12 +27,13 @@
 (defmethod draw ((obj backface-shader) (scene scene-2d)))
 
 (defmethod shader-scene-props ((obj backface-shader) (scene scene-3d))
-  (gficl:bind-matrix (slot-value obj 'shader) "viewproj"
-    (with-slots (cam-pos cam-target (fov cam-fov) (near cam-near)) scene
-      (gficl:*mat
-       (gficl:screen-perspective-matrix (gficl:window-width) (gficl:window-height)
-					(* pi fov) (* near 1.005) 100)
-       (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+)))))
+  (if (and (> (gficl:window-width) 0) (> (gficl:window-height) 0))
+    (gficl:bind-matrix (slot-value obj 'shader) "viewproj"
+      (with-slots (cam-pos cam-target (fov cam-fov) (near cam-near)) scene
+	(gficl:*mat
+	 (gficl:screen-perspective-matrix (gficl:window-width) (gficl:window-height)
+					  (* pi fov) (* near 1.005) 100)
+	 (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+))))))
 
 ;; backface pass
 
@@ -99,11 +100,8 @@
 (defmethod resize ((pl outline-pipeline) (w integer) (h integer))
   (call-next-method)
   (with-slots (framebuffer) (get-pass pl :mt)
-    (gficl:bind-gl framebuffer)
     (with-slots ((col-fb framebuffer)) (get-pass pl :col)
-      (loop for a in (gficl::attachments col-fb) 
-	    when (eql :depth-attachment (gficl::attachment-position a))
-	    do (gficl::attach-to-framebuffer a))))
+      (gficl:framebuffer-add-external-attachment framebuffer col-fb :depth-attachment)))
   (with-slots ((scene post-scene)) pl
     (resize scene w h)
     (set-post-texs scene (alist-fb-textures pl '(:mt :col)))))

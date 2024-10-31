@@ -19,7 +19,7 @@
 
 (defun watch-files (files &key (events (list :modify)) (folder +shader-folder+))
   (loop for file in files do
-	(watch-file (probe-file (merge-pathnames folder file)) events)))
+	(watch-file (probe-file (merge-pathnames file (merge-pathnames folder))) events)))
 
 (defun file-modified (file)
   (let ((fw (gethash file *watched*)))
@@ -27,7 +27,7 @@
 
 (defun files-modified (files &key (folder +shader-folder+))
   (loop for file in files
-	when (file-modified (probe-file (merge-pathnames folder file)))
+	when (file-modified (probe-file (merge-pathnames file (merge-pathnames folder))))
 	return t finally 'nil))
 
 (defun set-all-unmodified ()

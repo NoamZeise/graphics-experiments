@@ -19,7 +19,7 @@
 (defclass metatexture-shader (normals-shader) ())
 
 (defmethod reload ((s metatexture-shader))
-  (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
+  (let ((shader-folder (merge-pathnames #p"metatexture/" (merge-pathnames +shader-folder+))))
     (shader-reload-files (s '(#p"metatexture.vs" #p"metatexture.fs") :folder shader-folder)
       (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
 				       :shader-folder shader-folder)))
@@ -54,7 +54,7 @@
   ())
 
 (defmethod reload ((s mt-post-shader))
-  (let ((shader-folder (merge-pathnames #p"metatexture/" +shader-folder+)))
+  (let ((shader-folder (merge-pathnames #p"metatexture/" (merge-pathnames +shader-folder+))))
     (shader-reload-files (s '(#p"metatex-post.vs" #p"metatex-post.fs") :folder shader-folder)
       (let ((shader (gficl/load:shader
 		     #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder shader-folder)))

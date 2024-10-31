@@ -26,4 +26,6 @@ Comprises of multiple passes."))
 return an alist of GFICL:TEXTURE objects from each pass specificed by the keys in passes.
 The keys to the texture alist are the same as the keys used for the passes."
   (loop for p in passes collecting
-	(cons p (get-textures (get-pass pl p)))))
+	(cons p (let ((texs (get-textures (get-pass pl p))))
+		  (if (not texs) (error "pipeline: no textures found for pass ~a" p))
+		  texs))))

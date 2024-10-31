@@ -2,8 +2,9 @@
 
 in vec4 fpos;
 in vec3 fnorm;
+in vec2 fuv;
 out vec4 colour;
 
 void main() {
-  colour = vec4((fnorm+vec3(1))/2, 1);
+  colour = vec4(1);
 }

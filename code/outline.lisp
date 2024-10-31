@@ -171,3 +171,29 @@
    (get-final-framebuffer (get-pass pl :col)) nil
    (gficl:window-width) (gficl:window-height)))
 
+;; brush pipeline
+
+(defclass brush-colour-pass (pass) ())
+
+(defun make-brush-colour-pass ()
+  (make-instance 'brush-colour-pass
+     :shaders (list (make-instance 'brush-shader)
+		    (make-instance 'backface-shader))
+     :description
+     (make-framebuffer-descrption
+      (list (gficl:make-attachment-description :type :texture)
+	    (gficl:make-attachment-description :position :depth-attachment))
+      :samples 16)))
+
+(defclass brush-pipeline (pipeline) ())
+
+(defun make-brush-pipeline ()
+  (make-instance 'brush-pipeline
+    :passes (list (cons :col (make-brush-colour-pass)))))
+
+(defmethod draw ((pl brush-pipeline) scenes)
+  (draw (get-pass pl :col) scenes)
+  (gficl:blit-framebuffers
+   (get-final-framebuffer (get-pass pl :col)) nil
+   (gficl:window-width) (gficl:window-height)))
+

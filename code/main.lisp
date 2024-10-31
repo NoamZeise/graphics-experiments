@@ -29,12 +29,14 @@
   (load-image 'metatexture-noise #p"assets/noise.png")	3
   (load-image 'uv #p"assets/uv.png")
   (load-image 'colours #p"assets/colours.png")
-  (load-image 'xtoon #p"assets/xtoon.png"))
+  (load-image 'xtoon #p"assets/xtoon.png")
+  (load-image 'brush #p"assets/brush-test.png"))
 
 (defun create-pipelines ()
   (setf *aos-pipeline* (make-aos-pipeline))
   (setf *outline-pipeline* (make-outline-pipeline))
-  (setf *pipelines* (list *outline-pipeline* *aos-pipeline* (make-xtoon-pipeline)))
+  (setf *pipelines* (list *outline-pipeline* *aos-pipeline*
+			  (make-xtoon-pipeline) (make-brush-pipeline)))
   (setf *active-pipeline* *pipelines*))
 
 (defun create-scenes ()

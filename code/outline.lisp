@@ -53,7 +53,7 @@
 
 (defmethod draw ((obj backface-mt-shader) scene)
   (gficl:bind-gl (get-asset 'metatexture-noise))
-  (setf (slot-value obj 'polygon-offset) -30)
+  (setf (slot-value obj 'polygon-offset) -10)
   (call-next-method))
 
 ;; colour + backfaces pass
@@ -111,5 +111,5 @@
   (draw (get-pass pl :mt) scenes)
   (draw (get-pass pl :mt-post) (slot-value pl 'post-scene))
   (gficl:blit-framebuffers
-   (get-final-framebuffer (get-pass pl :mt-post)) nil
+   (get-final-framebuffer (get-pass pl :mt)) nil
    (gficl:window-width) (gficl:window-height)))

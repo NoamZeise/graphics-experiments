@@ -20,9 +20,9 @@ void main() {
 
   float lambertian = dot(normal,light);
   lambertian = smoothstep(0.0, 0.16, lambertian);
-  vec4 brush = texture(brushtex, vec2(fuv.x*50, clamp(lambertian, 0.0, 0.99)));
-  if(lambertian > 0.2 && lambertian < 1.0)
-    lambertian += brush.r/8;
+  vec4 brush = texture(brushtex, vec2(fuv.x*100, clamp(lambertian, 0.0, 0.99)));
+  if(lambertian < 1.0)
+    lambertian += brush.r/10;
   lambertian = clamp(lambertian, 0.3, 1.0);
   
   colour = c_obj * c_light * lambertian;

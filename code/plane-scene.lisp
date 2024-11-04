@@ -1,7 +1,7 @@
 (in-package :project)
 
 (defclass plane-scene (scene-3d)
-  ())
+  ((rotating :initform t :type boolean)))
 
 (defun make-plane-scene ()
   (make-instance
@@ -18,15 +18,13 @@
 						     (gficl:make-vec `(,size ,size ,size))))))))
 
 (defmethod update-scene ((obj plane-scene) dt)
-  (with-slots (cam-pos cam-target cam-fov) obj
+  (with-slots (cam-pos cam-target cam-fov rotating) obj
     (let* ((speed (* dt 0.5)) (move-speed (* 2 dt)) (fov-speed (* 1 dt))
 	   (fw (gficl:normalise (gficl:-vec cam-target cam-pos)))
 	   (rw (gficl:normalise (gficl:cross fw +world-up+)))
 	   (target (gficl:-vec cam-pos cam-target))
-	   (rotate nil))
-      (gficl:map-keys-down
-       (:r (setf rotate t))
-       
+	   (rotate rotating))
+      (gficl:map-keys-down       
        (:space (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed +world-up+))))
        (:left-shift (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed +world-up+))))
        
@@ -44,6 +42,10 @@
 	   (resize obj (gficl:window-width) (gficl:window-height)))
        (:x (setf cam-fov (* cam-fov (+ 1 fov-speed)))
 	   (resize obj (gficl:window-width) (gficl:window-height))))
+
+      (gficl:map-keys-pressed
+       (:r (setf rotating (not rotating))))
+      
       (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* speed 0.2) +world-up+))
 		    (setf target (gficl:+vec cam-pos))))
       (setf cam-target (gficl:-vec cam-pos target)))))

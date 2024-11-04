@@ -11,8 +11,10 @@ uniform mat4 viewproj;
 out vec3 fpos;
 out vec3 fnorm;
 out vec2 fuv;
+out vec3 modelpos;
 
 void main() {
+  modelpos = pos;
   vec4 world = model * vec4(pos, 1);
   fpos = vec3(world);
   fuv = uv;

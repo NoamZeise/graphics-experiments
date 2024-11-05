@@ -22,19 +22,26 @@ void main() {
   vec4 c_obj = texture(tex, fuv);
 
   float lambertian = dot(normal,light);
-  lambertian = smoothstep(0.0, 0.12, lambertian);
+  lambertian = smoothstep(0.0, 0.11, lambertian);
   vec3 dir = normalize(cross(normal, light));
   vec3 sdir = cross(normal, dir);
   vec3 cardinal = normalize(cross(light, vec3(0, 1, 0)));
-  float cd = dot(normal, cardinal);
-  cd = -2*acos(cd)/PI + 1;
+  vec3 c2 = normalize(cross(cardinal, light));
   
-  float buvx = abs(cd)*100;
+  float cd = dot(normal, cardinal);
+  float cd2 = dot(normal, c2);
+
+  cd =  -2*acos(cd )/PI + 1;
+  cd2 = -2*acos(cd2)/PI + 1;
+  if (abs(cd - 0.2) > abs(cd2 - 0.2))
+    cd = cd2;
+  
+  float buvx = abs(cd)*7;
   vec4 brush = texture(brushtex, vec2(buvx, clamp(lambertian, 0.0, 0.99)));
   if(lambertian < 1.0)
     lambertian += brush.r/10;
-  lambertian = clamp(lambertian, 0.3, 1.0);
+  lambertian = clamp(lambertian, 0.2, 1.0);
   
   colour = c_obj * c_light * lambertian;
-  //colour += vec4(1, 0, 0, 0)*(0.5*cd+0.5);
+  //colour += vec4(5, 0, 0, 0)*(0.5*cd+0.5);
 }

@@ -86,5 +86,5 @@
   (gl:active-texture :texture0)
   (gficl:bind-gl (get-asset 'uv))
   (gl:active-texture :texture1)
-  (gficl:bind-gl (get-asset 'brush))
+  (gficl:bind-gl (get-asset 'brush2))
   (call-next-method))

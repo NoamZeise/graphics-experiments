@@ -30,7 +30,8 @@
   (load-image 'uv #p"assets/uv.png")
   (load-image 'colours #p"assets/colours.png")
   (load-image 'xtoon #p"assets/xtoon.png")
-  (load-image 'brush #p"assets/brush-test.png"))
+  (load-image 'brush #p"assets/brush-test.png")
+  (load-image 'brush2 #p"assets/brush-test2.png"))
 
 (defun create-pipelines ()
   (setf *aos-pipeline* (make-aos-pipeline))

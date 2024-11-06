@@ -19,34 +19,42 @@
 
 (defmethod update-scene ((obj plane-scene) dt)
   (with-slots (cam-pos cam-target cam-fov rotating) obj
-    (let* ((speed (* dt 0.5)) (move-speed (* 2 dt)) (fov-speed (* 1 dt))
+    (let* ((speed (* dt 0.8)) (move-speed (* 2 dt)) (fov-speed (* 1 dt))
 	   (fw (gficl:normalise (gficl:-vec cam-target cam-pos)))
 	   (rw (gficl:normalise (gficl:cross fw +world-up+)))
 	   (target (gficl:-vec cam-pos cam-target))
 	   (rotate rotating))
-      (gficl:map-keys-down       
+      (gficl:map-keys-down
+       ;; raise/lower camera
        (:space (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed +world-up+))))
        (:left-shift (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed +world-up+))))
-       
+       ;; move forward direction
        (:w (setf target (gficl:rotate-vec target speed rw)))
        (:a (setf target (gficl:rotate-vec target (- speed) +world-up+)))
        (:s (setf target (gficl:rotate-vec target (- speed) rw)))
        (:d (setf target (gficl:rotate-vec target speed +world-up+)))
-
+       ;; move camera
        (:up (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed fw))))
        (:down (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed fw))))
        (:left (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed rw))))
        (:right (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed rw))))
-       
+       ;; zoom
        (:z (setf cam-fov (* cam-fov (- 1 fov-speed)))
 	   (resize obj (gficl:window-width) (gficl:window-height)))
        (:x (setf cam-fov (* cam-fov (+ 1 fov-speed)))
-	   (resize obj (gficl:window-width) (gficl:window-height))))
+	   (resize obj (gficl:window-width) (gficl:window-height)))
+       ;; change light dir
+       (:t
+	(setf (light-dir obj) (gficl:rotate-vec (light-dir obj) speed
+						(gficl:make-vec '(1 0 0)))))
+       (:y
+	(setf (light-dir obj) (gficl:rotate-vec (light-dir obj) speed
+						(gficl:make-vec '(0 1 0))))))
 
       (gficl:map-keys-pressed
        (:r (setf rotating (not rotating))))
       
-      (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* speed 0.2) +world-up+))
+      (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* speed 0.1) +world-up+))
 		    (setf target (gficl:+vec cam-pos))))
       (setf cam-target (gficl:-vec cam-pos target)))))
 

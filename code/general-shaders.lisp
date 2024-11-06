@@ -5,8 +5,8 @@
 (defclass standard-colour-shader (normals-cam-shader) ())
 
 (defmethod reload ((s standard-colour-shader))
-  (shader-reload-files (s '(#p"vert.vs" #p"frag.fs"))			
-    (let ((shader (gficl/load:shader #p"vert.vs" #p"frag.fs" :shader-folder +shader-folder+)))
+  (shader-reload-files (s '(#p"standard.vs" #p"standard.fs"))			
+    (let ((shader (gficl/load:shader #p"standard.vs" #p"standard.fs" :shader-folder +shader-folder+)))
       (gficl:bind-gl shader)
       (gl:uniformi (gficl:shader-loc shader "tex") 0)
       (setf (slot-value s 'shader) shader))))

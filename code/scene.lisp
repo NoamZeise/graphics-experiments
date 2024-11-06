@@ -26,7 +26,11 @@
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)
    (cam-target :initarg :cam-target :type gficl:vec)
    (cam-fov :initform 0.3 :type float)
-   (cam-near :initform 0.05 :type float)))
+   (cam-near :initform 0.05 :type float)
+   (light-dir :accessor light-dir
+	      :initform
+	      (gficl:normalise (gficl:make-vec '(2 3 1)))
+	      :type gficl:vec)))
 
 (defmethod resize ((obj scene-3d) w h)
   (with-slots ((proj projection-mat) (fov cam-fov) (near cam-near)) obj

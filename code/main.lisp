@@ -54,9 +54,12 @@
   (gl:enable :depth-test)
   (gl:front-face :ccw)
   (gl:cull-face :front))
+
+(defun cleanup-pipelines ()
+  (loop for p in *pipelines* do (free p)))
   
 (defun cleanup ()
-  (loop for p in *pipelines* do (free p))
+  (cleanup-pipelines)
   (cleanup-assets))
 
 (defun resize-callback (w h)

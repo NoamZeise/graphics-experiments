@@ -7,6 +7,7 @@ in vec3 modelpos;
 out vec4 colour;
 
 uniform vec3 cam;
+uniform vec3 light_dir;
 uniform sampler2D tex;
 uniform sampler2D brushtex;
 
@@ -16,32 +17,37 @@ void main() {
   vec3 normal = normalize(fnorm);
   vec3 view = normalize(fpos - cam);
   
-  vec3 light = normalize(vec3(2, 3, 1));
+  vec3 light = light_dir;
   vec4 c_light = vec4(1);
 
-  vec4 c_obj = texture(tex, fuv);
+  float min_lambertian = 0.15;
 
-  float lambertian = dot(normal,light);
-  lambertian = smoothstep(0.0, 0.4, lambertian + 0.05);
-  vec3 dir = normalize(cross(normal, light));
-  vec3 sdir = cross(normal, dir);
-  vec3 cardinal = normalize(cross(light, vec3(0, 1, 0)));
-  vec3 c2 = normalize(cross(cardinal, light));
+  vec4 c_obj = texture(tex, fuv);
   
-  float cd = dot(normal, cardinal);
+  vec3 c1 = normalize(cross(light, vec3(light.y, light.z, light.x)));
+  vec3 c2 = normalize(cross(c1, light));
+  
+  float cd = dot(normal, c1);
   float cd2 = dot(normal, c2);
 
   cd =  -2*acos(cd )/PI + 1;
   cd2 = -2*acos(cd2)/PI + 1;
   if (abs(cd - 0.2) > abs(cd2 - 0.2))
     cd = cd2;
+
+  float lambertian = dot(normal,light);
   
-  float buvx = abs(cd)*10;
-  vec4 brush = texture(brushtex, vec2(buvx, clamp(lambertian, 0.0, 0.99)));
-  if(lambertian < 1.0)
-    lambertian += brush.r/5;
-  lambertian = clamp(lambertian, 0.2, 1.0);
+  float filterbrush = 1 - (smoothstep(abs(lambertian - min_lambertian - 0.1), 0.0, 0.05));
+  
+  float buvx = abs(cd)*4;
+  vec4 brush = texture(brushtex, vec2(buvx, abs(lambertian) + 0.2));
+  
+  lambertian = smoothstep(0.15, 0.4, lambertian + 0.05);
+  lambertian = clamp(lambertian, min_lambertian, 1.0)
+               + (brush.r - 1)*0.4*filterbrush;
   
   colour = c_obj * c_light * lambertian;
-  //colour += vec4(5, 0, 0, 0)*(0.5*cd+0.5);
+
+  // brush effect only 
+  //colour = vec4(0.5, 0.5, 0.5, 1) + vec4(0.1)*(brush.r - 1)*2*filterbrush;
 }

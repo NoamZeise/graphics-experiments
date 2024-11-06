@@ -6,6 +6,7 @@ in vec2 fuv;
 out vec4 colour;
 
 uniform vec3 cam;
+uniform vec3 light_dir;
 
 uniform sampler2D tex;
 
@@ -74,9 +75,7 @@ vec4 brdf(vec3 normal, vec3 light, vec3 view) {
 void main() {
   vec3 normal = normalize(fnorm);
   vec3 view = normalize(fpos - cam);
-  
-  vec3 light = normalize(vec3(2, 3, 1));
   vec4 c_light = vec4(1);
   
-  colour = PI * brdf(normal, light, view) * c_light * clamp(dot(normal,light), 0.05, 1.0);
+  colour = PI * brdf(normal, light_dir, view) * c_light * clamp(dot(normal,light_dir), 0.05, 1.0);
 }

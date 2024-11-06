@@ -54,7 +54,7 @@ Update shader uniforms with the following:
 (defclass normals-shader (shader)
   () (:documentation "a shader that uses normal vectors for lighting, sets 'norm_mat' shader unform to the model's normal mat"))
 
-(defmethod shader-model-props ((obj normals-shader) model normal)	   
+(defmethod shader-model-props ((obj normals-shader) model normal)
   (gficl:bind-matrix (slot-value obj 'shader) "norm_mat" normal)
   (call-next-method))
 
@@ -63,6 +63,10 @@ Update shader uniforms with the following:
 
 (defmethod shader-scene-props ((obj normals-cam-shader) (scene scene))
   (gficl:bind-vec (slot-value obj 'shader) "cam" (cam-pos scene))
+  (call-next-method))
+
+(defmethod shader-scene-props ((obj normals-cam-shader) (scene scene-3d))
+  (gficl:bind-vec (slot-value obj 'shader) "light_dir" (light-dir scene))
   (call-next-method))
 
 ;;; post-process subclass

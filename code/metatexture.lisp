@@ -20,15 +20,11 @@
 
 (defmethod reload ((s metatexture-shader))
   (let ((shader-folder (merge-pathnames #p"metatexture/" (merge-pathnames +shader-folder+))))
-    (shader-reload-files (s '(#p"metatexture.vs" #p"metatexture.fs") :folder shader-folder)
-      (let ((shader (gficl/load:shader #p"metatexture.vs" #p"metatexture.fs"
-				       :shader-folder shader-folder)))
-	(gficl:bind-gl shader)
-	(gl:uniformi (gficl:shader-loc shader "tex") 0)
-	(gficl:bind-vec shader "tex_dim"
-			(list (get-asset-prop 'metatexture-noise :width)
-			      (get-asset-prop 'metatexture-noise :height)))
-	(setf (slot-value s 'shader) shader)))))
+    (shader-reload-files (s #p"metatexture.vs" #p"metatexture.fs" :folder shader-folder) shader
+      (gl:uniformi (gficl:shader-loc shader "tex") 0)
+      (gficl:bind-vec shader "tex_dim"
+		      (list (get-asset-prop 'metatexture-noise :width)
+			    (get-asset-prop 'metatexture-noise :height))))))
 
 (defmethod draw ((obj metatexture-shader) scene)
   (gl:enable :depth-test :cull-face)
@@ -60,14 +56,10 @@
 
 (defmethod reload ((s mt-post-shader))
   (let ((shader-folder (merge-pathnames #p"metatexture/" (merge-pathnames +shader-folder+))))
-    (shader-reload-files (s '(#p"metatex-post.vs" #p"metatex-post.fs") :folder shader-folder)
-      (let ((shader (gficl/load:shader
-		     #p"metatex-post.vs" #p"metatex-post.fs" :shader-folder shader-folder)))
-	(gficl:bind-gl shader)
-	(gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.01)
-	(gl:uniformi (gficl:shader-loc shader "mt") 0)
-	(gl:uniformi (gficl:shader-loc shader "col") 1)
-	(setf (slot-value s 'shader) shader)))))
+    (shader-reload-files (s #p"metatex-post.vs" #p"metatex-post.fs" :folder shader-folder) shader
+      (gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.01)
+      (gl:uniformi (gficl:shader-loc shader "mt") 0)
+      (gl:uniformi (gficl:shader-loc shader "col") 1))))
 
 (defmethod shader-scene-props ((s mt-post-shader) (scene post-scene))
   (with-slots (transform) scene
@@ -105,8 +97,7 @@
 		 (cons :post (make-mt-post-pass)))))
 
 (defmethod resize ((pl aos-pipeline) w h)
-	   (print 'resize)
-	   (call-next-method)
+  (call-next-method)
   (with-slots ((scene post-scene)) pl
     (resize scene w h)
     (set-post-texs scene (alist-fb-textures pl '(:mt :col)))))

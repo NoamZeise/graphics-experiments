@@ -22,15 +22,26 @@ Update shader uniforms with the following:
     (if new-obj (setf new-obj nil)
       (gficl:delete-gl (slot-value obj 'shader)))))
 
-(defmacro shader-reload-files ((shader files &key (folder +shader-folder+)) &body body)
+(defmacro shader-reload-files ((shader vert-path frag-path
+				       &key (folder +shader-folder+))
+			       shader-var
+			       &body body)
   "Only recompile the shader if any of the files have been modified."
-  (let ((n-o (gensym)))
+  (let ((n-o (gensym)) (files `(list ,vert-path ,frag-path)) (error-var (gensym)))
     `(with-slots ((,n-o new-obj)) ,shader
       (if ,n-o (watch-files ,files :folder ,folder))
       (cond ((or ,n-o (files-modified ,files :folder ,folder))
-	     (format t "loading shaders ~a in ~a~%" ,files ,folder)
-	     (call-next-method)
-	     ,@body)))))
+	     (format t "loading shader (~a + ~a) in ~a~%" ,vert-path ,frag-path ,folder)
+	     (handler-case
+	      (let ((,shader-var (gficl/load:shader ,vert-path ,frag-path :shader-folder ,folder)))
+		(call-next-method)
+		(gficl:bind-gl ,shader-var)
+		,@body
+		(setf (slot-value ,shader 'shader) ,shader-var))
+	      (error (,error-var)
+                (if ,n-o (error ,error-var))
+		(format t "~%shader compile error~%~a~%~%"
+			,vert-path ,frag-path ,error-var))))))))
 
 (defmacro reload-body (shader shader-files))
 

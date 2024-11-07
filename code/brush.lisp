@@ -5,13 +5,9 @@
 (defclass brush-shader (normals-cam-shader) ())
 
 (defmethod reload ((s brush-shader))
-  (shader-reload-files (s '(#p"cel-shaded.vs" #p"brush.fs"))			
-    (let ((shader (gficl/load:shader #p"cel-shaded.vs" #p"brush.fs"
-				     :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "tex") 0)
-      (gl:uniformi (gficl:shader-loc shader "brushtex") 1)
-      (setf (slot-value s 'shader) shader))))
+  (shader-reload-files (s #p"cel-shaded.vs" #p"brush.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)
+    (gl:uniformi (gficl:shader-loc shader "brushtex") 1)))
 
 (defmethod draw ((obj brush-shader) scene)
   (gl:enable :depth-test :cull-face)

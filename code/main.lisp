@@ -2,8 +2,8 @@
 
 (defun run ()
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
-  (trivial-main-thread:with-body-in-main-thread
-   ()
+  (progn;;trivial-main-thread:with-body-in-main-thread
+   ;;()
    (gficl:with-window
     (:title "project"
 	    :resize-callback #'resize-callback
@@ -73,7 +73,7 @@
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
      (:f (gficl:toggle-fullscreen))
-     (:p (signal-recreate-pipelines))
+     (:p (signal-reload))
      (:m
       (setf *active-pipeline* (cdr *active-pipeline*))
       (if (not *active-pipeline*) (setf *active-pipeline* *pipelines*))

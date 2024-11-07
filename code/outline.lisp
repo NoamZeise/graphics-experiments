@@ -16,13 +16,9 @@
 
 (defmethod reload ((s backface-shader))
   (with-slots (vert-shader frag-shader shader-folder) s
-    (let ((files (list vert-shader frag-shader)))
-      (shader-reload-files (s files :folder shader-folder)
-        (let ((shader (gficl/load:shader (car files) (cadr files) :shader-folder shader-folder)))
-	  (gficl:bind-gl shader)
-	  (gl:uniformf (gficl:shader-loc shader "normal_divisor")
-		       (slot-value s 'normal-divisor))
-	  (setf (slot-value s 'shader) shader))))))
+    (shader-reload-files (s vert-shader frag-shader :folder shader-folder) shader
+      (gl:uniformf (gficl:shader-loc shader "normal_divisor")
+		   (slot-value s 'normal-divisor)))))
 
 (defmethod draw ((obj backface-shader) scene)
   (with-slots (shader outline-colour outline-size) obj

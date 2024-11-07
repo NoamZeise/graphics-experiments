@@ -5,12 +5,8 @@
 (defclass xtoon-shader (normals-cam-shader) ())
 
 (defmethod reload ((s xtoon-shader))
-  (shader-reload-files (s '(#p"cel-shaded.vs" #p"xtoon.fs"))			
-    (let ((shader (gficl/load:shader #p"cel-shaded.vs" #p"xtoon.fs"
-				     :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "toontex") 0)
-      (setf (slot-value s 'shader) shader))))
+  (shader-reload-files (s #p"cel-shaded.vs" #p"xtoon.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "toontex") 0)))
 
 (defmethod draw ((obj xtoon-shader) scene)
   (gl:enable :depth-test :cull-face)

@@ -5,14 +5,8 @@
 (defclass halftone-shader (normals-cam-shader) ())
 
 (defmethod reload ((s halftone-shader))
-  (let ((files '(#p"cel-shaded.vs" #p"halftone.fs")))
-    (shader-reload-files (s files)
-      (let ((shader (gficl/load:shader
-		     (car files) (cadr files)
-		     :shader-folder +shader-folder+)))
-	(gficl:bind-gl shader)
-	(gl:uniformi (gficl:shader-loc shader "tex") 0)
-	(setf (slot-value s 'shader) shader)))))
+  (shader-reload-files (s #p"cel-shaded.vs" #p"halftone.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj halftone-shader) scene)
   (gl:enable :depth-test :cull-face)

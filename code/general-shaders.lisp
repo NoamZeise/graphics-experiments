@@ -5,11 +5,8 @@
 (defclass standard-colour-shader (normals-cam-shader) ())
 
 (defmethod reload ((s standard-colour-shader))
-  (shader-reload-files (s '(#p"standard.vs" #p"standard.fs"))			
-    (let ((shader (gficl/load:shader #p"standard.vs" #p"standard.fs" :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "tex") 0)
-      (setf (slot-value s 'shader) shader))))
+  (shader-reload-files (s #p"standard.vs" #p"standard.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj standard-colour-shader) scene)
   (gl:enable :depth-test :cull-face)
@@ -22,11 +19,7 @@
 (defclass show-normals-shader (normals-shader) ())
 
 (defmethod reload ((s show-normals-shader))
-  (let ((files (list #p"normals.vs" #p"normals.fs")))
-    (shader-reload-files (s files)
-      (let ((shader (gficl/load:shader (car files) (cadr files)
-				       :shader-folder +shader-folder+)))
-	(setf (slot-value s 'shader) shader)))))
+  (shader-reload-files (s #p"normals.vs" #p"normals.fs") shader))
 
 (defmethod draw ((obj show-normals-shader) scene)
   (gl:enable :depth-test :cull-face)
@@ -37,12 +30,8 @@
 (defclass cel-shader (normals-cam-shader) ())
 
 (defmethod reload ((s cel-shader))
-  (shader-reload-files (s '(#p"cel-shaded.vs" #p"cel-shaded.fs"))			
-    (let ((shader (gficl/load:shader #p"cel-shaded.vs" #p"cel-shaded.fs"
-				     :shader-folder +shader-folder+)))
-      (gficl:bind-gl shader)
-      (gl:uniformi (gficl:shader-loc shader "tex") 0)
-      (setf (slot-value s 'shader) shader))))
+  (shader-reload-files (s #p"cel-shaded.vs" #p"cel-shaded.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj cel-shader) scene)
   (gl:enable :depth-test :cull-face)

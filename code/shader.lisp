@@ -33,16 +33,14 @@ Update shader uniforms with the following:
       (cond ((or ,n-o (files-modified ,files :folder ,folder))
 	     (format t "loading shader (~a + ~a) in ~a~%" ,vert-path ,frag-path ,folder)
 	     (handler-case
-	      (let ((,shader-var (gficl/load:shader ,vert-path ,frag-path :shader-folder ,folder)))
-		(call-next-method)
-		(gficl:bind-gl ,shader-var)
-		,@body
-		(setf (slot-value ,shader 'shader) ,shader-var))
-	      (error (,error-var)
-                (if ,n-o (error ,error-var))
-		(format t "~%shader compile error~%~a~%~%" ,error-var))))))))
-
-(defmacro reload-body (shader shader-files))
+		 (let ((,shader-var (gficl/load:shader ,vert-path ,frag-path :shader-folder ,folder)))
+		   (call-next-method)
+		   (gficl:bind-gl ,shader-var)
+		   ,@body
+		   (setf (slot-value ,shader 'shader) ,shader-var))
+	       (error (,error-var)
+                      (if ,n-o (error ,error-var))
+		      (format t "~%shader compile error~%~a~%~%" ,error-var))))))))
 
 (defmethod shader-model-props ((obj shader) model normal)
   (gficl:bind-matrix (slot-value obj 'shader) "model" model))

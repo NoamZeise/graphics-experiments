@@ -11,7 +11,7 @@
 (defmethod draw ((obj halftone-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'uv))
+  (gficl:bind-gl (get-asset 'light-colours))
   (call-next-method))
 
 ;; xtoon pipeline

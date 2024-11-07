@@ -36,26 +36,24 @@ void main() {
   float lambertian = dot(light, normal);
   
   vec2 grid = getGridPos();
-  
-  float sum_pos = fpos.x+fpos.y+fpos.z;
-  float d_x = dFdx(sum_pos) + dFdy(sum_pos);
-
-  float freq = 20; // higher -> smaller dots + dot spacing
-  
+  float freq = 20; // higher -> smaller dots + dot spacing  
   grid = vec2(fract(grid.x*freq), fract(grid.y*freq));
   // lines instead of dots
   //grid.y = 0.1;
 
   float d = length(grid - vec2(0.5, 0.5));
-  float range = 0.15 * (abs(d_x)*700);
-  float darkest = 0.8; // 1 -> dots go to black
+  
+  float sum_pos = fpos.x+fpos.y+fpos.z;
+  float d_x = dFdx(sum_pos) + dFdy(sum_pos);
+
+  float range = 0.15 * (abs(d_x)*300);
+  float darkest = 0.9; // 1 -> dots go to black
   
   float size = 0.5*((lambertian-0.7)/-1.5); // larger spots when darker
   
   float tone = smoothstep(size - range, size + range, d);
-  tone = clamp(tone, 1 - abs(clamp(lambertian, -darkest, 0.0)), 1.0);
+  tone = clamp(tone, 1 - abs(clamp(lambertian-0.3, -darkest, 0.0)), 1.0);
   
-  lambertian = smoothstep(0.2, 0.5, lambertian);
   lambertian = clamp(lambertian, tone, 1.0);
 
   colour = c_obj * c_light * lambertian;

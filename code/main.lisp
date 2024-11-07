@@ -29,6 +29,7 @@
   (load-image 'metatexture-noise #p"assets/noise.png")	3
   (load-image 'uv #p"assets/uv.png")
   (load-image 'colours #p"assets/colours.png")
+  (load-image 'light-colours #p"assets/light-colours.png")
   (load-image 'xtoon #p"assets/xtoon.png")
   (load-image 'brush #p"assets/brush-test.png")
   (load-image 'brush2 #p"assets/brush-test2.png"))

@@ -2,8 +2,8 @@
 
 (defun run ()
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
-  (progn;;trivial-main-thread:with-body-in-main-thread
-   ;;()
+  (trivial-main-thread:with-body-in-main-thread
+   ()
    (gficl:with-window
     (:title "project"
 	    :resize-callback #'resize-callback
@@ -34,12 +34,12 @@
   (load-image 'brush2 #p"assets/brush-test2.png"))
 
 (defun create-pipelines ()
-  (setf *pipelines* (list (make-aos-pipeline)
-			  (make-outline-pipeline)
-			  (make-xtoon-pipeline)
-			  (make-brush-pipeline)
-			  (make-halftone-pipeline)))
-  (setf *active-pipeline* *pipelines*))
+  (setf *pipelines* (list (cons "aos" (make-aos-pipeline))
+			  (cons "outline" (make-outline-pipeline))
+			  (cons "xtoon" (make-xtoon-pipeline))
+			  (cons "brush" (make-brush-pipeline))
+			  (cons "halftone" (make-halftone-pipeline))))
+  (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*))))
 
 (defun create-scenes ()
   (setf *3d-scene* (make-plane-scene))
@@ -49,6 +49,7 @@
   (init-watched)
   (load-assets)
   (setf *signal-fn* nil)
+  (setf *active-pipeline* nil)
   (create-pipelines)
   (create-scenes)
   (resize-callback (gficl:window-width) (gficl:window-height))
@@ -56,8 +57,11 @@
   (gl:front-face :ccw)
   (gl:cull-face :front))
 
+(defmacro foreach-v (alist (pipeline-var) &body body)
+  `(loop for (_ . ,pipeline-var) in ,alist do (progn ,@body)))
+
 (defun cleanup-pipelines ()
-  (loop for p in *pipelines* do (free p)))
+  (foreach-v *pipelines* (p) (free p)))
   
 (defun cleanup ()
   (cleanup-pipelines)
@@ -66,18 +70,20 @@
 (defun resize-callback (w h)
   (resize *3d-scene* w h)
   (resize *quad-scene* w h)
-  (loop for p in *pipelines* do (resize p w h)))
+  (foreach-v *pipelines* (p) (resize p w h)))
 
 (defun update ()
   (gficl:with-update (dt)
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
      (:f (gficl:toggle-fullscreen))
-     (:p (signal-reload))
      (:m
-      (setf *active-pipeline* (cdr *active-pipeline*))
-      (if (not *active-pipeline*) (setf *active-pipeline* *pipelines*))
-      (print (car *active-pipeline*))))
+      (setf *active-pipeline*
+	    (loop for ((k . _) . r) on *pipelines*
+		  when (progn (print (list k *active-pipeline* (equalp k *active-pipeline*))) (equalp k *active-pipeline*))
+		  return
+		  (if r (caar r) (caar *pipelines*))))
+      (format t "using ~a pipeline~%" *active-pipeline*)))
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)
     (process-watched)
@@ -86,13 +92,12 @@
 	   (setf *signal-fn* nil)))
     (cond (*file-change*
 	   (setf *file-change* nil)
-	   (loop for p in *pipelines*
-		 do (reload p))
+	   (foreach-v *pipelines* (p) (reload p))
 	   (set-all-unmodified)))))
 
 (defun render ()
   (gficl:with-render
-   (draw (car *active-pipeline*) (list *3d-scene* *quad-scene*))))
+   (draw (cdr (assoc *active-pipeline* *pipelines*)) (list *3d-scene* *quad-scene*))))
 
 ;;; signal running program functions
 

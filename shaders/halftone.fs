@@ -28,12 +28,12 @@ void main() {
   else if (nabs.y >= max(nabs.y, nabs.z))
     grid = vec2(fpos.x, fpos.z);
 
-  float freq = 20;
+  float freq = 19;
   grid = vec2(fract(grid.x*freq), fract(grid.y*freq));
 
   float d = length(grid - vec2(0.5, 0.5));
  
-  float tone = 0;
+  float tone = 0.4;
   if(d > 0.4)
     tone = 1;
   

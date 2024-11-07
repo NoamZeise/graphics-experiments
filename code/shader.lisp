@@ -40,8 +40,7 @@ Update shader uniforms with the following:
 		(setf (slot-value ,shader 'shader) ,shader-var))
 	      (error (,error-var)
                 (if ,n-o (error ,error-var))
-		(format t "~%shader compile error~%~a~%~%"
-			,vert-path ,frag-path ,error-var))))))))
+		(format t "~%shader compile error~%~a~%~%" ,error-var))))))))
 
 (defmacro reload-body (shader shader-files))
 

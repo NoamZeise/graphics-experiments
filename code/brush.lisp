@@ -1,0 +1,49 @@
+(in-package :project)
+
+;;; brush shader
+
+(defclass brush-shader (normals-cam-shader) ())
+
+(defmethod reload ((s brush-shader))
+  (shader-reload-files (s '(#p"cel-shaded.vs" #p"brush.fs"))			
+    (let ((shader (gficl/load:shader #p"cel-shaded.vs" #p"brush.fs"
+				     :shader-folder +shader-folder+)))
+      (gficl:bind-gl shader)
+      (gl:uniformi (gficl:shader-loc shader "tex") 0)
+      (gl:uniformi (gficl:shader-loc shader "brushtex") 1)
+      (setf (slot-value s 'shader) shader))))
+
+(defmethod draw ((obj brush-shader) scene)
+  (gl:enable :depth-test :cull-face)
+  (gl:active-texture :texture0)
+  (gficl:bind-gl (get-asset 'uv))
+  (gl:active-texture :texture1)
+  (gficl:bind-gl (get-asset 'brush2))
+  (call-next-method))
+
+;;; brush pipeline
+
+(defclass brush-colour-pass (pass) ())
+
+(defun make-brush-colour-pass ()
+  (make-instance 'brush-colour-pass
+     :shaders (list (make-instance 'brush-shader)
+		    (make-instance 'backface-shader))
+     :description
+     (make-framebuffer-descrption
+      (list (gficl:make-attachment-description :type :texture)
+	    (gficl:make-attachment-description :position :depth-attachment))
+      :samples 16)))
+
+(defclass brush-pipeline (pipeline) ())
+
+(defun make-brush-pipeline ()
+  (make-instance 'brush-pipeline
+    :passes (list (cons :col (make-brush-colour-pass)))))
+
+(defmethod draw ((pl brush-pipeline) scenes)
+  (draw (get-pass pl :col) scenes)
+  (gficl:blit-framebuffers
+   (get-final-framebuffer (get-pass pl :col)) nil
+   (gficl:window-width) (gficl:window-height)))
+

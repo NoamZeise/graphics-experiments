@@ -105,7 +105,8 @@
 		 (cons :post (make-mt-post-pass)))))
 
 (defmethod resize ((pl aos-pipeline) w h)
-  (call-next-method)
+	   (print 'resize)
+	   (call-next-method)
   (with-slots ((scene post-scene)) pl
     (resize scene w h)
     (set-post-texs scene (alist-fb-textures pl '(:mt :col)))))

@@ -9,6 +9,9 @@ Comprises of multiple passes."))
   (let ((pass (gensym)))
     `(loop for (nil . ,pass) in (slot-value ,pipeline 'passes) do (let ((,p ,pass)) ,fn))))
 
+(defmethod initialize-instance :after ((instance pipeline) &key &allow-other-keys)	   
+  (resize instance (gficl:window-width) (gficl:window-height)))
+
 (defun get-pass (pipeline key)
   (cdr (assoc key (slot-value pipeline 'passes))))
 

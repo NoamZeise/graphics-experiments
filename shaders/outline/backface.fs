@@ -3,8 +3,11 @@
 in vec3 fpos;
 in vec3 fnorm;
 in vec2 fuv;
+
 out vec4 colour;
 
+uniform vec4 outline;
+
 void main() {
-  colour = vec4(1);
+  colour = outline;
 }

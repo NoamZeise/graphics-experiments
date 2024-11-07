@@ -29,6 +29,10 @@
 		 (:file "hot-reload")
 
 		 (:file "general-shaders")
+		 (:file "plane-scene")
+		 
 		 (:file "metatexture")
 		 (:file "outline")
-		 (:file "plane-scene")))))
+		 (:file "xtoon")
+		 (:file "brush")
+		 (:file "halftone")))))

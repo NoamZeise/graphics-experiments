@@ -3,33 +3,39 @@
 ;; backface shader
 
 (defclass backface-shader (normals-cam-shader)
-  ((polygon-offset :initform -2)
-   (normal-divisor :initform 200.0 :type float)
-   (near-factor :initform 1.005)
+  ((polygon-offset :initarg :polygon-offset :initform -2)
+   (normal-divisor :initarg :normal-divisor :initform 200.0 :type float)
+   (near-factor :initarg :near-factor :initform 1.005)
    (shader-folder :initform (merge-pathnames #p"outline/" (merge-pathnames +shader-folder+)))
    (vert-shader :initform #p"backface.vs")
-   (frag-shader :initform #p"backface.fs")))
+   (frag-shader :initform #p"backface.fs")
+   (outline-colour :initarg :outline-colour
+		   :initform (gficl:make-vec '(1 1 1 1)) :type gficl:vec)
+   (outline-size :initarg :outline-size
+		 :initform 1.0 :type float)))
 
 (defmethod reload ((s backface-shader))
-	   (with-slots (vert-shader frag-shader shader-folder) s
-	     (let ((files (list vert-shader frag-shader)))
-	       (shader-reload-files (s files :folder shader-folder)
-				    (let ((shader (gficl/load:shader (car files) (cadr files) :shader-folder shader-folder)))
-				      (gficl:bind-gl shader)
-				      (gl:uniformf (gficl:shader-loc shader "normal_divisor")
-						   (slot-value s 'normal-divisor))
-				      (setf (slot-value s 'shader) shader))))))
+  (with-slots (vert-shader frag-shader shader-folder) s
+    (let ((files (list vert-shader frag-shader)))
+      (shader-reload-files (s files :folder shader-folder)
+        (let ((shader (gficl/load:shader (car files) (cadr files) :shader-folder shader-folder)))
+	  (gficl:bind-gl shader)
+	  (gl:uniformf (gficl:shader-loc shader "normal_divisor")
+		       (slot-value s 'normal-divisor))
+	  (setf (slot-value s 'shader) shader))))))
 
 (defmethod draw ((obj backface-shader) scene)
-  (gl:enable :depth-test :cull-face :polygon-offset-fill)
-  (gl:cull-face :back)
-  (gl:polygon-offset (slot-value obj 'polygon-offset) -10)
-  (gl:depth-func :lequal)
-  (call-next-method)
-  (gl:polygon-offset 0 0)
-  (gl:depth-func :less)
-  (gl:cull-face :front)
-  (gl:disable :polygon-offset-fill))
+  (with-slots (shader outline-colour outline-size) obj
+    (gficl:bind-vec shader "outline" outline-colour)
+    (gl:enable :depth-test :cull-face :polygon-offset-fill)
+    (gl:cull-face :back)
+    (gl:polygon-offset (slot-value obj 'polygon-offset) (* -10 outline-size))
+    (gl:depth-func :lequal)
+    (call-next-method)
+    (gl:polygon-offset 0 0)
+    (gl:depth-func :less)
+    (gl:cull-face :front)
+    (gl:disable :polygon-offset-fill)))
 
 ;; dont draw outline for 2d scenes
 (defmethod draw ((obj backface-shader) (scene scene-2d)))
@@ -144,56 +150,3 @@
   (gficl:blit-framebuffers
    (get-final-framebuffer (get-pass pl :mt-post)) nil
    (gficl:window-width) (gficl:window-height)))
-
-;; xtoon pipeline
-
-(defclass xtoon-colour-pass (pass) ())
-
-(defun make-xtoon-colour-pass ()
-  (make-instance 'xtoon-colour-pass
-     :shaders (list (make-instance 'xtoon-shader)
-		    (make-instance 'backface-shader))
-     :description
-     (make-framebuffer-descrption
-      (list (gficl:make-attachment-description :type :texture)
-	    (gficl:make-attachment-description :position :depth-attachment))
-      :samples 16)))
-
-(defclass xtoon-pipeline (pipeline) ())
-
-(defun make-xtoon-pipeline ()
-  (make-instance 'xtoon-pipeline
-    :passes (list (cons :col (make-xtoon-colour-pass)))))
-
-(defmethod draw ((pl xtoon-pipeline) scenes)
-  (draw (get-pass pl :col) scenes)
-  (gficl:blit-framebuffers
-   (get-final-framebuffer (get-pass pl :col)) nil
-   (gficl:window-width) (gficl:window-height)))
-
-;; brush pipeline
-
-(defclass brush-colour-pass (pass) ())
-
-(defun make-brush-colour-pass ()
-  (make-instance 'brush-colour-pass
-     :shaders (list (make-instance 'brush-shader)
-		    (make-instance 'backface-shader))
-     :description
-     (make-framebuffer-descrption
-      (list (gficl:make-attachment-description :type :texture)
-	    (gficl:make-attachment-description :position :depth-attachment))
-      :samples 16)))
-
-(defclass brush-pipeline (pipeline) ())
-
-(defun make-brush-pipeline ()
-  (make-instance 'brush-pipeline
-    :passes (list (cons :col (make-brush-colour-pass)))))
-
-(defmethod draw ((pl brush-pipeline) scenes)
-  (draw (get-pass pl :col) scenes)
-  (gficl:blit-framebuffers
-   (get-final-framebuffer (get-pass pl :col)) nil
-   (gficl:window-width) (gficl:window-height)))
-

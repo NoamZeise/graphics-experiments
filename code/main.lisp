@@ -34,10 +34,11 @@
   (load-image 'brush2 #p"assets/brush-test2.png"))
 
 (defun create-pipelines ()
-  (setf *aos-pipeline* (make-aos-pipeline))
-  (setf *outline-pipeline* (make-outline-pipeline))
-  (setf *pipelines* (list *outline-pipeline* *aos-pipeline*
-			  (make-xtoon-pipeline) (make-brush-pipeline)))
+  (setf *pipelines* (list (make-aos-pipeline)
+			  (make-outline-pipeline)
+			  (make-xtoon-pipeline)
+			  (make-brush-pipeline)
+			  (make-halftone-pipeline)))
   (setf *active-pipeline* *pipelines*))
 
 (defun create-scenes ()
@@ -72,10 +73,11 @@
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
      (:f (gficl:toggle-fullscreen))
+     (:p (signal-recreate-pipelines))
      (:m
-      (print *active-pipeline*)
       (setf *active-pipeline* (cdr *active-pipeline*))
-      (if (not *active-pipeline*) (setf *active-pipeline* *pipelines*))))
+      (if (not *active-pipeline*) (setf *active-pipeline* *pipelines*))
+      (print (car *active-pipeline*))))
     (update-scene *3d-scene* dt)
     (update-scene *quad-scene* dt)
     (process-watched)
@@ -116,8 +118,6 @@
 
 ;;; Global Variables
 
-(defparameter *aos-pipeline* nil)
-(defparameter *outline-pipeline* nil)
 (defparameter *pipelines* nil)
 
 (defparameter *active-pipeline* nil)

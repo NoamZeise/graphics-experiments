@@ -87,16 +87,11 @@
 (defun make-backface-mt-colour-pass ()
   (make-instance 'backface-mt-colour-pass
      :shaders (list (make-instance 'backface-mt-shader))
+     :clear-colour '(0.5 0.5 0.5 0)
      :description
      (make-framebuffer-descrption
       (list (gficl:make-attachment-description :type :texture))
       :samples 16)))
-
-(defmethod draw :before ((obj backface-mt-colour-pass) scenes)
-  (gl:clear-color 0.5 0.5 0.5 0))
-
-(defmethod draw :after ((obj backface-mt-colour-pass) scenes)
-  (gl:clear-color 0 0 0 0))
 
 ;; outline mt post shader
 

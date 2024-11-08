@@ -44,12 +44,6 @@
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 16)))
 
-(defmethod draw :before ((obj metatexture-pass) scenes)
-  (gl:clear-color 0.5 0.5 0.5 0))
-
-(defmethod draw :after ((obj metatexture-pass) scenes)
-  (gl:clear-color 0 0 0 0))
-
 ;;; Post Processing Pass
 
 (defclass mt-post-shader (post-shader) ())
@@ -75,7 +69,8 @@
 (defun make-mt-post-pass ()
   (make-instance
    'mt-post-pass
-   :shaders (list (make-instance 'mt-post-shader))		
+   :shaders (list (make-instance 'mt-post-shader))
+   :clear-colour '(0.5 0.5 0.5 0)
    :description
    (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
 

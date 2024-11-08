@@ -22,11 +22,12 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
+  (load-model 'street #p"street/street.obj")
   (add-asset  'dummy-data
 	      (gficl:make-vertex-data
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   (load-image 'test #p"assets/test.png")
-  (load-image 'metatexture-noise #p"assets/noise.png")	3
+  (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
   (load-image 'colours #p"assets/colours.png")
   (load-image 'light-colours #p"assets/light-colours.png")

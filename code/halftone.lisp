@@ -23,9 +23,11 @@
      :shaders (list (make-instance 'halftone-shader)
 		    (make-instance 'backface-shader
 				   :outline-colour (gficl:make-vec '(0 0 0 0))
-				   :outline-size 5
-				   :normal-divisor 100.0
-				   :near-factor 1.009))
+				   :outline-size 1
+				   :normal-divisor 1000.0
+				   :near-factor 1.002
+				   :polygon-offset -3))
+     :clear-colour '(0.7 0.9 1.0 0.0)
      :description
      (make-framebuffer-descrption
       (list (gficl:make-attachment-description :type :texture)
@@ -38,7 +40,7 @@
   (make-instance 'halftone-pipeline
     :passes (list (cons :col (make-halftone-colour-pass)))))
 
-(defmethod draw ((pl halftone-pipeline) scenes)
+(defmethod draw ((pl halftone-pipeline) scenes)  
   (draw (get-pass pl :col) scenes)
   (gficl:blit-framebuffers
    (get-final-framebuffer (get-pass pl :col)) nil

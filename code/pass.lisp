@@ -18,6 +18,7 @@
    (width  :initform 0 :type integer)
    (height :initform 0 :type integer)
    (clear-buffers)
+   (clear-colour :initarg :clear-colour :initform '(0.0 0.0 0.0 0.0))
    (resolve-multisamples :initform t :type boolean :documentation
 			 "If t, blit multisampled framebuffers into a resolve buffer"))
   (:documentation
@@ -62,7 +63,8 @@ When drawn with, draws the scene using all of it's shaders"))
 	     (setf rfb (gficl:make-framebuffer attachments w h :samples 1)))))))
 
 (defmethod draw :before ((obj pass) scenes)
-  (with-slots (framebuffer (rfb resolve-framebuffer) clear-buffers) obj
+  (with-slots (framebuffer (rfb resolve-framebuffer) clear-buffers clear-colour) obj
+    (apply #'gl:clear-color clear-colour)
     (gficl:bind-gl framebuffer)
     (if rfb (gl:enable :multisample) (gl:disable :multisample))
     (apply #'gl:clear clear-buffers)))

@@ -1,0 +1,4 @@
+name: Stylized Little Japanese Town Street
+author: Michał Solarek
+link: https://sketchfab.com/3d-models/stylized-little-japanese-town-street-200fc33b8a2b4da98e71590feeb255a8
+license: CC Attribution

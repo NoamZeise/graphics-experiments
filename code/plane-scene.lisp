@@ -10,16 +10,19 @@
    :cam-target (gficl:-vec '(0 0 0))
    :objects
    (list
-    (make-object (get-asset 'sphere) (object-matrix '(2 0 1)))
-    (make-object (get-asset 'cube) (object-matrix '(0 0 -2)))
-    (make-object (get-asset 'bunny) (object-matrix '(-1 0.08 1) '(3 3 3)))
-    (make-object (get-asset 'plane) (let* ((size 50) (offset (- (/ size 2))))
-				      (object-matrix (gficl:make-vec `(,offset -1 ,offset))
-						     (gficl:make-vec `(,size ,size ,size))))))))
+    (make-object (get-asset 'sphere) (object-matrix '(4.5 1 -5) '(0.4 0.4 0.4)))
+    (make-object (get-asset 'cube) (object-matrix '(4.5 1 16) '(0.8 0.8 0.8)))
+    (make-object (get-asset 'bunny) (object-matrix '(2 1 1.8) '(2 2 2)))
+    (make-object (get-asset 'street) (object-matrix '(4 -1 4) '(0.5 0.5 0.5)))
+    ;; (make-object (get-asset 'plane) (let* ((size 50) (offset (- (/ size 2))))
+    ;; 				      (object-matrix (gficl:make-vec `(,offset -4 ,offset))
+    ;; 						     (gficl:make-vec `(,size ,size ,size))))))
+    )))
 
 (defmethod update-scene ((obj plane-scene) dt)
   (with-slots (cam-pos cam-target cam-fov rotating) obj
-    (let* ((speed (* dt 0.8)) (move-speed (* 2 dt)) (fov-speed (* 1 dt))
+    (let* ((speed (* dt 0.8 (if (gficl:key-down :enter) 4 1)))
+	   (move-speed (* 2.5 speed)) (fov-speed (* speed 1.2))
 	   (fw (gficl:normalise (gficl:-vec cam-target cam-pos)))
 	   (rw (gficl:normalise (gficl:cross fw +world-up+)))
 	   (target (gficl:-vec cam-pos cam-target))

@@ -17,7 +17,9 @@
 
 (defmethod draw ((obj object) shader)
   (with-slots (meshes model normal diffuse) obj
-    (shader-model-props shader model normal)
+    (shader-model-props shader
+			(list (cons :model model)
+			      (cons :normal normal)))
     (if (listp meshes)
 	(if diffuse
 	    (loop for mesh in meshes for d in diffuse do

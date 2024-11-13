@@ -8,8 +8,9 @@ Update shader uniforms with the following:
 - Model props is called each time an object is draw.
 - Scene props is called each time a scene is draw with the shader."))
 
-(defgeneric shader-model-props (obj model normal)
-  (:documentation "set shader model uniforms"))
+(defgeneric shader-model-props (obj props)
+  (:documentation
+   "set shader model uniforms using props (an alist"))
 
 (defgeneric shader-mesh-props (obj props)
   (:documentation "set shader props (an alist) per mesh"))
@@ -45,8 +46,9 @@ Update shader uniforms with the following:
                       (if ,n-o (error ,error-var))
 		      (format t "~%shader compile error~%~a~%~%" ,error-var))))))))
 
-(defmethod shader-model-props ((obj shader) model normal)
-  (gficl:bind-matrix (slot-value obj 'shader) "model" model))
+(defmethod shader-model-props ((obj shader) props)
+  (gficl:bind-matrix (slot-value obj 'shader) "model"
+		     (cdr (assoc :model props))))
 
 (defmethod shader-mesh-props ((obj shader) props))
 
@@ -67,8 +69,9 @@ Update shader uniforms with the following:
 (defclass normals-shader (shader)
   () (:documentation "a shader that uses normal vectors for lighting, sets 'norm_mat' shader unform to the model's normal mat"))
 
-(defmethod shader-model-props ((obj normals-shader) model normal)
-  (gficl:bind-matrix (slot-value obj 'shader) "norm_mat" normal)
+(defmethod shader-model-props ((obj normals-shader) props)
+  (gficl:bind-matrix (slot-value obj 'shader) "norm_mat"
+		     (cdr (assoc :normal props)))
   (call-next-method))
 
 (defclass normals-cam-shader (normals-shader)

@@ -82,7 +82,7 @@
      (:m
       (setf *active-pipeline*
 	    (loop for ((k . _) . r) on *pipelines*
-		  when (progn (print (list k *active-pipeline* (equalp k *active-pipeline*))) (equalp k *active-pipeline*))
+		  when (equalp k *active-pipeline*)
 		  return
 		  (if r (caar r) (caar *pipelines*))))
       (format t "using ~a pipeline~%" *active-pipeline*)))

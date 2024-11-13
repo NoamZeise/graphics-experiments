@@ -15,6 +15,7 @@
 	 (warn "Added asset (~a) with key that already exits (~a), deleting old asset."
 	       asset key)
 	 (gficl:delete-gl (gethash key *assets*))))
+  (format t "added ~a~%" key)
   (setf (gethash key *assets*) asset))
 
 (defun add-asset-props (key props)
@@ -26,8 +27,17 @@
 (defun load-model (key filename)
   (add-asset
    key
-   (let  ((data (gficl/load:model (merge-pathnames filename +asset-folder+)
-				  :vertex-form '(:position :normal :uv))))
+   (multiple-value-bind (data maps)
+			(gficl/load:model (merge-pathnames filename +asset-folder+)
+					  :vertex-form '(:position :normal :uv))
+     (loop for map in maps do
+	   (let ((diff-file (cdr (assoc :diffuse map))))
+	     (if (print diff-file)
+		 (handler-case
+		     (load-image
+		      (intern (concatenate 'string (symbol-name key) "-DIFFUSE")) diff-file)
+		   (error (e) (format t "error ~a~%" e))))))
+     (add-asset-props key maps)
      (if (= 1 (length data)) (car data) data))))
 
 (defun load-image (key filename)

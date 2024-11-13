@@ -10,8 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/01_albedo.jpg
 
 newmtl 07___Default
 Ns 225.000000
@@ -22,8 +21,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/07_albedo.jpg
 
 newmtl 08___Default
 Ns 225.000000
@@ -34,8 +32,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/08_albedo.jpg
 
 newmtl 09___Default
 Ns 225.000000
@@ -46,8 +43,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/09_albedo.jpg
 
 newmtl 13___Default
 Ns 225.000000
@@ -58,8 +54,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/13_albedo.jpg
 
 newmtl 14___Default
 Ns 225.000000
@@ -70,8 +65,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/14_albedo.jpg
 
 newmtl 15___Default
 Ns 225.000000
@@ -82,8 +76,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/15_albedo.jpg
 
 newmtl 19___Default
 Ns 225.000000
@@ -94,8 +87,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/19_albedo.jpg
 
 newmtl 20___Default
 Ns 225.000000
@@ -106,5 +98,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.450000
 d 1.000000
 illum 2
-map_Bump 
-map_Kd 
+map_Kd textures/20_albedo.jpg

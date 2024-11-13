@@ -4,20 +4,18 @@
   ((rotating :initform t :type boolean)))
 
 (defun make-plane-scene ()
+  ;;(get-asset 'street-diffuse)
   (make-instance
    'plane-scene
-   :cam-pos (gficl:make-vec '(4 2 4))
+   :cam-pos (gficl:make-vec '(10 10 10))
    :cam-target (gficl:-vec '(0 0 0))
    :objects
    (list
-    (make-object (get-asset 'sphere) (object-matrix '(4.5 1 -5) '(0.4 0.4 0.4)))
-    (make-object (get-asset 'cube) (object-matrix '(4.5 1 16) '(0.8 0.8 0.8)))
-    (make-object (get-asset 'bunny) (object-matrix '(2 1 1.8) '(2 2 2)))
-    (make-object (get-asset 'street) (object-matrix '(4 -1 4) '(0.5 0.5 0.5)))
-    ;; (make-object (get-asset 'plane) (let* ((size 50) (offset (- (/ size 2))))
-    ;; 				      (object-matrix (gficl:make-vec `(,offset -4 ,offset))
-    ;; 						     (gficl:make-vec `(,size ,size ,size))))))
-    )))
+    (make-object (get-asset 'sphere) (object-matrix '(0.5 1 -7) '(0.4 0.4 0.4)))
+    (make-object (get-asset 'cone) (object-matrix '(0.5 1 14) '(0.8 0.8 0.8)))
+    (make-object (get-asset 'bunny) (object-matrix '(-2 1 0.5) '(2 2 2)))
+    (make-object (get-asset 'street) (object-matrix '(0 -1 2) '(0.5 0.5 0.5))
+					:diffuse-texs (get-asset 'street-diffuse)))))
 
 (defmethod update-scene ((obj plane-scene) dt)
   (with-slots (cam-pos cam-target cam-fov rotating) obj
@@ -33,14 +31,14 @@
        (:left-shift (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed +world-up+))))
        ;; move forward direction
        (:w (setf target (gficl:rotate-vec target speed rw)))
-       (:a (setf target (gficl:rotate-vec target (- speed) +world-up+)))
+       (:a (setf target (gficl:rotate-vec target speed +world-up+)))
        (:s (setf target (gficl:rotate-vec target (- speed) rw)))
-       (:d (setf target (gficl:rotate-vec target speed +world-up+)))
+       (:d (setf target (gficl:rotate-vec target (- speed) +world-up+)))
        ;; move camera
        (:up (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed fw))))
        (:down (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed fw))))
-       (:left (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed rw))))
-       (:right (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed rw))))
+       (:left (setf cam-pos (gficl:-vec cam-pos (gficl:*vec move-speed rw))))
+       (:right (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed rw))))
        ;; zoom
        (:z (setf cam-fov (* cam-fov (- 1 fov-speed)))
 	   (resize obj (gficl:window-width) (gficl:window-height)))
@@ -57,7 +55,7 @@
       (gficl:map-keys-pressed
        (:r (setf rotating (not rotating))))
       
-      (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* speed 0.1) +world-up+))
+      (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* (- speed) 0.1) +world-up+))
 		    (setf target (gficl:+vec cam-pos))))
       (setf cam-target (gficl:-vec cam-pos target)))))
 

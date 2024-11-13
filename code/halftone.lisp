@@ -14,6 +14,11 @@
   (gficl:bind-gl (get-asset 'light-colours))
   (call-next-method))
 
+(defmethod shader-mesh-props ((obj halftone-shader) props)
+  (let ((dt (cdr (assoc :diffuse props))))
+    (if dt (gficl:bind-gl dt)
+      (gficl:bind-gl (get-asset 'light-colours)))))
+
 ;; xtoon pipeline
 
 (defclass halftone-colour-pass (pass) ())
@@ -25,8 +30,8 @@
 				   :outline-colour (gficl:make-vec '(0 0 0 0))
 				   :outline-size 1
 				   :normal-divisor 1000.0
-				   :near-factor 1.002
-				   :polygon-offset -3))
+				   :near-factor 1.000
+				   :polygon-offset -0))
      :clear-colour '(0.7 0.9 1.0 0.0)
      :description
      (make-framebuffer-descrption

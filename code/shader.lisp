@@ -11,6 +11,9 @@ Update shader uniforms with the following:
 (defgeneric shader-model-props (obj model normal)
   (:documentation "set shader model uniforms"))
 
+(defgeneric shader-mesh-props (obj props)
+  (:documentation "set shader props (an alist) per mesh"))
+
 (defgeneric shader-scene-props (obj scene)
   (:documentation "set shader scene uniforms"))
 
@@ -44,6 +47,8 @@ Update shader uniforms with the following:
 
 (defmethod shader-model-props ((obj shader) model normal)
   (gficl:bind-matrix (slot-value obj 'shader) "model" model))
+
+(defmethod shader-mesh-props ((obj shader) props))
 
 (defmethod shader-scene-props ((obj shader) (scene scene))
   (gficl:bind-matrix (slot-value obj 'shader) "viewproj" (view-projection scene)))

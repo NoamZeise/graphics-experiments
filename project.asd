@@ -29,6 +29,7 @@
 		 (:file "hot-reload")
 
 		 (:file "general-shaders")
+		 (:file "shadow")
 		 (:file "plane-scene")
 		 
 		 (:file "metatexture")

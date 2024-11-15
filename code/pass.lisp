@@ -63,9 +63,10 @@ When drawn with, draws the scene using all of it's shaders"))
 	     (setf rfb (gficl:make-framebuffer attachments w h :samples 1)))))))
 
 (defmethod draw :before ((obj pass) scenes)
-  (with-slots (framebuffer (rfb resolve-framebuffer) clear-buffers clear-colour) obj
+  (with-slots (framebuffer (rfb resolve-framebuffer) clear-buffers clear-colour width height) obj
     (apply #'gl:clear-color clear-colour)
     (gficl:bind-gl framebuffer)
+    (gl:viewport 0 0 width height)
     (if rfb (gl:enable :multisample) (gl:disable :multisample))
     (apply #'gl:clear clear-buffers)))
 

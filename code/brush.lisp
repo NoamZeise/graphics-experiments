@@ -5,7 +5,7 @@
 (defclass brush-shader (normals-cam-shader) ())
 
 (defmethod reload ((s brush-shader))
-  (shader-reload-files (s #p"cel-shaded.vs" #p"brush.fs") shader
+  (shader-reload-files (s #p"standard.vs" #p"brush.fs") shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gl:uniformi (gficl:shader-loc shader "brushtex") 1)))
 

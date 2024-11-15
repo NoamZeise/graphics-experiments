@@ -1,25 +1,33 @@
 (in-package :project)
 
-;;; xtoon shader
+;;; halftone shader
 
-(defclass halftone-shader (normals-cam-shader) ())
+(defclass halftone-shader (normals-cam-shader)
+  ((shadow-map)))
 
 (defmethod reload ((s halftone-shader))
-  (shader-reload-files (s #p"cel-shaded.vs" #p"halftone.fs") shader
-    (gl:uniformi (gficl:shader-loc shader "tex") 0)))
+  (shader-reload-files (s #p"halftone.vs" #p"halftone.fs") shader
+    (gl:uniformi (gficl:shader-loc shader "tex") 0)
+    (gl:uniformi (gficl:shader-loc shader "shadow_map") 1)))
 
 (defmethod draw ((obj halftone-shader) scene)
   (gl:enable :depth-test :cull-face)
-  (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'light-colours))
+  (gl:active-texture :texture1)
+  (gl:bind-texture :texture-2d (slot-value obj 'shadow-map))
   (call-next-method))
 
 (defmethod shader-mesh-props ((obj halftone-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
-    (if dt (gficl:bind-gl dt)
-      (gficl:bind-gl (get-asset 'light-colours)))))
+    (gl:active-texture :texture0)
+    (cond (dt (gficl:bind-gl dt))
+	  (t  (gficl:bind-gl (get-asset 'light-colours))))))
 
-;; xtoon pipeline
+(defmethod shader-scene-props ((obj halftone-shader) (scene scene-3d))
+  (call-next-method)
+  (with-slots (light-vp) scene
+    (gficl:bind-matrix (slot-value obj 'shader) "shadow_vp" light-vp)))
+
+;;; colour pass 
 
 (defclass halftone-colour-pass (pass) ())
 
@@ -39,13 +47,26 @@
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))
 
+;;; pipeline
+
 (defclass halftone-pipeline (pipeline) ())
 
 (defun make-halftone-pipeline ()
   (make-instance 'halftone-pipeline
-    :passes (list (cons :col (make-halftone-colour-pass)))))
+    :passes (list (cons :col (make-halftone-colour-pass))
+		  (cons :shadow (make-vsm-pass)))))
 
-(defmethod draw ((pl halftone-pipeline) scenes)  
+(defmethod initialize-instance :after ((pl halftone-pipeline) &key &allow-other-keys)	   
+  (resize (get-pass pl :shadow) 1024 1024)
+  (setf (slot-value (car (slot-value (get-pass pl :col) 'shaders))
+		    'shadow-map)
+	(car (get-textures (get-pass pl :shadow)))))
+
+(defmethod resize ((pl halftone-pipeline) (w integer) (h integer))
+  (resize (get-pass pl :col) w h))
+
+(defmethod draw ((pl halftone-pipeline) scenes)
+  (draw (get-pass pl :shadow) scenes)
   (draw (get-pass pl :col) scenes)
   (gficl:blit-framebuffers
    (get-final-framebuffer (get-pass pl :col)) nil

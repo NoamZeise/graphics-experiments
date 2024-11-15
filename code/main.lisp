@@ -2,18 +2,19 @@
 
 (defun run ()
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
-  (trivial-main-thread:with-body-in-main-thread
-   ()
-   (gficl:with-window
-    (:title "project"
-	    :resize-callback #'resize-callback
-	    :opengl-version-major 4
-	    :opengl-version-minor 6)
-    (setup)
-    (loop until (gficl:closedp)
-	  do (update)
-	  do (render))
-    (cleanup))))
+  (trivial-main-thread:with-body-in-main-thread () (program)))
+
+(defun program ()
+  (gficl:with-window
+   (:title "project"
+	   :resize-callback #'resize-callback
+	   :opengl-version-major 4
+	   :opengl-version-minor 6)
+   (setup)
+   (loop until (gficl:closedp)
+	 do (update)
+	 do (render))
+   (cleanup)))
 
 (defun load-assets ()
   (setup-asset-table)

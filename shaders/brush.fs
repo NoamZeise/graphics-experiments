@@ -3,7 +3,6 @@
 in vec3 fpos;
 in vec3 fnorm;
 in vec2 fuv;
-in vec3 modelpos;
 out vec4 colour;
 
 uniform vec3 cam;

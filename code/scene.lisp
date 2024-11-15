@@ -30,16 +30,27 @@
    (light-dir :accessor light-dir
 	      :initform
 	      (gficl:normalise (gficl:make-vec '(2 3 1)))
-	      :type gficl:vec)))
+	      :type gficl:vec)
+   (light-view :type gficl:matrix)
+   (light-proj :type gficl:matrix
+	       :initform
+	       (gficl:orthographic-matrix 16 -12 16 -16 0 -50))
+   (light-vp :type gficl:matrix :initform (gficl:make-matrix))
+   (light-near :initform 1)
+   (light-far :initform 50)))
 
 (defmethod resize ((obj scene-3d) w h)
   (with-slots ((proj projection-mat) (fov cam-fov) (near cam-near)) obj
       (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near 100))))
 
 (defmethod update-scene :after ((obj scene-3d) (dt number))
-  (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target) obj
+  (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target light-dir light-view light-proj light-vp) obj
     (let ((view (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+)))
-      (setf vp (gficl:*mat proj view)))))
+      (setf vp (gficl:*mat proj view)))
+    (setf light-view (gficl:view-matrix (gficl:*vec 20 light-dir)
+					(gficl:-vec light-dir)
+					+world-up+))
+    (setf light-vp (gficl:*mat light-proj light-view))))
 
 ;;; 2d camera scene
 

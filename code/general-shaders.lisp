@@ -19,7 +19,7 @@
 (defclass show-normals-shader (normals-shader) ())
 
 (defmethod reload ((s show-normals-shader))
-  (shader-reload-files (s #p"normals.vs" #p"normals.fs") shader))
+  (shader-reload-files (s #p"standard.vs" #p"normals.fs") shader))
 
 (defmethod draw ((obj show-normals-shader) scene)
   (gl:enable :depth-test :cull-face)
@@ -30,7 +30,7 @@
 (defclass cel-shader (normals-cam-shader) ())
 
 (defmethod reload ((s cel-shader))
-  (shader-reload-files (s #p"cel-shaded.vs" #p"cel-shaded.fs") shader
+  (shader-reload-files (s #p"standard.vs" #p"cel-shaded.fs") shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj cel-shader) scene)

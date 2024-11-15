@@ -15,7 +15,7 @@
 	 (warn "Added asset (~a) with key that already exits (~a), deleting old asset."
 	       asset key)
 	 (gficl:delete-gl (gethash key *assets*))))
-  (format t "added ~a~%" key)
+  (format t "added ~a : ~a~%" key asset)
   (setf (gethash key *assets*) asset))
 
 (defun add-asset-props (key props)

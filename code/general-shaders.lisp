@@ -14,6 +14,12 @@
   (gficl:bind-gl (get-asset 'uv))
   (call-next-method))
 
+(defmethod shader-mesh-props ((obj standard-colour-shader) props)
+  (let ((dt (cdr (assoc :diffuse props))))
+    (gl:active-texture :texture0)
+    (cond (dt (gficl:bind-gl dt))
+	  (t  (gficl:bind-gl (get-asset 'uv))))))
+
 ;;; View Normals Shader
 
 (defclass show-normals-shader (normals-shader) ())
@@ -38,3 +44,9 @@
   (gl:active-texture :texture0)
   (gficl:bind-gl (get-asset 'colours))
   (call-next-method))
+
+(defmethod shader-mesh-props ((obj cel-shader) props)
+  (let ((dt (cdr (assoc :diffuse props))))
+    (gl:active-texture :texture0)
+    (cond (dt (gficl:bind-gl dt))
+	  (t  (gficl:bind-gl (get-asset 'colours))))))

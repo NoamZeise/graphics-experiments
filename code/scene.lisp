@@ -29,12 +29,12 @@
    (cam-near :initform 0.05 :type float)
    (light-dir :accessor light-dir
 	      :initform
-	      (gficl:normalise (gficl:make-vec '(2 3 1)))
+	      (gficl:normalise (gficl:make-vec '(-0.1 3 2)))
 	      :type gficl:vec)
    (light-view :type gficl:matrix)
    (light-proj :type gficl:matrix
 	       :initform
-	       (gficl:orthographic-matrix 16 -12 16 -16 0 -50))
+	       (gficl:orthographic-matrix 16 -12 16 -16 0 -200))
    (light-vp :type gficl:matrix :initform (gficl:make-matrix))
    (light-near :initform 1)
    (light-far :initform 50)))

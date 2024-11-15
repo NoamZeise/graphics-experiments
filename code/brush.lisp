@@ -17,6 +17,12 @@
   (gficl:bind-gl (get-asset 'brush2))
   (call-next-method))
 
+(defmethod shader-mesh-props ((obj brush-shader) props)
+  (let ((dt (cdr (assoc :diffuse props))))
+    (gl:active-texture :texture0)
+    (cond (dt (gficl:bind-gl dt))
+	  (t  (gficl:bind-gl (get-asset 'uv))))))
+
 ;;; brush pipeline
 
 (defclass brush-colour-pass (pass) ())

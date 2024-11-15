@@ -37,9 +37,9 @@
 		    (make-instance 'backface-shader
 				   :outline-colour (gficl:make-vec '(0 0 0 0))
 				   :outline-size 1
-				   :normal-divisor 1000.0
+				   :normal-divisor 700.0
 				   :near-factor 1.000
-				   :polygon-offset -0))
+				   :polygon-offset -0.8))
      :clear-colour '(0.7 0.9 1.0 0.0)
      :description
      (make-framebuffer-descrption

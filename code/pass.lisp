@@ -18,7 +18,7 @@
    (width  :initform 0 :type integer)
    (height :initform 0 :type integer)
    (clear-buffers)
-   (clear-colour :initarg :clear-colour :initform '(0.0 0.0 0.0 0.0))
+   (clear-colour :initarg :clear-colour :initform '(0.7 0.9 1.0 0.0))
    (resolve-multisamples :initform t :type boolean :documentation
 			 "If t, blit multisampled framebuffers into a resolve buffer"))
   (:documentation

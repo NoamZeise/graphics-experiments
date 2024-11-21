@@ -15,7 +15,6 @@
 	 (warn "Added asset (~a) with key that already exits (~a), deleting old asset."
 	       asset key)
 	 (gficl:delete-gl (gethash key *assets*))))
-  (format t "added ~a : ~a~%" key asset)
   (setf (gethash key *assets*) asset))
 
 (defun add-asset-props (key props)
@@ -25,6 +24,7 @@
   (cdr (assoc prop (gethash key *asset-props*))))
 
 (defun load-model (key filename)
+  (format t "loading model ~a from ~a~%" key filename)
   (multiple-value-bind (data maps)
     (gficl/load:model (merge-pathnames filename +asset-folder+)
 		      :vertex-form '(:position :normal :uv))     
@@ -41,11 +41,14 @@
 	    (let ((diff-file (cdr (assoc :diffuse map))))
 	      (if diff-file
 		  (handler-case
-		      (multiple-value-bind
-		       (tex w h) (gficl/load:image diff-file)
-		       (setf diffuse-texs (cons tex diffuse-texs))
-		       (setf diffuse-props (cons (pairlis '(:width :height) (list w h))
-						 diffuse-props)))
+		      (progn
+			(format t "-> loading diffuse image ~a~%"
+				diff-file)
+			(multiple-value-bind
+			 (tex w h) (gficl/load:image diff-file)
+			 (setf diffuse-texs (cons tex diffuse-texs))
+			 (setf diffuse-props (cons (pairlis '(:width :height) (list w h))
+						   diffuse-props))))
 		    (error (e) (format t "error ~a~%" e)))
 		(progn
 		  (setf diffuse-texs (cons nil diffuse-texs))
@@ -55,10 +58,11 @@
 	     (add-asset-props diff-symb diffuse-props))))))
 
 (defun load-image (key filename)
+  (format t "loading image ~a from ~a~%" key filename)
   (add-asset key
-	     (multiple-value-bind (tex w h) (gficl/load:image filename)
-				  (add-asset-props key (pairlis '(:width :height) (list w h)))
-				  tex)))
+    (multiple-value-bind (tex w h) (gficl/load:image filename)
+      (add-asset-props key (pairlis '(:width :height) (list w h)))
+      tex)))
 
 (defun get-asset (key)
   (let ((a (gethash key *assets*)))

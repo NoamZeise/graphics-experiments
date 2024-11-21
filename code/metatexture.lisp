@@ -7,7 +7,7 @@
 (defun make-mt-colour-pass ()
   (make-instance
    'mt-colour-pass
-   :shaders (list (make-instance 'standard-colour-shader))
+   :shaders (list (make-instance 'cel-shader))
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture)
@@ -33,7 +33,8 @@
   (gficl:bind-gl (get-asset 'metatexture-noise))
   (call-next-method))
 
-(defclass metatexture-pass (pass) ())
+(defclass metatexture-pass (pass)
+  ((clear-colour :initform '(0.5 0.5 0.5 0.0))))
 
 (defun make-metatexture-pass ()
   (make-instance
@@ -51,7 +52,7 @@
 
 (defmethod reload ((s mt-post-shader))
   (shader-reload-files (s #p"post.vs" #p"metatexture/metatex-post.fs") shader
-    (gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.01)
+    (gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.02)
     (gl:uniformi (gficl:shader-loc shader "mt") 0)
     (gl:uniformi (gficl:shader-loc shader "col") 1)))
 
@@ -70,7 +71,6 @@
   (make-instance
    'mt-post-pass
    :shaders (list (make-instance 'mt-post-shader))
-   :clear-colour '(0.5 0.5 0.5 0)
    :description
    (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
 

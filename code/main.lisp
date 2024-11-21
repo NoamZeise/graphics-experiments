@@ -37,7 +37,8 @@
   (load-image 'brush2 #p"assets/brush-test2.png"))
 
 (defun create-pipelines ()
-  (setf *pipelines* (list (cons "aos" (make-aos-pipeline))
+  (setf *pipelines* (list (cons "pbr" (make-pbr-pipeline))
+			  (cons "aos" (make-aos-pipeline))
 			  (cons "outline" (make-outline-pipeline))
 			  (cons "xtoon" (make-xtoon-pipeline))
 			  (cons "brush" (make-brush-pipeline))

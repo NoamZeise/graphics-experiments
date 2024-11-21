@@ -6,7 +6,9 @@
   ((shadow-map)))
 
 (defmethod reload ((s halftone-shader))
-  (shader-reload-files (s #p"halftone.vs" #p"halftone.fs") shader
+  (shader-reload-files (s #p"halftone.vs" #p"halftone.fs"
+			  :folder (shader-subfolder #p"halftone/"))
+		       shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gl:uniformi (gficl:shader-loc shader "shadow_map") 1)))
 

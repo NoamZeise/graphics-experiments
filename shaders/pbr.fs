@@ -17,17 +17,15 @@ float chr(vec3 v, vec3 u) {
   return (sign(dot(v, u))+1)/2;
 }
 
-vec4 lambertian() {
- vec4 c_obj = texture(tex, fuv);
- return c_obj * (1/PI);
+float lambertian() {
+ return (1/PI);
 }
-/*
+
 // schlick approximation
-float fresnel(vec3 n, vec3 l) {
-  float mat_ior = 0.045; // plastic
+float fresnel(float mat_ior, float ndl) {
   float F0 = (mat_ior - 1) / (mat_ior + 1);
-  F0 *= F0;  
-  return F0 + (1 - F0)*pow(1-(max(dot(n,l), 0)), 5);
+  F0 *= F0;
+  return F0 + (1 - F0)*pow(1-ndl, 5);
 }
 
 float ggx_lambda(vec3 n, vec3 s) {
@@ -49,27 +47,32 @@ float joint_masking_shadowing(vec3 l, vec3 v, vec3 h, vec3 n) {
 }
 
 // GGX
-float distribution(vec3 n, vec3 h) {
-  float roughness = 0.25;
+float distribution(vec3 n, vec3 h, float roughness) {
   float ag = roughness * roughness;
   float ag2 = ag * ag;
   float num = chr(n, h) * ag2;
-  float den = PI * pow(1 + dot(n, h)*dot(n, h)*(ag2 - 1), 2);
+  float ndh2 = pow(max(dot(n, h), 0), 2);
+  float den = PI * pow(1 + ndh2*(ag2 - 1), 2);
   return num/den;
 }
 
 // Cook-Torrance
-float specular(vec3 normal, vec3 light, vec3 view) {
+float specular(vec3 normal, vec3 light, vec3 view, float F, float roughness) {
   vec3 half_vec = normalize(light + view);
-  float F = fresnel(normal, light);
+  float nl = max(dot(normal, light), 0);
+  float nh = max(dot(normal, half_vec), 0);
   float G2 = joint_masking_shadowing(light, view, half_vec, normal);
-  float D = distribution(normal, half_vec);
-  float factor = 4 * dot(normal, light) * dot(normal, view);
-  return (F * G2 * D) / factor;
+  float D = distribution(normal, half_vec, roughness);
+  float factor = 4 * nl * nh;
+  return (F * G2 * D) / max(factor, 0.000001);
 }
-*/
+
 vec4 brdf(vec3 normal, vec3 light, vec3 view) {
-   return lambertian();
+   vec4 c_obj = texture(tex, fuv);
+   float ndl = max(dot(normal, light), 0.0);
+   float fresnel = fresnel(0.045 /* plastic IOR */, ndl);
+   float specular = specular(normal, light, view, fresnel, 0.6);
+   return lambertian() * c_obj * fresnel;/* + specular*vec4(1));*/
 }
 
 void main() {

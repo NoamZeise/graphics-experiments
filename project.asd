@@ -36,4 +36,6 @@
 		 (:file "outline")
 		 (:file "xtoon")
 		 (:file "brush")
-		 (:file "halftone")))))
+		 (:file "halftone")
+		 (:file "pbr")
+		 (:file "lit-sphere")))))

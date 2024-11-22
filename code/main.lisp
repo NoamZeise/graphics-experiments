@@ -34,7 +34,10 @@
   (load-image 'light-colours #p"assets/light-colours.png")
   (load-image 'xtoon #p"assets/xtoon.png")
   (load-image 'brush #p"assets/brush-test.png")
-  (load-image 'brush2 #p"assets/brush-test2.png"))
+  (load-image 'brush2 #p"assets/brush-test2.png")
+  (load-image 'sky-matcap #p"assets/sky-matcap.png")
+  (load-image 'rust-matcap #p"assets/rust-matcap.png")
+  (load-image 'rim-matcap #p"assets/rim-matcap.png"))
 
 (defun create-pipelines ()
   (setf *pipelines* (list (cons "pbr" (make-pbr-pipeline))
@@ -42,7 +45,8 @@
 			  (cons "outline" (make-outline-pipeline))
 			  (cons "xtoon" (make-xtoon-pipeline))
 			  (cons "brush" (make-brush-pipeline))
-			  (cons "halftone" (make-halftone-pipeline))))
+			  (cons "halftone" (make-halftone-pipeline))
+			  (cons "lit-sphere" (make-lit-sphere-pipeline))))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*))))
 
 (defun create-scenes ()

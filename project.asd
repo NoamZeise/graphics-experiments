@@ -38,4 +38,6 @@
 		 (:file "brush")
 		 (:file "halftone")
 		 (:file "pbr")
-		 (:file "lit-sphere")))))
+		 (:file "lit-sphere")
+
+		 (:file "cascades")))))

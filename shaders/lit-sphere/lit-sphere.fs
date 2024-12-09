@@ -12,6 +12,7 @@ uniform vec3 light_dir;
 uniform sampler2D tex;
 uniform sampler2D matcap;
 uniform mat4 viewmat;
+uniform int enableMC;
 
 
 void main() {
@@ -28,8 +29,9 @@ void main() {
   
   colour = c_obj * c_light * lambertian;
 
-  vec2 mcuv = vec2(viewmat * vec4(normal, 0)) * 0.5 + vec2(0.5,0.5);
-  vec4 mccol = texture(matcap, vec2(mcuv.x, 1.0 - mcuv.y));
-    
-  colour = (colour * mccol)*0.25 + mccol*0.8;
+  if(enableMC == 1) {
+    vec2 mcuv = vec2(viewmat * vec4(normal, 0)) * 0.5 + vec2(0.5,0.5);
+    vec4 mccol = texture(matcap, vec2(mcuv.x, 1.0 - mcuv.y));  
+    colour = (colour * mccol)*0.25 + mccol*0.8;
+  }
 }

@@ -22,8 +22,11 @@
 (defmethod shader-mesh-props ((obj lit-sphere-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
-    (cond (dt (gficl:bind-gl dt))
-	  (t  (gficl:bind-gl (get-asset 'uv))))))
+    (let ((enable-mc 0))
+      (cond (dt (gficl:bind-gl dt))
+	    (t  (gficl:bind-gl (get-asset 'uv))
+		(setf enable-mc 1)))
+      (gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "enableMC") enable-mc))))
 
 (defmethod shader-scene-props ((obj lit-sphere-shader) (scene scene-3d))
   (call-next-method)

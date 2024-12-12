@@ -3,7 +3,9 @@
 (defclass scene ()
   ((objects :initarg :objects)
    (view-projection :accessor view-projection :initform (gficl:make-matrix) :type gficl:matrix)
-   (cam-pos :accessor cam-pos :initarg :cam-pos :type gficl:vec))
+   (cam-pos :accessor cam-pos :initarg :cam-pos :type gficl:vec)
+   (width :initform 0)
+   (height :initform 0))
   (:documentation "A state to be drawn by a shader. Usually a list of objects and a camera. Also encapsulates updating the scene each frame (ie in response to user input)."))
 
 (defgeneric update-scene (scene dt)
@@ -12,7 +14,10 @@
 (defmethod initialize-instance :after ((obj scene) &key &allow-other-keys)
   (resize obj (gficl:window-width) (gficl:window-height)))
 
-(defmethod resize ((obj scene) w h))
+(defmethod resize ((obj scene) w h)
+  (with-slots (width height) obj
+    (setf width w)
+    (setf height h)))
 
 (defmethod update-scene ((obj scene) dt))
 
@@ -40,8 +45,9 @@
    (light-far :initform 50)))
 
 (defmethod resize ((obj scene-3d) w h)
+  (call-next-method)
   (with-slots ((proj projection-mat) (fov cam-fov) (near cam-near)) obj
-      (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near 100))))
+    (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near 100))))
 
 (defmethod update-scene :after ((obj scene-3d) (dt number))
   (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target light-dir light-view light-proj light-vp) obj
@@ -58,6 +64,7 @@
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)))
 
 (defmethod resize ((obj scene-2d) w h)
+  (call-next-method)
   (setf (slot-value obj 'projection-mat)
 	(gficl:screen-orthographic-matrix w h)))
 
@@ -74,9 +81,11 @@
    (tex-alist :initform nil)))
 
 (defmethod resize ((obj post-scene) w h)
+  (call-next-method)
   (with-slots ((tw target-width) (th target-height) transform) obj
-    (if (and (> tw 0) (> th 0)) 
-	(setf transform (gficl:target-resolution-matrix tw th w h)))))
+    (if (and (> tw 0) (> th 0))
+	(setf transform (gficl:target-resolution-matrix tw th w h))
+      (setf transform (gficl:make-matrix)))))
 
 (defun set-post-texs (post-scene tex-alist)
   (setf (slot-value post-scene 'tex-alist) tex-alist))

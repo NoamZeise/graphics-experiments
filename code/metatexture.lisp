@@ -19,7 +19,7 @@
 (defclass metatexture-shader (normals-shader) ())
 
 (defmethod reload ((s metatexture-shader))
-  (shader-reload-files (s #p"metatexture.vs" #p"metatexture.fs"
+  (shader-reload-files (s (#p"metatexture.vs" #p"metatexture.fs")
 			  :folder (shader-subfolder #p"metatexture/"))
 		       shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
@@ -51,7 +51,7 @@
 (defclass mt-post-shader (post-shader) ())
 
 (defmethod reload ((s mt-post-shader))
-  (shader-reload-files (s #p"post.vs" #p"metatexture/metatex-post.fs") shader
+  (shader-reload-files (s (#p"post.vs" #p"metatexture/metatex-post.fs")) shader
     (gl:uniformf (gficl:shader-loc shader "offset_intensity") 0.02)
     (gl:uniformi (gficl:shader-loc shader "mt") 0)
     (gl:uniformi (gficl:shader-loc shader "col") 1)))

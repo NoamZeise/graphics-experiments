@@ -5,7 +5,7 @@
 (defclass vsm-shader (shader) ())
 
 (defmethod reload ((s vsm-shader))
-  (shader-reload-files (s #p"basic.vs" #p"vsm.fs"
+  (shader-reload-files (s (#p"basic.vs" #p"vsm.fs")
 			  :folder (shader-subfolder #p"shadows/"))
 		       shader))
 

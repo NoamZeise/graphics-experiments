@@ -26,29 +26,48 @@ Update shader uniforms with the following:
     (if new-obj (setf new-obj nil)
       (gficl:delete-gl (slot-value obj 'shader)))))
 
-(defmacro shader-reload-files ((shader vert-path frag-path
-				       &key (folder +shader-folder+))
+(defmacro shader-reload-files ((shader paths
+			       &key (folder +shader-folder+)
+			            (load-fn nil))
 			       shader-var
 			       &body body)
-  "Only recompile the shader if any of the files have been modified."
-  (let ((n-o (gensym)) (files `(list ,vert-path ,frag-path)) (error-var (gensym)))
+  "Only recompile the shader if any of the files have been modified.
+By default needs a vert and frag path if load-fn not supplied (uses GFICL/LOAD:SHADER)"
+  (let ((n-o (gensym)) (error-var (gensym)))
     `(with-slots ((,n-o new-obj)) ,shader
-      (if ,n-o (watch-files ,files :folder ,folder))
-      (cond ((or ,n-o (files-modified ,files :folder ,folder))
-	     (format t "loading shader (~a + ~a) in ~a~%" ,vert-path ,frag-path ,folder)
-	     (handler-case
-		 (let ((,shader-var (gficl/load:shader ,vert-path ,frag-path :shader-folder ,folder)))
-		   (call-next-method)
-		   (gficl:bind-gl ,shader-var)
-		   ,@body
-		   (setf (slot-value ,shader 'shader) ,shader-var))
-	       (error (,error-var)
-                      (if ,n-o (error ,error-var))
-		      (format t "~%shader compile error~%~a~%~%" ,error-var))))))))
+       (if ,n-o (watch-files (list ,@paths) :folder ,folder))
+       (cond ((or ,n-o (files-modified (list ,@paths) :folder ,folder))
+	      (format t "loading shader (~{~a~^ + ~}) in ~a~%" (list ,@paths) ,folder)
+	      (handler-case
+		  (let ((,shader-var
+			 ,(if load-fn
+			      `(funcall ,load-fn ,@paths)
+			    (destructuring-bind (&optional (vert nil) (frag nil)) paths
+			      (if (not (and vert frag))
+				  (error
+				   "Must pass vertex and fragment paths to shader-reload-files"))
+			      `(gficl/load:shader ,vert ,frag :shader-folder ,folder)))))
+		    (call-next-method)
+		    (gficl:bind-gl ,shader-var)
+		    ,@body
+		    (setf (slot-value ,shader 'shader) ,shader-var))
+		(error (,error-var)
+                       (if ,n-o (error ,error-var))
+		       (format t "~%shader compile error~%~a~%~%" ,error-var))))))))
+
+(defmacro compute-shader-reload-files ((shader path
+			       &key (folder +shader-folder+))
+			       shader-var &body body)
+  "takes a single shader path. 
+Uses GFICL/LOAD:COMPUTE-SHADER to load the shader."
+  `(shader-reload-files
+    (,shader ,(list path) :folder ,folder
+	     :load-fn (lambda (path) (gficl/load:compute-shader path :shader-folder ,folder)))
+    ,shader-var ,body))
 
 (defmethod shader-model-props ((obj shader) props)
-  (gficl:bind-matrix (slot-value obj 'shader) "model"
-		     (cdr (assoc :model props))))
+	   (gficl:bind-matrix (slot-value obj 'shader) "model"
+			      (cdr (assoc :model props))))
 
 (defmethod shader-mesh-props ((obj shader) props))
 

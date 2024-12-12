@@ -7,7 +7,7 @@
 (defun make-framebuffer-descrption (attachments &key (samples 1))
   (let ((fbd (make-instance 'framebuffer-descrption)))
     (setf (fb-attachments fbd) attachments)
-    (setf (fb-samples fbd) (msaa-samples samples))
+    (setf (fb-samples fbd) (gficl:msaa-samples samples))
     fbd))
 
 (defclass pass ()
@@ -98,6 +98,10 @@ When drawn with, draws the scene using all of it's shaders"))
 ;;; --- post-processing pass ---
 
 (defclass post-pass (pass) ())
+
+(defmethod draw ((pass post-pass) scenes)
+  (error "Tried to draw an arbitrary scene with a POST-PASS. 
+Can only draw a POST-SCENE with a POST-PASS"))
 
 (defmethod draw ((pass post-pass) (scene post-scene))
   (with-slots (shaders) pass

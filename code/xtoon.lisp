@@ -5,7 +5,7 @@
 (defclass xtoon-shader (normals-cam-shader) ())
 
 (defmethod reload ((s xtoon-shader))
-  (shader-reload-files (s #p"standard.vs" #p"xtoon.fs") shader
+  (shader-reload-files (s (#p"standard.vs" #p"xtoon.fs")) shader
     (gl:uniformi (gficl:shader-loc shader "toontex") 0)))
 
 (defmethod draw ((obj xtoon-shader) scene)

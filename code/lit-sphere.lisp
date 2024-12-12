@@ -7,7 +7,7 @@
 (defclass lit-sphere-shader (normals-cam-shader) ())
 
 (defmethod reload ((s lit-sphere-shader))
-  (shader-reload-files (s #p"standard.vs" #p"lit-sphere/lit-sphere.fs") shader
+  (shader-reload-files (s (#p"standard.vs" #p"lit-sphere/lit-sphere.fs")) shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gl:uniformi (gficl:shader-loc shader "matcap") 1)))
 

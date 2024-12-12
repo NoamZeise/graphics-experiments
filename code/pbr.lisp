@@ -5,7 +5,7 @@
 (defclass pbr-shader (normals-cam-shader) ())
 
 (defmethod reload ((s pbr-shader))
-  (shader-reload-files (s #p"standard.vs" #p"pbr.fs") shader
+  (shader-reload-files (s (#p"standard.vs" #p"pbr.fs")) shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj pbr-shader) scene)

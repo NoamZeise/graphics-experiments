@@ -20,16 +20,16 @@
   (setup-asset-table)
   (load-model 'sphere #p"sphere.obj")
   (load-model 'cube #p"cube.obj")
-  (load-model 'cone #p"cone.obj")
+  ;;(load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
- ;(load-model+texs 'street #p"street/street.obj")
+  ;;(load-model+texs 'street #p"street/street.obj")
   (add-asset  'dummy-data
 	      (gficl:make-vertex-data
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   ;(load-image 'test #p"assets/test.png")
   ;(load-image 'metatexture-noise #p"assets/noise.png")
-  ;(load-image 'uv #p"assets/uv.png")
+  (load-image 'uv #p"assets/uv.png")
   ;(load-image 'colours #p"assets/colours.png")
   ;(load-image 'light-colours #p"assets/light-colours.png")
   ;(load-image 'xtoon #p"assets/xtoon.png")
@@ -54,8 +54,11 @@
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*))))
 
 (defun create-scenes ()
-  (setf *3d-scene* (make-plane-scene))
-  (setf *quad-scene* (make-square-scene)))
+  (setf *active-scenes*
+	(list ;(make-street-scene)
+	 (make-simple-3d-scene)
+	 ;(make-square-scene)
+	 )))
 
 (defun setup ()
   (init-watched)
@@ -80,8 +83,8 @@
   (cleanup-assets))
 
 (defun resize-callback (w h)
-  (resize *3d-scene* w h)
-  (resize *quad-scene* w h)
+  (loop for scene in *active-scenes* do
+	(resize scene w h))
   (foreach-v *pipelines* (p) (resize p w h)))
 
 (defun update ()
@@ -96,8 +99,8 @@
 		  return
 		  (if r (caar r) (caar *pipelines*))))
       (format t "using ~a pipeline~%" *active-pipeline*)))
-    (update-scene *3d-scene* dt)
-    (update-scene *quad-scene* dt)
+    (loop for scene in *active-scenes* do
+	  (update-scene scene dt))
     (process-watched)
     (cond (*signal-fn*
 	   (funcall *signal-fn*)
@@ -109,7 +112,7 @@
 
 (defun render ()
   (gficl:with-render
-   (draw (cdr (assoc *active-pipeline* *pipelines*)) (list *3d-scene* *quad-scene*))))
+   (draw (cdr (assoc *active-pipeline* *pipelines*)) *active-scenes*)))
 
 ;;; signal running program functions
 
@@ -139,7 +142,6 @@
 
 (defparameter *active-pipeline* nil)
 
-(defparameter *3d-scene* nil)
-(defparameter *quad-scene* nil)
+(defparameter *active-scenes* nil)
 
 (defparameter *signal-fn* nil)

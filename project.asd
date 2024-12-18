@@ -29,7 +29,7 @@
 
 		 (:file "general-shaders")
 		 (:file "shadow")
-		 (:file "plane-scene")
+		 (:file "scenes")
 		 
 		 (:file "metatexture")
 		 (:file "outline")
@@ -38,5 +38,4 @@
 		 (:file "halftone")
 		 (:file "pbr")
 		 (:file "lit-sphere")
-
 		 (:file "cascades")))))

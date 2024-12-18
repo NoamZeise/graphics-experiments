@@ -5,7 +5,7 @@
 (defclass standard-colour-shader (normals-cam-shader) ())
 
 (defmethod reload ((s standard-colour-shader))
-  (shader-reload-files (s (#p"standard.vs" #p"standard.fs")) shader
+  (shader-reload-files (s (#p"standard.vs" #p"direct.fs")) shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj standard-colour-shader) scene)

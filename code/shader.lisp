@@ -63,7 +63,7 @@ Uses GFICL/LOAD:COMPUTE-SHADER to load the shader."
   `(shader-reload-files
     (,shader ,(list path) :folder ,folder
 	     :load-fn (lambda (path) (gficl/load:compute-shader path :shader-folder ,folder)))
-    ,shader-var ,body))
+    ,shader-var ,@body))
 
 (defmethod shader-model-props ((obj shader) props)
 	   (gficl:bind-matrix (slot-value obj 'shader) "model"

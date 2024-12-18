@@ -90,12 +90,13 @@
 (defun set-post-texs (post-scene tex-alist)
   (setf (slot-value post-scene 'tex-alist) tex-alist))
 
-(defun get-post-tex (post-scene key)
+(defun get-post-tex-alist (post-scene key)
   (let ((texs (assoc key (slot-value post-scene 'tex-alist))))
-    (if (= 2 (length texs))
-	(cadr texs)
-      (cdr texs))))
+    (cdr texs)))
+
+(defun get-post-tex (post-scene key framebuffer-position)
+  (cdr (assoc framebuffer-position (get-post-tex-alist post-scene key))))
 
 (defmethod draw ((scene post-scene) shader)
-  "draw scene without calling draw on objects (only calls shader scene props)"
-  (shader-scene-props shader scene))
+	   "draw scene without calling draw on objects (only calls shader scene props)"
+	   (shader-scene-props shader scene))

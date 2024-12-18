@@ -9,7 +9,8 @@
 (defmethod reload ((s test-compute-shader))
   (compute-shader-reload-files (s #p"test-compute.cs") shader
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
-    (gl:uniformi (gficl:shader-loc shader "depth_buff") 2)))
+    (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
+    (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)))
 
 (defmethod resize ((shader test-compute-shader) (w integer) (h integer))
   (with-slots (ssbo init) shader
@@ -26,16 +27,17 @@
 
 (defmethod draw ((shader test-compute-shader) (scene test-compute-post-scene))
   (with-slots ((w width) (h height)) scene
-    (let ((compute-target (get-post-tex scene :compute))
-	  (buffs (get-post-tex scene :colour)))
+    (let ((compute-target (get-post-tex scene :compute :color-attachment0))
+	  (colour-buff (get-post-tex scene :colour :color-attachment0))
+	  (light-buff (get-post-tex scene  :colour :color-attachment1))
+	  (depth-buff (get-post-tex scene  :colour :depth-attachment)))
       (gl:active-texture :texture0)
       (gl:bind-texture :texture-2d compute-target)
       (gl:bind-image-texture 0 compute-target 0 nil 0 :read-write :rgba32f)
       (gficl:bind-storage-buffer (slot-value shader 'ssbo) 2)
-      (gl:active-texture :texture1)
-      (gl:bind-texture :texture-2d (car buffs))
-      (gl:active-texture :texture2)
-      (gl:bind-texture :texture-2d (cadr buffs))
+      (gl:active-texture :texture1) (gl:bind-texture :texture-2d colour-buff)
+      (gl:active-texture :texture2) (gl:bind-texture :texture-2d light-buff)
+      (gl:active-texture :texture3) (gl:bind-texture :texture-2d depth-buff)
       (%gl:dispatch-compute w h 1)
       (%gl:memory-barrier '(:shader-image-access-barrier)))))
 
@@ -76,7 +78,7 @@
        (gl:uniformi (gficl:shader-loc shader "use_texture") (if dt 1 0))
        (gl:uniformi (gficl:shader-loc shader "is_light") (if light? 1 0))
        (gficl:bind-vec shader "obj_colour" col)
-       (cond (dt (gficl:bind-gl dt))))))
+       (if dt (gficl:bind-gl dt)))))
 
 (defclass cascade-colour-pass (pass) ())
 
@@ -87,8 +89,9 @@
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture)
-	  (gficl:make-attachment-description :position :depth-attachment :type :texture)))
-   :samples 16))
+	  (gficl:make-attachment-description :position :color-attachment1 :type :texture)
+	  (gficl:make-attachment-description :position :depth-attachment  :type :texture))
+    :samples 16)))
 
 (defmethod draw ((obj cascade-colour-pass) scenes)
   (gl:enable :cull-face :depth-test)

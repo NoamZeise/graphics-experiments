@@ -9,6 +9,7 @@ layout(std430, binding = 2) buffer data {
 };
 
 uniform sampler2D colour_buff;
+uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
 
 void main() {
@@ -19,7 +20,7 @@ void main() {
     col.z = ssbo[coord.x*gl_NumWorkGroups.y + coord.y];
     vec2 uv = vec2((0.5 + float(coord.x))/float(gl_NumWorkGroups.x),
 		   (0.5 + float(coord.y))/float(gl_NumWorkGroups.y));
-    //col = vec4(pow(texture(depth_buff, uv).r, 500));
-    col = texture(colour_buff, uv);
+    //col = vec4(pow(texture(depth_buff, uv).r, 100));
+    col = texture(light_buff, uv);
     imageStore(imgOut, coord, col);
 }

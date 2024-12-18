@@ -31,8 +31,7 @@ When drawn with, draws the scene using all of it's shaders"))
 (defgeneric get-final-framebuffer (pass)
   (:documentation "Return resulting framebuffer"))
 
-(defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)	   
-  (resize instance (gficl:window-width) (gficl:window-height))
+(defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)
   (with-slots (description clear-buffers) instance
     (setf clear-buffers
 	  (loop for a in (fb-attachments description) nconcing
@@ -76,14 +75,16 @@ When drawn with, draws the scene using all of it's shaders"))
 
 (defmethod draw :after ((obj pass) scenes)
   (with-slots ((fb framebuffer) (rfb resolve-framebuffer) width height) obj
-    (if rfb (gficl:blit-framebuffers fb rfb width height))))
+    (if rfb (gficl:blit-framebuffers fb rfb width height
+				     :buffer-list (list :color-buffer-bit :depth-buffer-bit)))))
 
 (defmethod get-textures ((pass pass))
   (with-slots (description (final-fb framebuffer) (resolve-fb resolve-framebuffer)) pass
     (let ((fb (if (= 1 (fb-samples description)) final-fb resolve-fb)))
       (loop for i from 0 for a in (fb-attachments description)
 	    when (eq :texture (gficl:attach-desc-type a))
-	    collecting (gficl:framebuffer-texture-id fb i)))))
+	    collecting
+	    (cons (gficl:attach-desc-position a) (gficl:framebuffer-texture-id fb i))))))
 
 (defmethod get-final-framebuffer ((pass pass))
   (with-slots ((fb framebuffer) (rfb resolve-framebuffer)) pass

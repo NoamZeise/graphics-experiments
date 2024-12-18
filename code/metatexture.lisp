@@ -61,9 +61,9 @@
     (gficl:bind-gl (slot-value s 'shader))
     (gficl:bind-matrix (slot-value s 'shader) "transform" transform)
     (gl:active-texture :texture0)    
-    (gl:bind-texture :texture-2d (get-post-tex scene :mt))
+    (gl:bind-texture :texture-2d (get-post-tex scene :mt :color-attachment0))
     (gl:active-texture :texture1)
-    (gl:bind-texture :texture-2d (get-post-tex scene :col))))
+    (gl:bind-texture :texture-2d (get-post-tex scene :col :color-attachment0))))
 
 (defclass mt-post-pass (post-pass) ())
 

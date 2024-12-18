@@ -54,8 +54,10 @@
    :cam-target (gficl:make-vec '(0 0 0.5))
    :objects
    (list
-    (make-object (get-asset 'bunny) (object-matrix '(0 0 0) '(1 1 1)))
-    (make-object (get-asset 'plane) (object-matrix '(0 -0.38 0) '(3 1 3)))
+    (make-object (get-asset 'bunny) (object-matrix '(0 0 0) '(1 1 1))
+		 :colour (gficl:make-vec '(0.2 0.8 0 1)))
+    (make-object (get-asset 'plane) (object-matrix '(0 -0.38 0) '(3 1 3))
+		 :colour (gficl:make-vec '(0.7 0 0 1)))
     (make-object (get-asset 'cube) (object-matrix '(-1 0 -1) '(0.1 0.1 0.1)) :light t))))
 
 (defclass street-scene (camera-scene) ())

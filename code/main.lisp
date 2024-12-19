@@ -42,7 +42,7 @@
 
 (defun create-pipelines ()
   (setf *pipelines* (list
-		     (cons "compute" (make-test-compute-pipeline))
+		     (cons "compute" (make-cascade-pipeline))
 		     ;; (cons "pbr" (make-pbr-pipeline))
 		     ;; (cons "aos" (make-aos-pipeline))
 		     ;; (cons "outline" (make-outline-pipeline))

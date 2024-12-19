@@ -1,28 +1,37 @@
 (in-package :project)
 
 (defclass pipeline ()
-  ((passes :initarg :passes :documentation "alist of keys and passes"))
+  ((passes :initarg :passes :documentation "alist of keys and passes")
+   (shaders :initarg :shaders :initform () :documentation "alist of keys and shaders (ie for compute shaders not dependant on a pass)"))
   (:documentation "Ecapsulates an entire graphics pipeline for drawing a list of scenes.
 Comprises of multiple passes."))
 
-(defmacro foreach-pass (pipeline (p) fn)
+(defmacro foreach-pl (pipeline (p slot) fn)
   (let ((pass (gensym)))
-    `(loop for (nil . ,pass) in (slot-value ,pipeline 'passes) do (let ((,p ,pass)) ,fn))))
+    `(loop for (nil . ,pass) in (slot-value ,pipeline ,slot) do (let ((,p ,pass)) ,fn))))
 
 (defmethod initialize-instance :after ((instance pipeline) &key &allow-other-keys)	   
-  (resize instance (gficl:window-width) (gficl:window-height)))
+	   (resize instance (gficl:window-width) (gficl:window-height)))
+
+(defun get-pl (pipeline key slot)
+  (cdr (assoc key (slot-value pipeline slot))))
 
 (defun get-pass (pipeline key)
-  (cdr (assoc key (slot-value pipeline 'passes))))
+  (get-pl pipeline key 'passes))
+
+(defun get-shader (pipeline key)
+  (get-pl pipeline key 'shaders))
 
 (defmethod reload ((pl pipeline))
-  (foreach-pass pl (p) (reload p)))
+   (foreach-pl pl (p 'passes) (reload p))
+   (foreach-pl pl (s 'shaders) (reload s)))
 
 (defmethod resize ((pl pipeline) (w integer) (h integer))
-  (foreach-pass pl (p) (resize p w h)))
+  (foreach-pl pl (p 'passes) (resize p w h)))
 
 (defmethod free ((pl pipeline))
-  (foreach-pass pl (p) (free p)))
+  (foreach-pl pl (p 'passes) (free p))
+  (foreach-pl pl (s 'shaders) (reload s)))
 
 (defun alist-fb-textures (pl passes)
   "Given a PIPELINE and a list of keys for an alist,

@@ -6,6 +6,7 @@ layout(std430, binding = 0) buffer Radiance_Intervals {
   vec4 interval[];
 };
 
+uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
 

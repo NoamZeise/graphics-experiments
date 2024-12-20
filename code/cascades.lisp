@@ -5,8 +5,9 @@
 (defclass cascade-light-shader (normals-cam-shader) ())
 
 (defmethod reload ((s cascade-light-shader))
-  (shader-reload-files (s (#p"standard.vs" #p"cascade/light.fs")) shader
-    (gl:uniformi (gficl:shader-loc shader "tex") 0)))
+  (shader-reload-files
+   (s (#p"draw.vs" #p"draw.fs") :folder (shader-subfolder #p"cascade/")) shader
+   (gl:uniformi (gficl:shader-loc shader "tex") 0)))
 
 (defmethod draw ((obj cascade-light-shader) scene)
    (gl:active-texture :texture0)
@@ -30,9 +31,11 @@
    :shaders (list (make-instance 'cascade-light-shader))
    :description
    (make-framebuffer-descrption
-    (list (gficl:make-attachment-description :type :texture)
+    (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
 	  (gficl:make-attachment-description :position :color-attachment1 :type :texture)
-	  (gficl:make-attachment-description :position :depth-attachment  :type :texture))
+	  (gficl:make-attachment-description :position :color-attachment2 :type :texture
+					     :internal-format :rgba32f)
+	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 16)))
 
 (defmethod draw ((obj cascade-colour-pass) scenes)
@@ -78,7 +81,7 @@
       shader
     (let ((colour-buff (get-post-tex scene :colour :color-attachment0))
 	  (light-buff (get-post-tex scene  :colour :color-attachment1))
-	  (depth-buff (get-post-tex scene  :colour :depth-attachment)))
+	  (depth-buff (get-post-tex scene  :colour :color-attachment2)))
       (gficl:bind-storage-buffer (slot-value shader 'interval-buffer) 0)
       (gl:active-texture :texture0) (gl:bind-texture :texture-2d colour-buff)
       (gl:active-texture :texture1) (gl:bind-texture :texture-2d light-buff)
@@ -101,7 +104,7 @@
     (let ((target (get-post-tex scene :final :color-attachment0))
 	  (colour-buff (get-post-tex scene :colour :color-attachment0))
 	  (light-buff (get-post-tex scene  :colour :color-attachment1))
-	  (depth-buff (get-post-tex scene  :colour :depth-attachment)))
+	  (depth-buff (get-post-tex scene  :colour :color-attachment2)))
 
       (gl:active-texture :texture0)
       (gl:bind-texture :texture-2d target)

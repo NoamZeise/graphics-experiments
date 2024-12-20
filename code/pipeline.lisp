@@ -31,7 +31,7 @@ Comprises of multiple passes."))
 
 (defmethod free ((pl pipeline))
   (foreach-pl pl (p 'passes) (free p))
-  (foreach-pl pl (s 'shaders) (reload s)))
+  (foreach-pl pl (s 'shaders) (free s)))
 
 (defun alist-fb-textures (pl passes)
   "Given a PIPELINE and a list of keys for an alist,

@@ -18,6 +18,12 @@ void main() {
     vec2 uv = vec2((0.5 + float(coord.x))/float(gl_NumWorkGroups.x),
 		   (0.5 + float(coord.y))/float(gl_NumWorkGroups.y));
     //col = vec4(pow(texture(depth_buff, uv).r, 100));
-    col = texture(colour_buff, uv);
+    col = texture(depth_buff, uv);
+    col.a = 1;
+    col.rgb += vec3(1);
+    col.rgb /=2;
+    vec3 pos = texture(depth_buff, uv).rgb;
+    //col = vec4(depth);
+    //col.a = 1;
     imageStore(imgOut, coord, col);
 }

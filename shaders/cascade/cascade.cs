@@ -10,10 +10,15 @@ uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
 
-uniform int intervals_per_probe;
-uniform vec2 interval_range;
-
 void main() {
   uvec3 id = gl_GlobalInvocationID.xyz;
+
+  int width = 100;
+  int height = 100;
+  int depth = 100;
+  int samples = 6;
+
+  vec3 pos = vec3(id.x / width, id.y / height, id.z / depth);
+  
   interval[id.z * 100 * 100 * 6 + id.y * 100 * 6 + id.x] = vec4(0.5);
 }

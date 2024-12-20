@@ -1,5 +1,8 @@
 (in-package :project)
 
+(defclass cascade-post-scene (post-scene)
+  ((interval-buffer :initarg :interval-buffer :type gficl:storage-buffer)))
+
 ;; initial pass
 
 (defclass cascade-light-shader (normals-cam-shader) ())

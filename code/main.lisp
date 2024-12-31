@@ -29,7 +29,7 @@
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   ;(load-image 'test #p"assets/test.png")
   ;(load-image 'metatexture-noise #p"assets/noise.png")
-  ;(load-image 'uv #p"assets/uv.png")
+  (load-image 'uv #p"assets/uv.png")
   ;(load-image 'colours #p"assets/colours.png")
   ;(load-image 'light-colours #p"assets/light-colours.png")
   ;(load-image 'xtoon #p"assets/xtoon.png")
@@ -43,7 +43,7 @@
 (defun create-pipelines ()
   (setf *pipelines* (list
 		     (cons "compute" (make-cascade-pipeline))
-		     ;; (cons "pbr" (make-pbr-pipeline))
+		      (cons "pbr" (make-pbr-pipeline))
 		     ;; (cons "aos" (make-aos-pipeline))
 		     ;; (cons "outline" (make-outline-pipeline))
 		     ;; (cons "xtoon" (make-xtoon-pipeline))
@@ -99,6 +99,7 @@
 		  return
 		  (if r (caar r) (caar *pipelines*))))
       (format t "using ~a pipeline~%" *active-pipeline*)))
+    ;;(format t "fps: ~d~%" (round (/ 1 (float dt))))
     (loop for scene in *active-scenes* do
 	  (update-scene scene dt))
     (process-watched)

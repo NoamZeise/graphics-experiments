@@ -13,7 +13,19 @@ uniform sampler2D depth_buff;
 uniform int intervals_per_probe;
 uniform vec2 interval_range;
 
+uniform ivec4 dim;
+
 void main() {
   uvec3 id = gl_GlobalInvocationID.xyz;
-  interval[id.z * 100 * 100 * 6 + id.y * 100 * 6 + id.x] = vec4(0.5);
+  vec3 pos = vec3(id.x / float(dim.x*dim.w),
+		  id.y / float(dim.y),
+		  id.z / float(dim.z));
+  vec3 prepos = pos;
+  pos /= 2;
+  pos += vec3(1);
+  
+  interval[id.z * dim.x * dim.y * dim.w
+	 + id.y * dim.x         * dim.w
+	 + id.x]
+      = vec4(prepos.x, prepos.y, prepos.z, 1);
 }

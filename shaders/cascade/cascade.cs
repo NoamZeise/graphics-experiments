@@ -10,10 +10,9 @@ uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
 
-uniform int intervals_per_probe;
-uniform vec2 interval_range;
-
 uniform ivec4 dim;
+uniform int cascade_level;
+uniform int max_cascade_level;
 
 void main() {
   uvec3 id = gl_GlobalInvocationID.xyz;
@@ -23,6 +22,11 @@ void main() {
   vec3 prepos = pos;
   pos /= 2;
   pos += vec3(1);
+
+  int factor = exp2(cascade_level);
+  ivec3 pid = ivec3(id.x / (dim.w*factor),
+		    id.y,
+		    id.z);
   
   interval[id.z * dim.x * dim.y * dim.w
 	 + id.y * dim.x         * dim.w

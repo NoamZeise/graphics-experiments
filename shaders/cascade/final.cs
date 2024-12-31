@@ -91,6 +91,5 @@ void main() {
     
     vec4 frag_col = texture(colour_buff, uv);    
     vec4 col = final_sample * frag_col;
-    imageStore(imgOut, coord,
-	       col);
+    imageStore(imgOut, coord, col);
 }

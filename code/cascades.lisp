@@ -68,8 +68,9 @@
 	 (d cascade0-depth)
 	 (samples cascade0-samples))
 	s
-      (gl:uniformi (gficl:shader-loc shader "dim")
-		   w h d samples)
+      (gl:uniformi (gficl:shader-loc shader "dim") w h d samples)
+      (gl:uniformi (gficl:shader-loc shader "cascade_level") 0)
+      (gl:uniformi (gficl:shader-loc shader "max_cascade_level") 1)
       (if init (gficl:delete-gl interval-buffer)
 	(setf init t))
       (setf interval-buffer

@@ -89,7 +89,8 @@ void main() {
     if(pndc.z == 1)
 	final_sample = vec4(1);
     
-    vec4 frag_col = texture(colour_buff, uv);    
+    vec4 frag_col = texture(colour_buff, uv);
+    //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
     vec4 col = final_sample * frag_col;
     imageStore(imgOut, coord, col);
-}
+}  

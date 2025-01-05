@@ -26,10 +26,11 @@ void main() {
 		   (0.5 + float(coord.y))/float(gl_NumWorkGroups.y));    
     vec3 fpos = texture(depth_buff, uv).rgb;
 
+    // interpolate down to a single point
     //   X --- X
-    //  /     /|      X --- X
-    // X --- X |  --> |     |
-    // |     | X      X --- X
+    //  /     /|       X --- X
+    // X --- X |  -->  |     |  -->  X --- X  -->  X
+    // |     | X       X --- X
     // X --- X`
 
 
@@ -91,7 +92,8 @@ void main() {
     
     vec4 frag_col = texture(colour_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    vec4 col = final_sample * frag_col;
-    
+    //vec4 col = final_sample * frag_col;
+    vec4 col = final_sample;
+    //col = texture(light_buff, uv);
     imageStore(imgOut, coord, col);
 }  

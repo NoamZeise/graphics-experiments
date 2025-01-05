@@ -42,6 +42,7 @@
     :samples 1)))
 
 (defmethod draw ((obj cascade-colour-pass) scenes)
+  (gl:clear-tex-image (cdar (get-textures obj)) 0 :rgba :float #(0 0 0 0))
   (gl:enable :cull-face :depth-test)
   (call-next-method))
 

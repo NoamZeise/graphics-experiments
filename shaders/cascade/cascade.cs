@@ -25,14 +25,14 @@ vec4 trace(vec3 pos, int id, int total) {
     //pos += vec3(1);
     //pos /= 2;
     vec4 ray_col = vec4(0);
-    const int STEPS = 10;
-    float step_size = 0.1;
+    const int STEPS = 30;
+    float step_size = 0.05;
     vec3 dir = vec3(0, -1, 0);
     for(int i = 0; i < STEPS; i++) {
 	vec3 new_pos = pos + dir * step_size;	
 	vec3 frag_pos = (sample_tex(new_pos, depth_buff)).xyz;
 	// might be slow
-	if(frag_pos.z > new_pos.z && ray_col.w == 0) {
+	if(frag_pos.z < new_pos.z && frag_pos.z + 0.1 > new_pos.z && ray_col.w == 0) {
 	    ray_col = sample_tex(new_pos, light_buff);
 	    ray_col.w = 1;
 	}

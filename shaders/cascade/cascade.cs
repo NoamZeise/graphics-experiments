@@ -25,9 +25,34 @@ vec4 trace(vec3 pos, int id, int total) {
     //pos += vec3(1);
     //pos /= 2;
     vec4 ray_col = vec4(0);
-    const int STEPS = 30;
-    float step_size = 0.05;
-    vec3 dir = vec3(0, -1, 0);
+    const int STEPS = 10;
+    float step_size = 0.002;
+    float offset = 0;
+
+    vec3 dir = vec3(0, 0, 0);
+
+    switch(id) {
+    case 0:
+      dir = vec3(0, -1, 0);
+      break;
+    case 1:
+      dir = vec3(0, 1, 0);
+      break;
+    case 2:
+      dir = vec3(1, 0, 0);
+      break;
+    case 3:
+      dir = vec3(-1, 0, 0);
+      break;
+    case 4:
+      dir = vec3(0, 0, 1);
+      break;
+    case 5:
+      dir = vec3(0, 0, -1);
+      break;
+    }
+    
+    pos += dir * offset;
     for(int i = 0; i < STEPS; i++) {
 	vec3 new_pos = pos + dir * step_size;	
 	vec3 frag_pos = (sample_tex(new_pos, depth_buff)).xyz;
@@ -39,18 +64,15 @@ vec4 trace(vec3 pos, int id, int total) {
 	pos = new_pos;
     }
     
-    return ray_col;//vec4(pos.x, pos.y, pos.z, 1);
+    return ray_col; //vec4(pos.x, pos.y, pos.z, 1);
 }
 
-void main() {
-  uvec3 id = gl_GlobalInvocationID.xyz;
+vec4 cascade_ray(uvec3 id) {
   vec3 pos = vec3(id.x / float(dim.x*dim.w),
 		  id.y / float(dim.y),
 		  id.z / float(dim.z));
-  vec3 prepos = pos;
   pos *= 2;
   pos -= vec3(1);
-
   int factor = int(exp2(cascade_level));
   int samples = dim.w*factor;
   ivec4 pid = ivec4(id.x / samples,
@@ -59,10 +81,34 @@ void main() {
                     0);
   pid.w = int(id.x) - (pid.x * samples);
   
-  vec4 ray_sample = trace(pos, pid.w, samples);
-  
-  interval[id.z * dim.x * dim.y * dim.w
-	 + id.y * dim.x         * dim.w
-	 + id.x]
-      = ray_sample;
+  return trace(pos, pid.w, samples);
+}
+
+vec4 avg_dirs(uvec3 id) {
+  vec4 total = vec4(0);
+  for(int i = 0; i < dim.w; i++) {
+    vec4 ray = interval[id.z * dim.x * dim.y * dim.w
+		      + id.y * dim.x * dim.w
+		      + id.x * dim.w + i];
+    total += ray * ray.a;
+  }
+  return total / dim.w;
+  /*return interval[id.z * dim.x * dim.y * dim.w
+		  + id.y * dim.x * dim.w
+		  + id.x * dim.w + 1];*/
+}
+
+void main() {
+  uvec3 id = gl_GlobalInvocationID.xyz;
+  if(cascade_level >= 0) {
+    interval[id.z * dim.x * dim.y * dim.w
+	   + id.y * dim.x         * dim.w
+	   + id.x]
+    = cascade_ray(id);
+  } else {
+    interval[id.z * dim.x * dim.y * dim.w
+	   + id.y * dim.x         * dim.w
+	   + id.x * dim.w]
+      = avg_dirs(id);
+  }
 }

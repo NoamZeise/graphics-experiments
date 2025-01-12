@@ -20,6 +20,20 @@ vec4 getInterval(int x, int y, int z) {
 		  + x                 * dim.w];
 }
 
+vec4 mixIntervals(vec4 int1, vec4 int2, float t) {
+  //return mix(int1, int2, t);
+  if(int1.w == int2.w) {
+    return mix(int1, int2, t);
+  }
+  if(int1.w == 0) {
+    return int2;
+  }
+  if(int2.w == 0) {
+    return int1;
+  }
+  return mix(int1, int2, t);
+}
+
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2((0.5 + float(coord.x))/float(gl_NumWorkGroups.x),
@@ -52,37 +66,37 @@ void main() {
     int front = int(floor(cascade_space.z));
     int back = front + int(front < dim.z - 1);
     
-    vec4 ul_sample = mix(
+    vec4 ul_sample = mixIntervals(
 	getInterval(left, up, front),
 	getInterval(left, up, back),
 	cascade_fract.z);
 
-    vec4 ur_sample = mix(
+    vec4 ur_sample = mixIntervals(
 	getInterval(right, up, front),
 	getInterval(right, up, back),
 	cascade_fract.z);
 
-    vec4 dl_sample = mix(
+    vec4 dl_sample = mixIntervals(
 	getInterval(left, down, front),
 	getInterval(left, down, back),
 	cascade_fract.z);
 
-    vec4 dr_sample = mix(
+    vec4 dr_sample = mixIntervals(
 	getInterval(right, down, front),
 	getInterval(right, down, back),
 	cascade_fract.z);
 
-    vec4 l_sample = mix(
+    vec4 l_sample = mixIntervals(
 	dl_sample,
 	ul_sample,
 	cascade_fract.y);
 
-    vec4 r_sample = mix(
+    vec4 r_sample = mixIntervals(
 	dr_sample,
 	ur_sample,
 	cascade_fract.y);
 
-    vec4 final_sample = mix(
+    vec4 final_sample = mixIntervals(
 	l_sample,
 	r_sample,
 	cascade_fract.x);  
@@ -94,6 +108,6 @@ void main() {
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
     //vec4 col = final_sample * frag_col;
     vec4 col = final_sample;
-    //col = texture(light_buff, uv);
+    //col = texture(colour_buff, uv);
     imageStore(imgOut, coord, col);
 }  

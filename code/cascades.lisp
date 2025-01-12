@@ -28,10 +28,13 @@
 
 (defclass cascade-colour-pass (pass) ())
 
-(defun make-cascade-colour-pass ()
+(defun make-cascade-colour-pass (cascade-shader)
   (make-instance
    'cascade-colour-pass
-   :shaders (list (make-instance 'cascade-light-shader))
+   :shaders (list (make-instance 'cascade-light-shader)
+		  ;; (make-instance 'cascade-debug-shader
+		  ;; 		 :cascade-dim (get-cascade-dim cascade-shader))
+		  )
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
@@ -51,9 +54,9 @@
 (defclass cascade-compute-shader (post-shader)
   ((interval-buffer :type gficl:storage-buffer)
    (init :initform nil)
-   (cascade0-width :initform 50)
-   (cascade0-height :initform 50)
-   (cascade0-depth :initform 50)
+   (cascade0-width :initform 100)
+   (cascade0-height :initform 100)
+   (cascade0-depth :initform 100)
    (cascade0-samples :initform 6)))
 
 (defmethod reload ((s cascade-compute-shader))
@@ -69,8 +72,6 @@
 	 (d cascade0-depth)
 	 (samples cascade0-samples))
 	s
-      (gl:uniformi (gficl:shader-loc shader "dim") w h d samples)
-      (gl:uniformi (gficl:shader-loc shader "cascade_level") 0)
       (gl:uniformi (gficl:shader-loc shader "max_cascade_level") 1)
       (if init (gficl:delete-gl interval-buffer)
 	(setf init t))
@@ -99,13 +100,36 @@
       shader
     (let ((colour-buff (get-post-tex scene :colour :color-attachment0))
 	  (light-buff (get-post-tex scene  :colour :color-attachment1))
-	  (depth-buff (get-post-tex scene  :colour :color-attachment2)))
+	  (depth-buff (get-post-tex scene  :colour :color-attachment2))
+	  (shader-obj (slot-value shader 'shader)))
       (gficl:bind-storage-buffer (slot-value shader 'interval-buffer) 0)
       (gl:active-texture :texture0) (gl:bind-texture :texture-2d colour-buff)
       (gl:active-texture :texture1) (gl:bind-texture :texture-2d light-buff)
       (gl:active-texture :texture2) (gl:bind-texture :texture-2d depth-buff)
+      (gl:uniformi (gficl:shader-loc shader-obj "dim") w h d samples)
+      (gl:uniformi (gficl:shader-loc shader-obj "cascade_level") 0)
       (%gl:dispatch-compute (* w samples) h d)
+      (%gl:memory-barrier '(:shader-storage-barrier-bit))
+      (gl:uniformi (gficl:shader-loc shader-obj "cascade_level") -1)
+      (%gl:dispatch-compute w h d)
       (%gl:memory-barrier '(:shader-storage-barrier-bit)))))
+
+
+;; debug view
+
+(defclass cascade-debug-shader (shader)
+  ((cascade-dim :initarg :cascade-dim)))
+
+(defmethod reload ((s cascade-debug-shader))
+  (shader-reload-files
+   (s (#p"debug_probes.vs" #p"debug_probes.fs") :folder (shader-subfolder #p"cascade/")) shader
+   (with-slots ((dim cascade-dim)) s
+     (gl:uniformiv (gficl:shader-loc shader "dim")
+		   (coerce dim 'vector)))))
+
+(defmethod draw ((obj cascade-debug-shader) scene)
+   (gficl:draw-vertex-data (get-asset 'cube)
+			   :instances (apply #'* (slot-value obj 'cascade-dim))))
 
 ;; final
 
@@ -149,7 +173,7 @@
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))
-   :samples 2))
+   :samples 4))
 
 ;; pipeline
 
@@ -161,7 +185,7 @@
   (let ((cascade-shader (make-instance 'cascade-compute-shader)))
     (make-instance
      'cascade-pipeline
-     :passes (list (cons :colour (make-cascade-colour-pass))
+     :passes (list (cons :colour (make-cascade-colour-pass cascade-shader))
 		   (cons :final (make-final-cascade-pass cascade-shader)))
      :shaders (list (cons :cascade cascade-shader))
      :post-scene

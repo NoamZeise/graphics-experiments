@@ -93,9 +93,6 @@ vec4 avg_dirs(uvec3 id) {
     total += ray * ray.a;
   }
   return total / dim.w;
-  /*return interval[id.z * dim.x * dim.y * dim.w
-		  + id.y * dim.x * dim.w
-		  + id.x * dim.w + 1];*/
 }
 
 void main() {

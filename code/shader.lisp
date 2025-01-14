@@ -48,9 +48,9 @@ By default needs a vert and frag path if load-fn not supplied (uses GFICL/LOAD:S
 				   "Must pass vertex and fragment paths to shader-reload-files"))
 			      `(gficl/load:shader ,vert ,frag :shader-folder ,folder)))))
 		    (call-next-method)
+		    (setf (slot-value ,shader 'shader) ,shader-var)
 		    (gficl:bind-gl ,shader-var)
-		    ,@body
-		    (setf (slot-value ,shader 'shader) ,shader-var))
+		    ,@body)
 		(error (,error-var)
                        (if ,n-o (error ,error-var))
 		       (format t "~%shader compile error~%~a~%~%" ,error-var))))))))

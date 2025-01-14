@@ -218,8 +218,8 @@
 ;;; 2d screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 100 :type integer)
-   (height :initarg :h :initform 100 :type integer)
+  ((width :initarg :w :initform 200 :type integer)
+   (height :initarg :h :initform 200 :type integer)
    (samples :initarg :s :initform 8 :type integer)
    (levels :initarg :levels :initform 1 :type integer)))
 
@@ -290,11 +290,11 @@
 (defclass cascade2d-post-shader (post-shader cascade-obj) ())
 
 (defmethod reload ((s cascade2d-post-shader))
- (compute-shader-reload-files (s #p"cascade/final2d.cs") shader
-			      (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
-			      (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
-			      (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
-			      (update-cascade-props s (slot-value s 'cascade-props))))
+	   (compute-shader-reload-files (s #p"cascade/post2d.cs") shader
+					(gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
+					(gl:uniformi (gficl:shader-loc shader "light_buff") 2)
+					(gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
+					(update-cascade-props s (slot-value s 'cascade-props))))
 
 (defmethod update-cascade-props ((obj cascade2d-post-shader) (props cascade-properties))
   (call-next-method)
@@ -365,8 +365,8 @@
 (defmethod draw ((pl cascade-2d-pipeline) scenes)
   (with-slots (post-scene) pl
     (draw (get-pass pl :colour) scenes)
-    ;(draw (get-shader pl :cascade) post-scene)
-    ;(draw (get-pass pl :final) post-scene)
+    (draw (get-shader pl :cascade) post-scene)
+    (draw (get-pass pl :final) post-scene)
     (gficl:blit-framebuffers
-     (get-final-framebuffer (get-pass pl :colour)) nil
+     (get-final-framebuffer (get-pass pl :final)) nil
      (gficl:window-width) (gficl:window-height))))

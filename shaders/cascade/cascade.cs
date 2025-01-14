@@ -22,8 +22,6 @@ vec4 sample_tex(vec3 pos, sampler2D tex) {
 }
 
 vec4 trace(vec3 pos, int id, int total) {
-    //pos += vec3(1);
-    //pos /= 2;
     vec4 ray_col = vec4(0);
     const int STEPS = 10;
     float step_size = 0.002;
@@ -64,7 +62,9 @@ vec4 trace(vec3 pos, int id, int total) {
 	pos = new_pos;
     }
     
-    return ray_col; //vec4(pos.x, pos.y, pos.z, 1);
+    return
+      ray_col;
+      //vec4(pos.x, pos.y, pos.z, 1);
 }
 
 vec4 cascade_ray(uvec3 id) {

@@ -21,10 +21,8 @@ vec4 sample_tex(vec3 pos, sampler2D tex) {
 }
 
 vec4 trace(vec3 pos, int id, int total) {
-    //pos += vec3(1);
-    //pos /= 2;
     vec4 ray_col = vec4(0);
-    const int STEPS = 10;
+    const int STEPS = 15;
     float step_size = 0.002;
     float offset = 0;
 
@@ -47,10 +45,15 @@ vec4 trace(vec3 pos, int id, int total) {
       dir = vec3(0, 0, 1);
       break;
     case 5:
-      dir = vec3(0, 0, -1);
+       dir = vec3(0, 0, -1);
       break;
+    case 6:
+      dir = vec3(1/1.414, 0, -1/1.414);
+      break;
+    case 7:
+      dir = vec3(-1/1.414, 0, 1/1.414);
+      break;      
     }
-    
     pos += dir * offset;
     for(int i = 0; i < STEPS; i++) {
 	vec3 new_pos = pos + dir * step_size;	
@@ -63,48 +66,49 @@ vec4 trace(vec3 pos, int id, int total) {
 	pos = new_pos;
     }
     
-    return ray_col; //vec4(pos.x, pos.y, pos.z, 1);
+    return  
+      ray_col;
+    //vec4(poss.x, poss.y, poss.z, 1);
 }
 
 vec4 cascade_ray(uvec3 id) {
-  vec3 pos = vec3(id.x / float(dim.x*dim.w),
-		  id.y / float(dim.y),
-		  id.z / float(dim.z));
-  pos *= 2;
-  pos -= vec3(1);
-  int factor = int(exp2(cascade_level));
-  int samples = dim.w*factor;
-  ivec4 pid = ivec4(id.x / samples,
-		    id.y,
-		    id.z,
-                    0);
-  pid.w = int(id.x) - (pid.x * samples);
   
-  return trace(pos, pid.w, samples);
+  vec3 probe_pos = vec3(id.x / float(dim.x),
+			id.y / float(dim.y),
+			0);
+  probe_pos *= 2;
+  probe_pos -= vec3(1);
+
+  vec3 frag_pos = sample_tex(probe_pos, depth_buff).xyz;
+  probe_pos.z = frag_pos.z;
+  
+  int factor = int(exp2(cascade_level));
+  int samples = dim.z*factor;
+  
+  return trace(probe_pos, int(id.z), samples);
 }
 
 vec4 avg_dirs(uvec3 id) {
   vec4 total = vec4(0);
-  for(int i = 0; i < dim.w; i++) {
-    vec4 ray = interval[id.z * dim.x * dim.y * dim.w
-		      + id.y * dim.x * dim.w
-		      + id.x * dim.w + i];
+  for(int i = 0; i < dim.z; i++) {
+    vec4 ray = interval[id.y * dim.x * dim.z +
+			id.x * dim.z + i];
     total += ray * ray.a;
   }
-  return total / dim.w;
+  return total / dim.z;
 }
 
 void main() {
   uvec3 id = gl_GlobalInvocationID.xyz;
+
+  vec4 val = vec4(0);
   if(cascade_level >= 0) {
-    interval[id.z * dim.x * dim.y * dim.w
-	   + id.y * dim.x         * dim.w
-	   + id.x]
-    = cascade_ray(id);
+    val = cascade_ray(id);
   } else {
-    interval[id.z * dim.x * dim.y * dim.w
-	   + id.y * dim.x         * dim.w
-	   + id.x * dim.w]
-      = avg_dirs(id);
+    val = avg_dirs(id);
   }
+
+  interval[id.y * dim.x * dim.z +
+	   id.x * dim.z +
+	   id.z] = val;
 }

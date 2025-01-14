@@ -33,7 +33,7 @@
    'cascade-colour-pass
    :shaders (list (make-instance 'cascade-light-shader)
 		  ;; (make-instance 'cascade-debug-shader
-		  ;; 		 :cascade-dim (get-cascade-dim cascade-shader))
+		  ;; 	            :cascade-dim (get-cascade-dim cascade-shader))
 		  )
    :description
    (make-framebuffer-descrption
@@ -218,8 +218,8 @@
 ;;; 2d screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 200 :type integer)
-   (height :initarg :h :initform 200 :type integer)
+  ((width :initarg :w :initform 100 :type integer)
+   (height :initarg :h :initform 100 :type integer)
    (samples :initarg :s :initform 8 :type integer)
    (levels :initarg :levels :initform 1 :type integer)))
 
@@ -285,20 +285,47 @@
       (%gl:dispatch-compute width height 1)
       (%gl:memory-barrier '(:shader-storage-barrier-bit)))))
 
+;; debug shader
+
+(defclass cascade2d-debug-shader (shader cascade-obj) ())
+
+(defmethod reload ((s cascade2d-debug-shader))
+  (shader-reload-files
+   (s (#p"debug2d.vs" #p"debug2d.fs") :folder (shader-subfolder #p"cascade/")) shader
+   (gl:uniformi (gficl:shader-loc shader "depth_buff") 0)
+   (update-cascade-props s (slot-value s 'cascade-props))))
+
+(defmethod update-cascade-props ((obj cascade2d-debug-shader) (props cascade-properties))
+  (call-next-method)
+  (with-slots (shader) obj
+    (gficl:bind-gl shader)
+    (gl:uniformiv (gficl:shader-loc shader "dim") (cascade-prop-vec props))))
+
+(defmethod draw ((obj cascade2d-debug-shader) (scene cascade-post-scene))
+  (gl:active-texture :texture0)
+  (gl:bind-texture :texture-2d (get-post-tex scene :colour :color-attachment2))
+  (gficl:draw-vertex-data
+   (get-asset 'cube)
+   :instances
+   (with-slots (width height) (slot-value obj 'cascade-props)
+     (* width height))))
+
 ;; post shader cascade2d
 
 (defclass cascade2d-post-shader (post-shader cascade-obj) ())
 
 (defmethod reload ((s cascade2d-post-shader))
-	   (compute-shader-reload-files (s #p"cascade/post2d.cs") shader
-					(gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
-					(gl:uniformi (gficl:shader-loc shader "light_buff") 2)
-					(gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
-					(update-cascade-props s (slot-value s 'cascade-props))))
+  (compute-shader-reload-files (s #p"cascade/post2d.cs") shader
+    (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
+    (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
+    (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
+    (update-cascade-props s (slot-value s 'cascade-props))))
 
 (defmethod update-cascade-props ((obj cascade2d-post-shader) (props cascade-properties))
   (call-next-method)
-  (gl:uniformiv (gficl:shader-loc (slot-value obj 'shader) "dim") (cascade-prop-vec props)))
+  (with-slots (shader) obj
+    (gficl:bind-gl shader)
+    (gl:uniformiv (gficl:shader-loc shader "dim") (cascade-prop-vec props))))
 
 (defmethod draw ((shader cascade2d-post-shader) (scene cascade-post-scene))
   (with-slots ((w width) (h height)) scene
@@ -321,7 +348,9 @@
 (defun make-cascade2d-post-pass (cascade-props)
   (make-instance
    'cascade2d-post-pass
-   :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props))
+   :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props)
+		 ; (make-instance 'cascade2d-debug-shader :cascade-props cascade-props)
+		  )
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))

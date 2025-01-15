@@ -12,6 +12,7 @@ uniform sampler2D depth_buff;
 
 uniform ivec4 dim;
 uniform int cascade_level;
+uniform int write_other_buff;
 
 vec4 sample_tex(vec3 pos, sampler2D tex) {
     vec2 uv = vec2(pos.x, pos.y);
@@ -20,14 +21,22 @@ vec4 sample_tex(vec3 pos, sampler2D tex) {
     return texture(tex, uv);
 }
 
-vec4 trace(vec3 pos, int id, int total) {
-    vec4 ray_col = vec4(0);
-    const int STEPS = 15;
-    float step_size = 0.002;
-    float offset = 0;
+vec4 read_interval(uint x, uint y, uint s, uvec3 size) {
+  return interval[((write_other_buff == 0) ?
+		   dim.x * dim.y * dim.z : 0)
+		  + y * size.x * size.z +
+		    x * size.z + s];
+}
 
-    vec3 dir = vec3(0, 0, 0);
+void write_interval(uint x, uint y, uint s, uvec3 size, vec4 data) {
+  interval[((write_other_buff == 0) ?
+	    0 : dim.x * dim.y * dim.z)
+	   + y * size.x * size.z +
+	     x * size.z + s] = data;
+}
 
+vec3 ray_dir(uint id, uint total) {
+  vec3 dir = vec3(0);
     switch(id) {
     case 0:
       dir = vec3(0, -1, 0);
@@ -54,6 +63,15 @@ vec4 trace(vec3 pos, int id, int total) {
       dir = vec3(-1/1.414, 0, 1/1.414);
       break;      
     }
+    return dir;
+}
+
+vec4 trace(vec3 pos, vec3 dir) {
+    vec4 ray_col = vec4(0);
+    const int STEPS = 15;
+    float step_size = 0.002;
+    float offset = 0;
+
     pos += dir * offset;
     for(int i = 0; i < STEPS; i++) {
 	vec3 new_pos = pos + dir * step_size;	
@@ -73,8 +91,8 @@ vec4 trace(vec3 pos, int id, int total) {
 
 vec4 cascade_ray(uvec3 id) {
   
-  vec3 probe_pos = vec3(id.x / float(dim.x),
-			id.y / float(dim.y),
+  vec3 probe_pos = vec3(id.x / float(gl_NumWorkGroups.x),
+			id.y / float(gl_NumWorkGroups.y),
 			0);
   probe_pos *= 2;
   probe_pos -= vec3(1);
@@ -84,15 +102,16 @@ vec4 cascade_ray(uvec3 id) {
   
   int factor = int(exp2(cascade_level));
   int samples = dim.z*factor;
+
+  vec3 dir = ray_dir(id.z, gl_NumWorkGroups.z);
   
-  return trace(probe_pos, int(id.z), samples);
+  return trace(probe_pos, dir);
 }
 
 vec4 avg_dirs(uvec3 id) {
   vec4 total = vec4(0);
-  for(int i = 0; i < dim.z; i++) {
-    vec4 ray = interval[id.y * dim.x * dim.z +
-			id.x * dim.z + i];
+  for(uint i = 0; i < dim.z; i++) {
+    vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray * ray.a;
   }
   return total / dim.z;
@@ -100,15 +119,9 @@ vec4 avg_dirs(uvec3 id) {
 
 void main() {
   uvec3 id = gl_GlobalInvocationID.xyz;
-
-  vec4 val = vec4(0);
   if(cascade_level >= 0) {
-    val = cascade_ray(id);
+    write_interval(id.x, id.y, id.z, gl_NumWorkGroups.xyz, cascade_ray(id));
   } else {
-    val = avg_dirs(id);
+    write_interval(id.x, id.y, id.z, uvec3(dim), avg_dirs(id));
   }
-
-  interval[id.y * dim.x * dim.z +
-	   id.x * dim.z +
-	   id.z] = val;
 }

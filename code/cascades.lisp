@@ -198,18 +198,18 @@
 ;;; 2d screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 640 :type integer)
-   (height :initarg :h :initform 640 :type integer)
-   (samples :initarg :s :initform 4 :type integer)
-   (levels :initarg :levels :initform 6 :type integer)))
+  ((width :initarg :w :initform 512 :type integer)
+   (height :initarg :h :initform 512 :type integer)
+   (samples :initarg :s :initform 8 :type integer)
+   (levels :initarg :levels :initform 5 :type integer)))
 
 (defun cascade-prop-vec (props)
   (with-slots (width height samples levels) props
     (coerce (list width height samples levels) 'vector)))
 
 (defclass cascade-params ()
-  ((steps :initarg :steps :initform 15 :type integer)
-   (step-size :initarg :step-size :initform 0.002 :type float)
+  ((steps :initarg :steps :initform 5 :type integer)
+   (step-size :initarg :step-size :initform 0.003 :type float)
    (merge-rays :initarg :merge :initform t :type boolean)
    (stop-at-level :initarg :stop-at :initform 0 :type integer)))
 
@@ -328,11 +328,18 @@
 (defmethod draw ((obj cascade2d-debug-shader) (scene cascade-post-scene))
   (gl:active-texture :texture0)
   (gl:bind-texture :texture-2d (get-post-tex scene :colour :color-attachment2))
-  (gficl:draw-vertex-data
-   (get-asset 'cube)
-   :instances
-   (with-slots (width height) (slot-value obj 'cascade-props)
-     (* width height))))
+  (with-slots (width height samples levels) (slot-value obj 'cascade-props)
+    (with-slots (stop-at-level) (slot-value obj 'cascade-params)
+      (let* ((level stop-at-level)
+	       (factor (expt 2 level))
+	       (w (/ width factor))
+	       (h (/ height factor))
+	       (s (* samples factor)))
+	(gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "dim") w h s levels)
+	(gficl:draw-vertex-data
+	 (get-asset 'cube)
+	 :instances
+	 (* w h))))))
 
 ;; post shader cascade2d
 
@@ -381,7 +388,7 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-		 ; (make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+		  ;; (make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 		  )
    :description
    (make-framebuffer-descrption

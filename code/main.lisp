@@ -138,7 +138,7 @@
 (defun signal-recreate-pipelines ()
   (signal-fn (cleanup-pipelines) (create-pipelines)))
 
-(defun signal-update-cascade (params/props)
+(defun signal-cascade-update (params/props)
   (signal-fn
    (update-cascade-obj (cdr (assoc *active-pipeline* *pipelines*))
 		       params/props)))

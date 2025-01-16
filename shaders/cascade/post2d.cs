@@ -44,16 +44,16 @@ void main() {
 
     vec3 pndc = (fpos+vec3(1))/2;
     vec2 cascade_space =
-	vec2(pndc.x * dim.x,
-	     pndc.y * dim.y);
+      vec2(pndc.x * dim.x - 1/(dim.x*2),
+	   pndc.y * dim.y - 1/(dim.y*2));
     vec2 cascade_fract =
 	vec2(fract(cascade_space.x),
 	     fract(cascade_space.y));
     
     int left = int(floor(cascade_space.x));
-    int right = left + int(left < dim.x - 1);
+    int right = left + int(left < dim.x - 1 && cascade_space.x >= 0);
     int down = int(floor(cascade_space.y));
-    int up = down + int(down < dim.y - 1);
+    int up = down + int(down < dim.y - 1 && cascade_space.y >= 0);
     
     vec4 l_sample = mixIntervals(
 	getInterval(left, down),
@@ -75,8 +75,8 @@ void main() {
     
     vec4 frag_col = texture(colour_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    //vec4 col = final_sample * frag_col;
-    vec4 col = final_sample;
+    vec4 col = final_sample * frag_col;
+    //vec4 col = final_sample;
     //col = texture(colour_buff, uv);
     imageStore(imgOut, coord, col);
 }  

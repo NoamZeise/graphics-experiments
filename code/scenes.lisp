@@ -1,7 +1,7 @@
 (in-package :project)
 
 (defclass camera-scene (scene-3d)
-  ((rotating :initform t :type boolean)))
+  ((rotating :initform nil :type boolean)))
 
 (defmethod update-scene ((obj camera-scene) dt)
   (with-slots (cam-pos cam-target cam-fov rotating) obj
@@ -50,11 +50,11 @@
 (defun make-simple-3d-scene ()
   (make-instance
    'simple-3d-scene
-   :cam-pos (gficl:make-vec '(1.5 1.5 1.5))
-   :cam-target (gficl:make-vec '(0 0 0.5))
+   :cam-pos (gficl:make-vec '(-2.8 0.5 -0.5))
+   :cam-target (gficl:make-vec '(-1 0 -1))
    :objects
    (list
-    (make-object (get-asset 'bunny) (object-matrix '(0 0 0) '(1 1 1))
+    (make-object (get-asset 'bunny) (object-matrix '(-0.5 0 -0.5) '(1 1 1))
 		 :colour (gficl:make-vec '(0.2 0.8 0 1)))
     (make-object (get-asset 'plane) (object-matrix '(0 -0.38 0) '(3 1 3))
 		 :colour (gficl:make-vec '(0.7 0 0 1)))

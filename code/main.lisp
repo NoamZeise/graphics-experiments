@@ -138,6 +138,11 @@
 (defun signal-recreate-pipelines ()
   (signal-fn (cleanup-pipelines) (create-pipelines)))
 
+(defun signal-update-cascade (params/props)
+  (signal-fn
+   (update-cascade-obj (cdr (assoc *active-pipeline* *pipelines*))
+		       params/props)))
+
 ;;; Global Variables
 
 (defparameter *pipelines* nil)

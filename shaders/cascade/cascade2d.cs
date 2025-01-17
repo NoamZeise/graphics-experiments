@@ -72,18 +72,28 @@ vec3 ray_dir(uint id) {
 vec4 trace(vec3 pos, vec3 dir) {
     vec4 ray_col = vec4(0);
     int factor = int(exp2(cascade_level));
-    int steps = params.steps * factor;
+    float sz = params.steps * params.step_size * factor;
+    int steps = params.steps * (cascade_level + 1);
     float step_size = params.step_size * factor;
     float offset = step_size - params.step_size;
 
     pos += dir * offset;
+    float surface_depth = pos.z;
     for(int i = 0; i < steps; i++) {
-	vec3 new_pos = pos + dir * step_size;	
+	vec3 new_pos = pos + dir * step_size;
 	vec3 frag_pos = (sample_tex(new_pos, depth_buff)).xyz;
-	if(frag_pos.z < new_pos.z && frag_pos.z + step_size > new_pos.z && ray_col.w == 0) {
+
+	if(frag_pos.z < new_pos.z) {
+	    vec4 sample_colour = sample_tex(new_pos, light_buff);
+	    ray_col = sample_colour;
+	}
+		
+	/*if(frag_pos.z < new_pos.z &&
+	   frag_pos.z + step_size > new_pos.z &&
+	   ray_col.w == 0) {
 	    ray_col = sample_tex(new_pos, light_buff);
 	    ray_col.w = 1;
-	}
+			   }*/
 	pos = new_pos;
     }
     

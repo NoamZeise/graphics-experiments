@@ -198,8 +198,10 @@
 ;;; 2d screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 512 :type integer)
-   (height :initarg :h :initform 512 :type integer)
+  ((width :initarg :w :initform 512
+	  :type integer)
+   (height :initarg :h :initform 512
+	   :type integer)
    (samples :initarg :s :initform 8 :type integer)
    (levels :initarg :levels :initform 5 :type integer)))
 
@@ -388,8 +390,8 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-		  ;; (make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
-		  )
+		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+)
    :description
    (make-framebuffer-descrption
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))

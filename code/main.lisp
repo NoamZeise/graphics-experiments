@@ -42,8 +42,8 @@
 
 (defun create-pipelines ()
   (setf *pipelines* (list
-		     (cons "cascade" (make-cascade-2d-pipeline))
-		     (cons "compute" (make-cascade-pipeline))
+		     (cons "cascade2d" (make-cascade-2d-pipeline))
+		     (cons "cascade3d" (make-cascade3d-pipeline))
 		     (cons "pbr" (make-pbr-pipeline))
 		     ;; (cons "aos" (make-aos-pipeline))
 		     ;; (cons "outline" (make-outline-pipeline))
@@ -56,9 +56,10 @@
 
 (defun create-scenes ()
   (setf *active-scenes*
-	(list ;(make-street-scene)
+	(list
 	 (make-simple-3d-scene)
-	 ;(make-square-scene)
+	 ;; (make-street-scene)	 
+	 ;; (make-square-scene)
 	 )))
 
 (defun setup ()

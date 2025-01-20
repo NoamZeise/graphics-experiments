@@ -46,15 +46,17 @@
   (gl:enable :cull-face :depth-test)
   (call-next-method))
 
-;;; 2d screenspace cascades
+;;; screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 512
+  ((width :initarg :w :initform 256 ;512
 	  :type integer)
-   (height :initarg :h :initform 512
+   (height :initarg :h :initform 256;512
 	   :type integer)
-   (samples :initarg :s :initform 8 :type integer)
-   (levels :initarg :levels :initform 5 :type integer)))
+   (samples :initarg :s :initform 8
+	    :type integer)
+   (levels :initarg :levels :initform 5
+	   :type integer)))
 
 (defun cascade-prop-vec (props)
   (with-slots (width height samples levels) props
@@ -102,7 +104,7 @@
     (update-cascade-obj s (slot-value s 'cascade-params))))
 
 (defmethod update-cascade-obj ((obj cascade2d-compute-shader) (props cascade-properties))
-  (call-next-method)	   
+  (call-next-method)
   (with-slots (interval-buffer init) obj
     (with-slots (width height samples levels) props
       (if init (gficl:delete-gl interval-buffer)
@@ -241,7 +243,7 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+					;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 )
    :description
    (make-framebuffer-descrption
@@ -278,7 +280,9 @@
 
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (props cascade-properties))
  (update-cascade-obj (get-pass pl :final) props)
- (update-cascade-obj (get-shader pl :cascade) props))
+ (update-cascade-obj (get-shader pl :cascade) props)
+ (setf (slot-value (slot-value pl 'post-scene) 'interval-buffer)
+       (slot-value (get-shader pl :cascade) 'interval-buffer)))
 
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (params cascade-params))
   (update-cascade-obj (get-pass pl :final) params)

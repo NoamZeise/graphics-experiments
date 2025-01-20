@@ -43,7 +43,7 @@
 (defun create-pipelines ()
   (setf *pipelines* (list
 		     (cons "cascade2d" (make-cascade-2d-pipeline))
-		     (cons "cascade3d" (make-cascade3d-pipeline))
+		     ;;(cons "cascade3d" (make-cascade3d-pipeline))
 		     (cons "pbr" (make-pbr-pipeline))
 		     ;; (cons "aos" (make-aos-pipeline))
 		     ;; (cons "outline" (make-outline-pipeline))

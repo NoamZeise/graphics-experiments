@@ -72,10 +72,11 @@ vec3 ray_dir(uint id) {
 vec4 trace(vec3 pos, vec3 dir) {
     vec4 ray_col = vec4(0);
     int factor = int(exp2(cascade_level));
+    float step_scale = (1 + 1 * cascade_level);
     float sz = params.steps * params.step_size * factor;
-    int steps = params.steps * (cascade_level + 1);
-    float step_size = params.step_size * factor;
-    float offset = step_size - params.step_size;
+    int steps = params.steps * factor;
+    float step_size = params.step_size;
+    float offset = sz - (params.step_size * params.steps);
 
     pos += dir * offset;
     float surface_depth = pos.z;
@@ -83,8 +84,13 @@ vec4 trace(vec3 pos, vec3 dir) {
 	vec3 new_pos = pos + dir * step_size;
 	vec3 frag_pos = (sample_tex(new_pos, depth_buff)).xyz;
 
-	if(frag_pos.z < new_pos.z) {
-	    vec4 sample_colour = sample_tex(new_pos, light_buff);
+	vec4 sample_colour = sample_tex(new_pos, light_buff);
+	if(
+	    //sample_colour.r > 0 && frag_pos.z < 1
+	    frag_pos.z <= surface_depth && frag_pos.z < 1	    
+	) {
+	    surface_depth = frag_pos.z;
+	    
 	    ray_col = sample_colour;
 	}
 		
@@ -181,7 +187,7 @@ vec4 avg_dirs(uvec3 id) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray * ray.a;
   }
-  return total / dim.z;
+  return total;
 }
 
 void main() {

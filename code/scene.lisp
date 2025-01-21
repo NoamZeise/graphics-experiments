@@ -98,5 +98,5 @@
   (cdr (assoc framebuffer-position (get-post-tex-alist post-scene key))))
 
 (defmethod draw ((scene post-scene) shader)
-	   "draw scene without calling draw on objects (only calls shader scene props)"
-	   (shader-scene-props shader scene))
+  "draw scene without calling draw on objects (only calls shader scene props)"
+  (shader-scene-props shader scene))

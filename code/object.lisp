@@ -23,14 +23,14 @@
   (setf (slot-value obj 'normal) (gficl:transpose-matrix (gficl:inverse-matrix model-matrix))))
 
 (defmethod draw ((obj object) shader)
-  (with-slots (meshes model normal diffuse colour light?) obj
+  (with-slots (meshes model normal diffuse-tex colour light?) obj
     (shader-model-props shader (list (cons :model model)
 				     (cons :normal normal)))
     (let ((mesh-props (list (cons :colour colour)
 			    (cons :light light?))))
       (if (listp meshes)
-	  (if diffuse
-	      (loop for mesh in meshes for d in diffuse do
+	  (if diffuse-tex
+	      (loop for mesh in meshes for d in diffuse-tex do
 		    (progn
 		      (shader-mesh-props shader (cons (cons :diffuse d) mesh-props))
 		      (gficl:draw-vertex-data mesh)))

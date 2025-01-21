@@ -60,9 +60,8 @@
 
 (defmethod initialize-instance :after ((pl halftone-pipeline) &key &allow-other-keys)	   
   (resize (get-pass pl :shadow) 1024 1024)
-  (setf (slot-value (car (slot-value (get-pass pl :col) 'shaders))
-		    'shadow-map)
-	(car (get-textures (get-pass pl :shadow)))))
+  (setf (slot-value (car (slot-value (get-pass pl :col) 'shaders)) 'shadow-map)
+	(get-pass-texture (get-pass pl :shadow))))
 
 (defmethod resize ((pl halftone-pipeline) (w integer) (h integer))
   (resize (get-pass pl :col) w h))

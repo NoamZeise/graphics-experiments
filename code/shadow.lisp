@@ -34,10 +34,10 @@
      :samples 16)))
 
 (defmethod resize :after ((obj vsm-pass) (w integer) (h integer))
-  (gl:bind-texture :texture-2d (car (get-textures obj)))
+  (gl:bind-texture :texture-2d (get-pass-texture obj))
   (gl:tex-parameter :texture-2d :texture-min-filter :linear)
   (gl:tex-parameter :texture-2d :texture-mag-filter :linear))
 
 (defmethod draw :after ((obj vsm-pass) scenes)
-  (gl:bind-texture :texture-2d (car (get-textures obj)))
+  (gl:bind-texture :texture-2d (get-pass-texture obj))
   (gl:generate-mipmap :texture-2d))

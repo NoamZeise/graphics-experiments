@@ -26,10 +26,10 @@
 When drawn with, draws the scene using all of it's shaders"))
 
 (defgeneric get-textures (pass)
-  (:documentation "Return a list of textures for each attachment of type texture."))
+  (:documentation "Return an alist of (attachment-pos . texture)"))
 
 (defgeneric get-final-framebuffer (pass)
-  (:documentation "Return resulting framebuffer"))
+	    (:documentation "Return resulting framebuffer"))
 
 (defmethod initialize-instance :after ((instance pass) &key &allow-other-keys)
   (with-slots (description clear-buffers) instance
@@ -85,6 +85,9 @@ When drawn with, draws the scene using all of it's shaders"))
 	    when (eq :texture (gficl:attach-desc-type a))
 	    collecting
 	    (cons (gficl:attach-desc-position a) (gficl:framebuffer-texture-id fb i))))))
+
+(defun get-pass-texture (pass &optional (attachment-position :color-attachment0))
+  (cdr (assoc attachment-position (get-textures pass))))
 
 (defmethod get-final-framebuffer ((pass pass))
   (with-slots ((fb framebuffer) (rfb resolve-framebuffer)) pass

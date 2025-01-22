@@ -80,5 +80,8 @@ void main() {
   vec3 view = normalize(fpos - cam);
   vec4 c_light = vec4(1);
   
-  colour = PI * brdf(normal, light_dir, view) * c_light * clamp(dot(normal,light_dir), 0.05, 1.0);
+  colour = PI * brdf(normal, light_dir, view) * c_light *
+    //clamp(dot(normal,light_dir), 0.05, 1.0);
+    clamp(dot(normal,light_dir), 0.1, 1.0);
+  colour *= 1.5f;
 }

@@ -9,6 +9,7 @@ layout(std430, binding = 0) buffer Radiance_Intervals {
 uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
+uniform sampler2D normal_buff;
 
 uniform ivec4 dim;
 uniform int cascade_level;
@@ -89,9 +90,9 @@ vec4 trace(vec3 pos, vec3 dir) {
 	    //sample_colour.r > 0 && frag_pos.z < 1
 	    frag_pos.z <= surface_depth && frag_pos.z < 1	    
 	) {
-	    surface_depth = frag_pos.z;
-	    
+	    surface_depth = frag_pos.z;	    
 	    ray_col = sample_colour;
+	    ray_col.a = surface_depth;
 	}
 		
 	/*if(frag_pos.z < new_pos.z &&
@@ -110,6 +111,27 @@ vec4 avg_prev(vec4 ray1, vec4 ray2) {
   vec4 m = (ray1 + ray2)/2;
   m.a = m.a == 0 ? 0.0 : 1.0;
   return m;
+}
+
+vec4 interpolate_ray(uvec3 pcd, float depth,
+		     uint left, uint right, uint up, uint down,
+		     uint rayid) {
+  vec4 ul = read_interval(left, up, rayid, pcd);
+  vec4 ur = read_interval(right, up, rayid, pcd);
+  vec4 dl = read_interval(left, down, rayid, pcd);
+  vec4 dr = read_interval(right, down, rayid, pcd);
+  vec4 ray = vec4(0);
+  if(ul.a > 0 && ul.a < depth)
+    ray += ul;
+  if(ur.a > 0 && ur.a < depth)
+    ray += ur;
+  if(dl.a > 0 && dl.a < depth)
+    ray += ur;
+  if(dr.a > 0 && dr.a < depth)
+    ray += ur;
+  ray /= 4;
+  ray.a = int(ray.a > 0);
+  return ray;
 }
 
 vec4 cascade_ray(uvec3 id) {
@@ -152,30 +174,27 @@ vec4 cascade_ray(uvec3 id) {
     /*float drD = distance(drpos, probe_pos);
       /*abs(drpos.z - probe_pos.z)
       + 1/(cd.x*2) + offset.x*(1/cd.x)
-      + 1/(cd.y*2) + offset.y*(1/cd.y);*/
-    //float normalizer = 1/ulD + 1/urD + 1/dlD + 1/drD;
-    
-    vec4 ul1 = read_interval(left, up, pid.z, pcd);
-    vec4 ur1 = read_interval(right, up, pid.z, pcd);
-    vec4 dl1 = read_interval(left, down, pid.z, pcd);
-    vec4 dr1 = read_interval(right, down, pid.z, pcd);
-    vec4 int1 = //(ul1/ulD + ur1/urD + dl1/dlD + dr1/drD)/normalizer;
+      + 1/(cd.y*2) + offset.y*(1/cd.y);
+
+      float normalizer = 1/ulD + 1/urD + 1/dlD + 1/drD;
+     vec4 int1 = //(ul1/ulD + ur1/urD + dl1/dlD + dr1/drD)/normalizer;
     (ul1 + ur1 + dl1 + dr1) / 4;
     int1.a = int1.a == 0 ? 0.0 : 1.0;
+    */    
 
-    uint r2 = pid.z + uint(pid.z < pcd.z - 1);
-    vec4 ul2 = read_interval(left, up, r2, pcd);
-    vec4 ur2 = read_interval(right, up, r2, pcd);
-    vec4 dl2 = read_interval(left, down, r2, pcd);
-    vec4 dr2 = read_interval(right, down, r2, pcd);
-    vec4 int2 = //(ul2/ulD + ur2/urD + dl2/dlD + dr2/drD)/normalizer;
-      (ul2 + ur2 + dl2 + dr2) / 4;
-    int2.a = int2.a == 0 ? 0.0 : 1.0;
+    float surface_depth = probe_pos.z;
     
+    vec4 int1 = interpolate_ray(pcd, surface_depth,
+				left, right, up, down, pid.z);
+    uint r2 = pid.z;
+    if(pid.z >= pcd.z - 1) r2 = 0;
+    vec4 int2 = interpolate_ray(pcd, surface_depth,
+				left, right, up, down, r2);
+
     vec4 prev = avg_prev(int1, int2);
 
     if(params.merge_rays != 0)
-      ray_hit += int(!bool(int(ray_hit.a))) * prev;
+      ray_hit.rgb += /*int(!bool(prev.a == 0)) */ prev.rgb;
   }
   
   return ray_hit;

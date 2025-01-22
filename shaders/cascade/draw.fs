@@ -7,6 +7,7 @@ in vec2 fuv;
 layout(location = 0) out vec4 colour;
 layout(location = 1) out vec4 light;
 layout(location = 2) out vec4 position;
+layout(location = 3) out vec4 normal;
 
 uniform vec3 cam;
 uniform vec3 light_dir;
@@ -28,4 +29,5 @@ void main() {
     light = vec4(0, 0, 0, 1);
   }
   position = fpos/fpos.w;
+  normal = vec4(fnorm, 1);
 }

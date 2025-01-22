@@ -38,6 +38,8 @@
 	  (gficl:make-attachment-description :position :color-attachment1 :type :texture)
 	  (gficl:make-attachment-description :position :color-attachment2 :type :texture
 					     :internal-format :rgba32f)
+	  (gficl:make-attachment-description :position :color-attachment3 :type :texture
+					     :internal-format :rgba32f)
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 1)))
 
@@ -55,7 +57,7 @@
 	   :type integer)
    (samples :initarg :s :initform 8
 	    :type integer)
-   (levels :initarg :levels :initform 5
+   (levels :initarg :levels :initform 6
 	   :type integer)))
 
 (defun cascade-prop-vec (props)
@@ -100,6 +102,7 @@
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 0)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 2)
+    (gl:uniformi (gficl:shader-loc shader "normal_buff") 3)
     (update-cascade-obj s (slot-value s 'cascade-props))
     (update-cascade-obj s (slot-value s 'cascade-params))))
 
@@ -142,11 +145,13 @@
 	  (let ((colour-buff (get-post-tex scene :colour :color-attachment0))
 		(light-buff (get-post-tex scene  :colour :color-attachment1))
 		(depth-buff (get-post-tex scene  :colour :color-attachment2))
+		(normal-buff (get-post-tex scene  :colour :color-attachment3))
 		(shader-obj (slot-value shader 'shader)))
 	    (gficl:bind-storage-buffer (slot-value shader 'interval-buffer) 0)
 	    (gl:active-texture :texture0) (gl:bind-texture :texture-2d colour-buff)
 	    (gl:active-texture :texture1) (gl:bind-texture :texture-2d light-buff)
 	    (gl:active-texture :texture2) (gl:bind-texture :texture-2d depth-buff)
+	    (gl:active-texture :texture3) (gl:bind-texture :texture-2d normal-buff)
 	    (gl:uniformi (gficl:shader-loc shader-obj "dim") w h s levels)
 	    (loop for level from (- levels 1) downto stop-at-level
 		  for write-other = (mod (+ level 1 (mod stop-at-level 2)) 2)
@@ -205,6 +210,7 @@
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
+    (gl:uniformi (gficl:shader-loc shader "normal_buff") 4)
     (update-cascade-obj s (slot-value s 'cascade-props))))
 
 (defmethod update-cascade-obj ((obj cascade2d-post-shader) (props cascade-properties))
@@ -218,7 +224,8 @@
     (let ((target (get-post-tex scene :final :color-attachment0))
 	  (colour-buff (get-post-tex scene :colour :color-attachment0))
 	  (light-buff (get-post-tex scene  :colour :color-attachment1))
-	  (depth-buff (get-post-tex scene  :colour :color-attachment2)))      
+	  (depth-buff (get-post-tex scene  :colour :color-attachment2))
+	  (normal-buff (get-post-tex scene  :colour :color-attachment3)))
       (gl:active-texture :texture0)
       (gl:bind-texture :texture-2d target)
       (gl:bind-image-texture 0 target 0 nil 0 :read-write :rgba32f)      
@@ -226,6 +233,7 @@
       (gl:active-texture :texture1) (gl:bind-texture :texture-2d colour-buff)
       (gl:active-texture :texture2) (gl:bind-texture :texture-2d light-buff)
       (gl:active-texture :texture3) (gl:bind-texture :texture-2d depth-buff)
+      (gl:active-texture :texture4) (gl:bind-texture :texture-2d normal-buff)
       (with-slots (width height samples levels) (slot-value shader 'cascade-props)
 	(let* ((level (slot-value (slot-value shader 'cascade-params) 'stop-at-level))
 	       (factor (expt 2 level))

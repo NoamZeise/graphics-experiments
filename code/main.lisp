@@ -42,7 +42,7 @@
 
 (defun create-pipelines ()
   (setf *pipelines* (list
-		     ;;(cons "cascade2d" (make-cascade-2d-pipeline))
+		     (cons "cascade2d" (make-cascade-2d-pipeline))
 		     ;;(cons "cascade3d" (make-cascade3d-pipeline))
 		     (cons "pbr" (make-pbr-pipeline))
 		     (cons "aos" (make-aos-pipeline))
@@ -93,7 +93,7 @@
   (gficl:with-update (dt)
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
-     (:f (gficl:toggle-fullscreen))
+     (:f (gficl:toggle-fullscreen t))
      (:m
       (setf *active-pipeline*
 	    (loop for ((k . _) . r) on *pipelines*

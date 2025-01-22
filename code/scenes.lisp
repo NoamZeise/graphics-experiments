@@ -72,7 +72,7 @@
    (list
     (make-object (get-asset 'sphere) (object-matrix '(0.5 1 -7) '(0.4 0.4 0.4)))
     (make-object (get-asset 'cone) (object-matrix '(0.5 1 14) '(0.8 0.8 0.8)))
-    (make-object (get-asset 'bunny) (object-matrix '(-2 1 0.5) '(2 2 2)))
+    (make-object (get-asset 'bunny) (object-matrix '(-2 1 0.5) '(2 2 2)) :light t)
     (make-object (get-asset 'street) (object-matrix '(0 -1 2) '(0.5 0.5 0.5))
 		 :diffuse-texs (get-asset 'street-diffuse)))))
 

@@ -10,12 +10,15 @@ layout(std430, binding = 1) buffer Radiance_Intervals {
 uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
+uniform sampler2D normal_buff;
 
 uniform ivec4 dim;
 
 vec4 getInterval(int x, int y) {
-    return interval[y * dim.x * dim.z
-		  + x * dim.z];
+    vec4 iv =  interval[y * dim.x * dim.z
+			+ x * dim.z];
+    if(iv.a > 0) iv.a = 1;
+    return iv;
 }
 
 vec4 mixIntervals(vec4 int1, vec4 int2, float t) {
@@ -77,6 +80,6 @@ void main() {
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
     vec4 col = final_sample * frag_col;
     //vec4 col = final_sample;
-    //col = texture(colour_buff, uv);
+    //col = texture(normal_buff, uv);
     imageStore(imgOut, coord, col);
 }  

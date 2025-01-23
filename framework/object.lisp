@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defclass object ()
   ((meshes :initarg :meshes)

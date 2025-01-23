@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defclass pipeline ()
   ((passes :initarg :passes :documentation "alist of keys and passes")

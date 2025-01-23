@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 (defclass cascade-post-scene (post-scene)
   ((interval-buffer :initarg :interval-buffer :type gficl:storage-buffer)))
@@ -33,7 +33,7 @@
    'cascade-colour-pass
    :shaders (list (make-instance 'cascade-light-shader))
    :description
-   (make-framebuffer-descrption
+   (make-framebuffer-description
     (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
 	  (gficl:make-attachment-description :position :color-attachment1 :type :texture)
 	  (gficl:make-attachment-description :position :color-attachment2 :type :texture
@@ -191,10 +191,10 @@
   (with-slots (width height samples levels) (slot-value obj 'cascade-props)
     (with-slots (stop-at-level) (slot-value obj 'cascade-params)
       (let* ((level stop-at-level)
-	       (factor (expt 2 level))
-	       (w (/ width factor))
-	       (h (/ height factor))
-	       (s (* samples factor)))
+	     (factor (expt 2 level))
+	     (w (/ width factor))
+	     (h (/ height factor))
+	     (s (* samples factor)))
 	(gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "dim") w h s levels)
 	(gficl:bind-storage-buffer (slot-value scene 'interval-buffer) 0)
 	(gficl:draw-vertex-data
@@ -255,7 +255,7 @@
 		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 )
    :description
-   (make-framebuffer-descrption
+   (make-framebuffer-description
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))
    :samples 4))
 

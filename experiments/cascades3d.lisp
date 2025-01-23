@@ -1,4 +1,5 @@
 ;; 3d cascades experiment
+(in-package :experiments)
 
 (defclass cascade3d-shader (post-shader)
   ((interval-buffer :type gficl:storage-buffer)
@@ -103,7 +104,7 @@
    'cascade3d-post-pass
    :shaders (list (make-instance 'final-cascade3d-shader :cascade-dim (get-cascade3d-dim cascade-shader)))
    :description
-   (make-framebuffer-descrption
+   (make-framebuffer-description
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))
    :samples 4))
 

@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;; backface metatexture outline
 
@@ -32,7 +32,7 @@
 				   :outline-colour
 				   (gficl:make-vec '(0.03 0.04 0.09 0))))
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))
@@ -45,7 +45,7 @@
   (make-instance 'backface-mt-colour-pass
      :shaders (list (make-instance 'backface-mt-shader))
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture))
       :samples 16)))
 
@@ -65,7 +65,7 @@
    'outline-mt-post-pass
    :shaders (list (make-instance 'outline-mt-post-shader))
    :description
-   (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
+   (make-framebuffer-description (list (gficl:make-attachment-description)))))
 
 (defclass outline-post-scene (post-scene) ())
 

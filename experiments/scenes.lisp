@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 (defclass camera-scene (scene-3d)
   ((rotating :initform nil :type boolean)))

@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; variance shadow map shader
 
@@ -25,7 +25,7 @@
   (make-instance 'vsm-pass
     :shaders (list (make-instance 'vsm-shader))
     :description
-    (make-framebuffer-descrption
+    (make-framebuffer-description
      (list (gficl:make-attachment-description
 	    :type              :texture
 	    :internal-format   :rgba32f)

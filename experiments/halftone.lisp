@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; halftone shader
 
@@ -44,7 +44,7 @@
 				   :polygon-offset -0.8))
      :clear-colour '(0.7 0.9 1.0 0.0)
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))

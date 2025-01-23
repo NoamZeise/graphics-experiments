@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defstruct watched
   events
@@ -45,12 +45,16 @@
   (setf *file-change* t))
 
 (defun process-watched ()
-  (flet ((process (f e)
-           (print (list "->" f e))
-	   (let ((fw (gethash (probe-file f) *watched*)))
-	     (if (and fw (loop for ev in (watched-events fw)
-			       when (eql e ev) return t
-			       finally 'nil))
-		 (progn (setf *file-change* t)
-			(setf (watched-modified fw) t))))))
-	(notify:process-events #'process)))
+  (flet
+   ((process (f e)
+      (print (list "->" f e))
+      (let ((fw (gethash (probe-file f) *watched*)))
+	(if (and fw (loop for ev in (watched-events fw)
+			  when (eql e ev) return t
+			  finally 'nil))
+	    (progn (setf *file-change* t)
+		   (setf (watched-modified fw) t))))))
+   (notify:process-events #'process))
+  (let ((changed *file-change*))
+    (setf *file-change* nil)
+    *file-change*))

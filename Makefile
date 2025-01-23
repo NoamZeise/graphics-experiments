@@ -1,10 +1,11 @@
 LISP := "sbcl"
-exec-name := project
+exec-name := experiments
 build-dir := bin
 
-code := $(wildcard code/**.lisp)
+framework-code := $(wildcard framework/**.lisp)
+experiment-code := $(wildcard experiments/**.lisp)
 gficl-code := $(wildcard gficl/src/**.lisp)
-build-deps := $(code) project.asd $(gficl-code) gficl/gficl.asd
+build-deps := $(framework-code) $(experiment-code) framework.asd experiments.asd $(gficl-code) gficl/gficl.asd
 
 assets-src := $(wildcard assets/*)
 assets := $(assets-src:%=$(build-dir)/%)
@@ -17,16 +18,16 @@ build: build-setup $(build-dir)/$(exec-name)
 
 $(build-dir)/$(exec-name): $(build-deps)
 	$(LISP)	--eval "(ql:quickload :deploy)" \
-		--load project.asd \
-		--eval "(ql:quickload :project)" \
-		--eval "(asdf:make :project)"
+		--load experiments.asd \
+		--eval "(ql:quickload :experiments)" \
+		--eval "(asdf:make :experiments)"
 
 # build without quicklisp
 .PHONY: asdf
 asdf: build-setup $(build-deps)
-	$(LISP)	--load project.asd \
-                --eval "(asdf:load-system :project)" \
-                --eval "(asdf:make :project)"
+	$(LISP)	--load experiments.asd \
+                --eval "(asdf:load-system :experiments)" \
+                --eval "(asdf:make :experiments)"
 
 .PHONY: build-setup
 build-setup: gficl $(assets) $(shaders)
@@ -50,7 +51,7 @@ $(build-dir):
 .PHONY: repl
 repl: gficl
 	$(LISP) --load repl-setup.lisp \
-	     	--eval "(project:run)"
+	     	--eval "(experiments:run)"
 
 .PHONY: clean
 clean:
@@ -68,5 +69,5 @@ pull: gficl
 
 .PHONY: docker
 docker:
-	docker build . -t project
-	docker run -it --rm -v=.:/project project
+	docker build . -t experiments
+	docker run -it --rm -v=.:/experiments experiments

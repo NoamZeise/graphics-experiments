@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; shader
 
@@ -28,7 +28,7 @@
   (make-instance 'pbr-colour-pass
      :shaders (list (make-instance 'pbr-shader))
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))

@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defclass shader ()
   ((shader :type gficl:shader)

@@ -1,6 +1,4 @@
-(in-package :project)
-
-(in-package :project)
+(in-package :experiments)
 
 ;;; shader
 
@@ -45,7 +43,7 @@
   (make-instance 'lit-sphere-colour-pass
      :shaders (list (make-instance 'lit-sphere-shader))
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))

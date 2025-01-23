@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; 3D Lambertian shader with uv texture
 

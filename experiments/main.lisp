@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 (defun run ()
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
@@ -103,13 +103,11 @@
       (format t "using ~a pipeline~%" *active-pipeline*)))
     ;;(format t "fps: ~d~%" (round (/ 1 (float dt))))
     (loop for scene in *active-scenes* do
-	  (update-scene scene dt))
-    (process-watched)
+	  (update-scene scene dt))    
     (cond (*signal-fn*
 	   (funcall *signal-fn*)
 	   (setf *signal-fn* nil)))
-    (cond (*file-change*
-	   (setf *file-change* nil)
+    (cond ((process-watched)
 	   (foreach-v *pipelines* (p) (reload p))
 	   (set-all-unmodified)))))
 

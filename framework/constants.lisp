@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defconstant +asset-folder+ #p"assets/")
 (defconstant +shader-folder+ #p"shaders/")

@@ -1,3 +1,3 @@
 ;;; Load this file to setup a lisp environment for the project
-(load "project.asd")
-(ql:quickload :project)
+(load "experiments.asd")
+(ql:quickload :experiments)

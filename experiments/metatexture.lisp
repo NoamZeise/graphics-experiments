@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; Colour Pass
 
@@ -9,7 +9,7 @@
    'mt-colour-pass
    :shaders (list (make-instance 'cel-shader))
    :description
-   (make-framebuffer-descrption
+   (make-framebuffer-description
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 16)))
@@ -41,7 +41,7 @@
    'metatexture-pass
    :shaders (list (make-instance 'metatexture-shader))
    :description
-   (make-framebuffer-descrption
+   (make-framebuffer-description
     (list (gficl:make-attachment-description :type :texture)
 	  (gficl:make-attachment-description :position :depth-attachment))
     :samples 16)))
@@ -72,7 +72,7 @@
    'mt-post-pass
    :shaders (list (make-instance 'mt-post-shader))
    :description
-   (make-framebuffer-descrption (list (gficl:make-attachment-description)))))
+   (make-framebuffer-description (list (gficl:make-attachment-description)))))
 
 ;;; Post Scene
 

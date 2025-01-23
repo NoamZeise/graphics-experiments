@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :experiments)
 
 ;;; brush shader
 
@@ -32,7 +32,7 @@
      :shaders (list (make-instance 'brush-shader)
 		    (make-instance 'backface-shader))
      :description
-     (make-framebuffer-descrption
+     (make-framebuffer-description
       (list (gficl:make-attachment-description :type :texture)
 	    (gficl:make-attachment-description :position :depth-attachment))
       :samples 16)))

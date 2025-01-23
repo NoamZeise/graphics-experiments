@@ -1,10 +1,10 @@
-(in-package :project)
+(in-package :framework)
 
 (defstruct (framebuffer-descrption (:conc-name fb-) (:constructor nil))
 	   (attachments ())
 	   (samples 1 :type integer))
 
-(defun make-framebuffer-descrption (attachments &key (samples 1))
+(defun make-framebuffer-description (attachments &key (samples 1))
   (let ((fbd (make-instance 'framebuffer-descrption)))
     (setf (fb-attachments fbd) attachments)
     (setf (fb-samples fbd) (gficl:msaa-samples samples))

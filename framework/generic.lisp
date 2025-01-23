@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defgeneric reload (shader)
   (:documentation "reload asset (ie shader code changed)"))

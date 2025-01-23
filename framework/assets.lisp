@@ -1,4 +1,4 @@
-(in-package :project)
+(in-package :framework)
 
 (defun setup-asset-table ()
   (setf *assets* (make-hash-table))

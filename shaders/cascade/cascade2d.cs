@@ -71,7 +71,6 @@ vec3 ray_dir(uint id) {
 }
 
 vec4 trace(vec3 pos, vec3 dir) {
-    vec4 ray_col = vec4(0);
     int factor = int(exp2(cascade_level));
     float step_scale = (1 + 1 * cascade_level);
     float sz = params.steps * params.step_size * factor;
@@ -80,37 +79,21 @@ vec4 trace(vec3 pos, vec3 dir) {
     float offset = sz - (params.step_size * params.steps);
 
     pos += dir * offset;
+    vec4 ray_col = vec4(0);
     float surface_depth = pos.z;
     for(int i = 0; i < steps; i++) {
-	vec3 new_pos = pos + dir * step_size;
-	vec3 frag_pos = (sample_tex(new_pos, depth_buff)).xyz;
-
-	vec4 sample_colour = sample_tex(new_pos, light_buff);
-	if(
-	    //sample_colour.r > 0 && frag_pos.z < 1
-	    frag_pos.z <= surface_depth && frag_pos.z < 1	    
-	) {
-	    surface_depth = frag_pos.z;	    
-	    ray_col = sample_colour;
-	    ray_col.a = surface_depth;
+	vec3 frag_pos = (sample_tex(pos, depth_buff)).xyz;
+	vec4 sample_colour = sample_tex(pos, light_buff);
+	
+	if(frag_pos.z <= surface_depth && frag_pos.z < 1) {
+	  surface_depth = frag_pos.z;	    
+	  ray_col = sample_colour;
+	  ray_col.a = surface_depth;
 	}
-		
-	/*if(frag_pos.z < new_pos.z &&
-	   frag_pos.z + step_size > new_pos.z &&
-	   ray_col.w == 0) {
-	    ray_col = sample_tex(new_pos, light_buff);
-	    ray_col.w = 1;
-			   }*/
-	pos = new_pos;
+	pos += dir * step_size;
     }
     
     return ray_col;
-}
-
-vec4 avg_prev(vec4 ray1, vec4 ray2) {
-  vec4 m = (ray1 + ray2)/2;
-  m.a = m.a == 0 ? 0.0 : 1.0;
-  return m;
 }
 
 vec4 interpolate_ray(uvec3 pcd, float depth,
@@ -121,17 +104,23 @@ vec4 interpolate_ray(uvec3 pcd, float depth,
   vec4 dl = read_interval(left, down, rayid, pcd);
   vec4 dr = read_interval(right, down, rayid, pcd);
   vec4 ray = vec4(0);
-  if(ul.a > 0 && ul.a < depth)
+  if(ul.a >= 0 && ul.a <= depth)
     ray += ul;
-  if(ur.a > 0 && ur.a < depth)
+  if(ur.a >= 0 && ur.a <= depth)
     ray += ur;
-  if(dl.a > 0 && dl.a < depth)
-    ray += ur;
-  if(dr.a > 0 && dr.a < depth)
-    ray += ur;
+  if(dl.a >= 0 && dl.a <= depth)
+    ray += dl;
+  if(dr.a >= 0 && dr.a <= depth)
+    ray += dr;
   ray /= 4;
   ray.a = int(ray.a > 0);
   return ray;
+}
+
+vec4 avg_prev(vec4 ray1, vec4 ray2) {
+  vec4 m = (ray1 + ray2)/2;
+  m.a = m.a == 0 ? 0.0 : 1.0;
+  return m;
 }
 
 vec4 cascade_ray(uvec3 id) {
@@ -182,19 +171,19 @@ vec4 cascade_ray(uvec3 id) {
     int1.a = int1.a == 0 ? 0.0 : 1.0;
     */    
 
-    float surface_depth = probe_pos.z;
+    float surface_depth = (ray_hit.a == 0) ? probe_pos.z : ray_hit.a;
     
     vec4 int1 = interpolate_ray(pcd, surface_depth,
 				left, right, up, down, pid.z);
-    uint r2 = pid.z;
-    if(pid.z >= pcd.z - 1) r2 = 0;
+    uint r2 = pid.z + 1;
+    if(r2 >= pcd.z) r2 = 0;    
     vec4 int2 = interpolate_ray(pcd, surface_depth,
 				left, right, up, down, r2);
 
     vec4 prev = avg_prev(int1, int2);
 
     if(params.merge_rays != 0)
-      ray_hit.rgb += /*int(!bool(prev.a == 0)) */ prev.rgb;
+      ray_hit.rgb += /*int(bool(ray_hit.a == 0)) */ prev.rgb;
   }
   
   return ray_hit;
@@ -204,9 +193,9 @@ vec4 avg_dirs(uvec3 id) {
   vec4 total = vec4(0);
   for(uint i = 0; i < dim.z; i++) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
-    total += ray * ray.a;
+    total += ray;// * ray.a;
   }
-  return total;
+  return total / dim.z;
 }
 
 void main() {
@@ -214,6 +203,6 @@ void main() {
   if(cascade_level >= 0) {
     write_interval(id.x, id.y, id.z, gl_NumWorkGroups.xyz, cascade_ray(id));
   } else {
-    write_interval(id.x, id.y, id.z, uvec3(dim),           avg_dirs(id));
+    write_interval(id.x, id.y, id.z, uvec3(dim), avg_dirs(id));
   }
 }

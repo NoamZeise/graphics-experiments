@@ -22,7 +22,6 @@ vec4 getInterval(int x, int y) {
 }
 
 vec4 mixIntervals(vec4 int1, vec4 int2, float t) {
-  //return mix(int1, int2, t);
   if(int1.w == int2.w) {
     return mix(int1, int2, t);
   }
@@ -78,8 +77,8 @@ void main() {
     
     vec4 frag_col = texture(colour_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    vec4 col = final_sample * frag_col;
-    //vec4 col = final_sample;
+    //vec4 col = final_sample * frag_col;
+    vec4 col = final_sample;
     //col = texture(normal_buff, uv);
     imageStore(imgOut, coord, col);
 }  

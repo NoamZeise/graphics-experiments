@@ -61,7 +61,9 @@
     (make-object (get-asset 'cube) (object-matrix '(-1 -0.28 -1) '(0.1 0.1 0.1)) :light t)
     (make-object (get-asset 'cube) (object-matrix '(-1.1 0 -1.5) '(0.8 0.6 0.02))))))
 
-(defclass street-scene (camera-scene) ())
+(defclass street-scene (camera-scene)
+  ((bunny-x :initform -2)
+   (bunny-z :initform 0.5)))
 
 (defun make-street-scene ()  
   (make-instance
@@ -70,11 +72,22 @@
    :cam-target (gficl:-vec '(0 0 0))
    :objects
    (list
-    (make-object (get-asset 'sphere) (object-matrix '(0.5 1 -7) '(0.4 0.4 0.4)))
-    (make-object (get-asset 'cone) (object-matrix '(0.5 1 14) '(0.8 0.8 0.8)))
     (make-object (get-asset 'bunny) (object-matrix '(-2 1 0.5) '(2 2 2)) :light t)
+    (make-object (get-asset 'sphere) (object-matrix '(0.5 1 -7) '(0.4 0.4 0.4)))
+    (make-object (get-asset 'cone) (object-matrix '(0.5 1 14) '(0.8 0.8 0.8)))    
     (make-object (get-asset 'street) (object-matrix '(0 -1 2) '(0.5 0.5 0.5))
 		 :diffuse-texs (get-asset 'street-diffuse)))))
+
+(defmethod update-scene ((obj street-scene) dt)
+  (call-next-method)
+  (with-slots (objects bunny-x bunny-z) obj
+    (let ((bunny (car objects)))
+      (gficl:map-keys-down
+       (:h (setf bunny-x (+ bunny-x (* dt))))
+       (:j (setf bunny-x (- bunny-x (* dt))))
+       (:k (setf bunny-z (+ bunny-z (* dt))))
+       (:l (setf bunny-z (- bunny-z (* dt)))))
+      (update-model bunny (object-matrix (list bunny-x 1 bunny-z) '(2 2 2))))))
 
 (defclass square-scene (scene-2d)
   ((quad-size :initform 100 :type number)))
@@ -96,7 +109,7 @@
 	(gficl:translation-matrix (list size size 0))
 	(gficl:scale-matrix (list size size 1))
 	(gficl:make-matrix-from-data
-	 `((-1 0 0 0)
+	 `((1 0 0 0)
 	   (0 0 1 0)
 	   (0 1 0 0)
 	   (0 0 0 1))))))

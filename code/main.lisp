@@ -37,8 +37,7 @@
   (load-image 'brush2 #p"assets/brush-test2.png")
   (load-image 'sky-matcap #p"assets/sky-matcap.png")
   (load-image 'rust-matcap #p"assets/rust-matcap.png")
-  (load-image 'rim-matcap #p"assets/rim-matcap.png")
-  )
+  (load-image 'rim-matcap #p"assets/rim-matcap.png"))
 
 (defun create-pipelines ()
   (setf *pipelines* (list
@@ -59,7 +58,7 @@
 	(list
 	 ;;(make-simple-3d-scene)
 	 (make-street-scene)	 
-	 ;; (make-square-scene)
+	 (make-square-scene)
 	 )))
 
 (defun setup ()

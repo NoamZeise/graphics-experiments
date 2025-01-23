@@ -57,7 +57,7 @@
 	   :type integer)
    (samples :initarg :s :initform 8
 	    :type integer)
-   (levels :initarg :levels :initform 6
+   (levels :initarg :levels :initform 7
 	   :type integer)))
 
 (defun cascade-prop-vec (props)
@@ -196,6 +196,7 @@
 	       (h (/ height factor))
 	       (s (* samples factor)))
 	(gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "dim") w h s levels)
+	(gficl:bind-storage-buffer (slot-value scene 'interval-buffer) 0)
 	(gficl:draw-vertex-data
 	 (get-asset 'cube)
 	 :instances
@@ -251,7 +252,7 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-					;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+		  (make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 )
    :description
    (make-framebuffer-descrption

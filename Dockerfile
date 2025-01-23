@@ -9,4 +9,4 @@ RUN sbcl --load quicklisp.lisp \
          --quit
 RUN echo '(load "~/quicklisp/setup.lisp")' >> ~/.sbclrc
 
-WORKDIR /project
+WORKDIR /experiments

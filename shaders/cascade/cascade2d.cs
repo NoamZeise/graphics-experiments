@@ -31,9 +31,13 @@ vec4 sample_tex(vec3 pos, sampler2D tex) {
     return texture(tex, uv);
 }
 
+vec2 id_to_uv(uvec2 id, uvec2 sz) {
+  return vec2((id.x / float(sz.x)) + 1/(sz.x*2.0),
+	      (id.y / float(sz.y)) + 1/(sz.y*2.0));
+}
+
 vec3 id_to_pos(uvec2 id, uvec2 sz) {
-  vec2 uv = vec2((id.x / float(sz.x)) + 1/(sz.x*2.0),
-		 (id.y / float(sz.y)) + 1/(sz.y*2.0));
+  vec2 uv = id_to_uv(id, sz);
   return texture(depth_buff, uv).xyz;
 }
 
@@ -96,30 +100,59 @@ vec4 trace(vec3 pos, vec3 dir) {
     return ray_col;
 }
 
+/*vec4 add_ray(vec4 ray, vec4 add, float depth) {
+    if(add.a >= 0 && add.a <= depth){
+	ray.rgb += add.rgb;
+	if(add.a < ray.a)
+	    ray.a = add.a;
+    }
+    return ray;
+}*/
+
+vec4 mix_intervals(vec4 int1, vec4 int2, float t, float depth) {
+    if(int1.a > depth)
+	int1 = vec4(0);
+    if(int2.a > depth)
+	int2 = vec4(0);
+  if(int1.w == int2.w) {
+    return mix(int1, int2, t);
+  }
+  if(int1.w == 0) {
+    return int2;
+  }
+  if(int2.w == 0) {
+    return int1;
+  }
+  return mix(int1, int2, t);
+}
+
 vec4 interpolate_ray(uvec3 pcd, float depth,
 		     uint left, uint right, uint up, uint down,
-		     uint rayid) {
+		     uint rayid, vec2 fract) {
   vec4 ul = read_interval(left, up, rayid, pcd);
   vec4 ur = read_interval(right, up, rayid, pcd);
   vec4 dl = read_interval(left, down, rayid, pcd);
-  vec4 dr = read_interval(right, down, rayid, pcd);
-  vec4 ray = vec4(0);
-  if(ul.a >= 0 && ul.a <= depth)
-    ray += ul;
-  if(ur.a >= 0 && ur.a <= depth)
-    ray += ur;
-  if(dl.a >= 0 && dl.a <= depth)
-    ray += dl;
-  if(dr.a >= 0 && dr.a <= depth)
-    ray += dr;
-  ray /= 4;
-  ray.a = int(ray.a > 0);
-  return ray;
+  vec4 dr = read_interval(right, down, rayid, pcd);  
+
+  vec4 l = mix_intervals(dl, ul, fract.y, depth);
+  vec4 r = mix_intervals(dr, ur, fract.y, depth);
+  vec4 s = mix_intervals(l, r, fract.x, depth);
+  return s;
+  //ray = add_ray(ray, ul, depth);
+  //ray = add_ray(ray, ur, depth);
+  //ray = add_ray(ray, dl, depth);
+  //ray = add_ray(ray, dr, depth);  
+  //ray.rgb /= 4;
+  //return ray;
 }
 
 vec4 avg_prev(vec4 ray1, vec4 ray2) {
-  vec4 m = (ray1 + ray2)/2;
-  m.a = m.a == 0 ? 0.0 : 1.0;
+  vec4 m = vec4(0);
+  m.rgb = (ray1.rgb + ray2.rgb)/2;
+  if(ray1.a > 0 && ray2.a > 0)
+      m.a = min(ray1.a, ray2.a);
+  else
+      m.a = max(ray1.a, ray2.a);
   return m;
 }
 
@@ -144,46 +177,35 @@ vec4 cascade_ray(uvec3 id) {
     uint down = pid.y;
     uint up = down + uint(down < pcd.y - 1 && down >= 0);
 
-    /*vec3 ulpos = id_to_pos(uvec2(left,  up),   pcd.xy);
-    vec3 urpos = id_to_pos(uvec2(right, up),   pcd.xy);
-    vec3 dlpos = id_to_pos(uvec2(left,  down), pcd.xy);
-    vec3 drpos = id_to_pos(uvec2(right, down), pcd.xy);
-    float ulD = distance(ulpos, probe_pos);
-      /*abs(ulpos.z - probe_pos.z)
-      + 1/(cd.x*2) + inv_offset.x*(1/cd.x)
-      + 1/(cd.y*2) + inv_offset.y*(1/cd.y);*/
-    /*float urD = distance(urpos, probe_pos);
-      /*abs(urpos.z - probe_pos.z)
-      + 1/(cd.x*2) + offset.x*(1/cd.x)
-      + 1/(cd.y*2) + inv_offset.y*(1/cd.y);*/
-    /*float dlD = distance(dlpos, probe_pos);
-      /*abs(dlpos.z - probe_pos.z)
-      + 1/(cd.x*2) + inv_offset.x*(1/cd.x)
-      + 1/(cd.y*2) + offset.y*(1/cd.y);*/
-    /*float drD = distance(drpos, probe_pos);
-      /*abs(drpos.z - probe_pos.z)
-      + 1/(cd.x*2) + offset.x*(1/cd.x)
-      + 1/(cd.y*2) + offset.y*(1/cd.y);
+    vec2 uvpos = id_to_uv(id.xy, cd.xy);
+    vec2 ulpos = id_to_uv(uvec2(left,  up),   pcd.xy);
+    vec2 urpos = id_to_uv(uvec2(right, up),   pcd.xy);
+    vec2 dlpos = id_to_uv(uvec2(left,  down), pcd.xy);
+    vec2 drpos = id_to_uv(uvec2(right, down), pcd.xy);
 
-      float normalizer = 1/ulD + 1/urD + 1/dlD + 1/drD;
-     vec4 int1 = //(ul1/ulD + ur1/urD + dl1/dlD + dr1/drD)/normalizer;
-    (ul1 + ur1 + dl1 + dr1) / 4;
-    int1.a = int1.a == 0 ? 0.0 : 1.0;
-    */    
+    vec2 pndc = vec2((probe_pos+vec3(1))/2);
+    vec2 cascade_space = vec2(pndc.x * pcd.x - 1/(pcd.x*2),
+			      pndc.y * pcd.y - 1/(pcd.y*2));
+    vec2 fract = vec2(fract(cascade_space.x),
+		      fract(cascade_space.y));    
 
     float surface_depth = (ray_hit.a == 0) ? probe_pos.z : ray_hit.a;
     
     vec4 int1 = interpolate_ray(pcd, surface_depth,
-				left, right, up, down, pid.z);
+				left, right, up, down, pid.z,
+                                fract);
     uint r2 = pid.z + 1;
-    if(r2 >= pcd.z) r2 = 0;    
+    if(r2 >= pcd.z) r2 = 0;
     vec4 int2 = interpolate_ray(pcd, surface_depth,
-				left, right, up, down, r2);
+				left, right, up, down, r2,
+                                fract);
 
     vec4 prev = avg_prev(int1, int2);
 
-    if(params.merge_rays != 0)
+    if(params.merge_rays != 0) {
       ray_hit.rgb += /*int(bool(ray_hit.a == 0)) */ prev.rgb;
+      ray_hit.a += int(bool(ray_hit.a == 0)) * prev.a;
+    }
   }
   
   return ray_hit;

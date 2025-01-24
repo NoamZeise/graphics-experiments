@@ -24,8 +24,6 @@
    #:setup-asset-table
    #:cleanup-assets
    #:add-asset
-   #:add-asset-prop
-   #:get-asset-prop
    #:load-model
    #:load-model+texs
    #:load-image
@@ -40,6 +38,7 @@
    ;; objects
    #:object
    #:make-object
+   #:make-object-from-model+tex
    #:update-model
    #:obj-prop
    #:object-matrix
@@ -91,6 +90,7 @@
    #:get-textures
    #:get-pass-texture
    #:get-final-framebuffer
+   #:shaders
    ;; specialised pass types
    #:post-pass
 

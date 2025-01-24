@@ -18,6 +18,17 @@
     (update-model model model-matrix)
     model))
 
+(defun extract-model-texs (tex-list)
+  (loop for tex in tex-list collecting
+	(cdr (assoc :tex tex))))
+
+(defun make-object-from-model+tex (model+tex model-matrix
+					     &key (colour (gficl:make-vec '(1 1 1 1))) light)
+  (let* ((model (cdr (assoc :model model+tex)))
+	 (diffuse-list (cdr (assoc :diffuse model+tex)))
+	 (diffuse-texs (extract-model-texs diffuse-list)))
+    (make-object model model-matrix :diffuse-texs diffuse-texs :colour colour :light light)))
+
 (defun update-model (obj model-matrix)
   (setf (slot-value obj 'model) model-matrix)
   (setf (slot-value obj 'normal) (gficl:transpose-matrix (gficl:inverse-matrix model-matrix))))

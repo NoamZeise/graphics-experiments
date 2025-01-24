@@ -51,9 +51,9 @@
 ;;; screenspace cascades
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 256;512
+  ((width :initarg :w :initform 512
 	  :type integer)
-   (height :initarg :h :initform 256;512
+   (height :initarg :h :initform 512
 	   :type integer)
    (samples :initarg :s :initform 8
 	    :type integer)

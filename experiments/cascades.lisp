@@ -98,7 +98,7 @@
    (init :initform nil)))
 
 (defmethod reload ((s cascade2d-compute-shader))
-  (compute-shader-reload-files (s #p"cascade/cascade2d.cs") shader
+  (compute-shader-reload-files (s #p"cascade/cascade.cs") shader
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 0)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 2)
@@ -175,7 +175,7 @@
 
 (defmethod reload ((s cascade2d-debug-shader))
   (shader-reload-files
-   (s (#p"debug2d.vs" #p"debug2d.fs") :folder (shader-subfolder #p"cascade/")) shader
+   (s (#p"debug.vs" #p"debug.fs") :folder (shader-subfolder #p"cascade/")) shader
    (gl:uniformi (gficl:shader-loc shader "depth_buff") 0)
    (update-cascade-obj s (slot-value s 'cascade-props))))
 
@@ -207,7 +207,7 @@
 (defclass cascade2d-post-shader (post-shader cascade-obj) ())
 
 (defmethod reload ((s cascade2d-post-shader))
-  (compute-shader-reload-files (s #p"cascade/post2d.cs") shader
+  (compute-shader-reload-files (s #p"cascade/post.cs") shader
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)
@@ -252,7 +252,7 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+					;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 )
    :description
    (make-framebuffer-description

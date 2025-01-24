@@ -2,7 +2,7 @@
 
 (defun setup-asset-table ()
   (setf *assets* (make-hash-table))
-  (setf *asset-object* (list)))
+  (setf *asset-objects* (list)))
 
 (defun cleanup-assets ()
   (loop for vd in *asset-objects* do

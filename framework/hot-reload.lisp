@@ -57,4 +57,4 @@
    (notify:process-events #'process))
   (let ((changed *file-change*))
     (setf *file-change* nil)
-    *file-change*))
+    changed))

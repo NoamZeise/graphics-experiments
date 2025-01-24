@@ -10,7 +10,7 @@
    (cascade0-samples :initform 6)))
 
 (defmethod reload ((s cascade3d-shader))
-  (compute-shader-reload-files (s #p"cascade/cascade.cs") shader
+  (compute-shader-reload-files (s #p"cascade3d/cascade.cs") shader
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 0)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 2)
@@ -70,7 +70,7 @@
   ((cascade-dim :initarg :cascade-dim)))
 
 (defmethod reload ((s final-cascade3d-shader))
-  (compute-shader-reload-files (s #p"cascade/final.cs") shader
+  (compute-shader-reload-files (s #p"cascade3d/post.cs") shader
     (gl:uniformi (gficl:shader-loc shader "colour_buff") 1)
     (gl:uniformi (gficl:shader-loc shader "light_buff") 2)
     (gl:uniformi (gficl:shader-loc shader "depth_buff") 3)

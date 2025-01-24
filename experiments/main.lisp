@@ -23,7 +23,7 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
-  ;;(load-model+texs 'street #p"street/street.obj")
+  (load-model+texs 'street #p"street/street.obj")
   (add-asset  'dummy-data
 	      (gficl:make-vertex-data
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
@@ -57,8 +57,8 @@
 (defun create-scenes ()
   (setf *active-scenes*
 	(list
-	 (make-simple-3d-scene)
-	 ;;(make-street-scene)
+	 ;;(make-simple-3d-scene)
+	 (make-street-scene)
 	 ;;(make-square-scene)
 	 )))
 
@@ -101,7 +101,7 @@
 		  return
 		  (if r (caar r) (caar *pipelines*))))
       (format t "using ~a pipeline~%" *active-pipeline*)))
-    ;;(format t "fps: ~d~%" (round (/ 1 (float dt))))
+    ;(format t "fps: ~d~%" (round (/ 1 (float dt))))
     (loop for scene in *active-scenes* do
 	  (update-scene scene dt))    
     (cond (*signal-fn*

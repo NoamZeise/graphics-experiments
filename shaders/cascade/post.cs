@@ -46,8 +46,8 @@ void main() {
 
     vec3 pndc = (fpos+vec3(1))/2;
     vec2 cascade_space =
-      vec2(pndc.x * dim.x - 1/(dim.x*2),
-	   pndc.y * dim.y - 1/(dim.y*2));
+      vec2(pndc.x * dim.x,// + 1/(dim.x*2),
+	   pndc.y * dim.y);// + 1/(dim.y*2));
     vec2 cascade_fract =
 	vec2(fract(cascade_space.x),
 	     fract(cascade_space.y));

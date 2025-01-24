@@ -23,21 +23,21 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
-  (load-model+texs 'street #p"street/street.obj")
+  ;;(load-model+texs 'street #p"street/street.obj")
   (add-asset  'dummy-data
 	      (gficl:make-vertex-data
 	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
-  (load-image 'test #p"assets/test.png")
-  (load-image 'metatexture-noise #p"assets/noise.png")
+  ;;(load-image 'test #p"assets/test.png")
+  ;;(load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
-  (load-image 'colours #p"assets/colours.png")
-  (load-image 'light-colours #p"assets/light-colours.png")
-  (load-image 'xtoon #p"assets/xtoon.png")
-  (load-image 'brush #p"assets/brush-test.png")
-  (load-image 'brush2 #p"assets/brush-test2.png")
-  (load-image 'sky-matcap #p"assets/sky-matcap.png")
-  (load-image 'rust-matcap #p"assets/rust-matcap.png")
-  (load-image 'rim-matcap #p"assets/rim-matcap.png")
+  ;;(load-image 'colours #p"assets/colours.png")
+  ;;(load-image 'light-colours #p"assets/light-colours.png")
+  ;;(load-image 'xtoon #p"assets/xtoon.png")
+  ;;(load-image 'brush #p"assets/brush-test.png")
+  ;;(load-image 'brush2 #p"assets/brush-test2.png")
+  ;;(load-image 'sky-matcap #p"assets/sky-matcap.png")
+  ;;(load-image 'rust-matcap #p"assets/rust-matcap.png")
+  ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
 (defun create-pipelines ()
@@ -57,8 +57,8 @@
 (defun create-scenes ()
   (setf *active-scenes*
 	(list
-	 ;;(make-simple-3d-scene)
-	 (make-street-scene)
+	 (make-simple-3d-scene)
+	 ;;(make-street-scene)
 	 ;;(make-square-scene)
 	 )))
 

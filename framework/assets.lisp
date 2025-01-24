@@ -2,23 +2,26 @@
 
 (defun setup-asset-table ()
   (setf *assets* (make-hash-table))
-  (setf *asset-object* (make-hash-table)))
+  (setf *asset-object* (list)))
 
 (defun cleanup-assets ()
-  (loop for vd being the hash-value of *asset-objects* do
+  (loop for vd in *asset-objects* do
 	(if (listp vd)
 	    (loop for v in vd when v do (gficl:delete-gl v))
 	  (if vd (gficl:delete-gl vd))))) 
 
-(defun add-asset (key asset)
+(defun add-to-asset-table (key asset)
   (cond ((gethash key *assets*)
-	 (warn "Added asset (~a) with key that already exits (~a), deleting old asset."
-	       asset key)
-	 (gficl:delete-gl (gethash key *assets*))))
+	 (warn "Added asset (~a) with key that already exits (~a), forgetting old asset."
+	       asset key)))
   (setf (gethash key *assets*) asset))
 
 (defun add-asset-object (obj)
   (setf *asset-objects* (cons obj *asset-objects*)))
+
+(defun add-asset (key asset)
+  (add-asset-object asset)
+  (add-to-asset-table key asset))
 
 (defun internal-load-model (filename)
   (multiple-value-bind
@@ -31,8 +34,7 @@
 (defun load-model (key filename)
   (format t "loading model ~a from ~a~%" key filename)
   (multiple-value-bind (data maps) (internal-load-model filename)
-    (add-asset-object data)		       
-    (add-asset key (if (= 1 (length data)) (car data) data))
+    (add-to-asset-table key (if (= 1 (length data)) (car data) data))
     (values (get-asset key) maps)))
 
 (defun add-tex-alist (alist type filename)
@@ -57,11 +59,11 @@
 	   (let ((diff-file (cdr (assoc :diffuse map))))
 	     (if diff-file
 		 (setf asset (add-tex-alist asset :diffuse diff-file)))))
-     (add-asset key asset))))
+     (add-to-asset-table key asset))))
 
 (defun load-image (key filename)
   (format t "loading image ~a from ~a~%" key filename)
-  (add-asset key
+  (add-to-asset-table key
     (multiple-value-bind (tex w h) (gficl/load:image filename)
       (add-asset-object tex)
       ;(pairlis '(:tex :width :height) (list tex w h))

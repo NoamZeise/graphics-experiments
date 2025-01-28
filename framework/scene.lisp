@@ -29,6 +29,8 @@
 
 (defclass scene-3d (scene)
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)
+   (view-mat :initform (gficl:make-matrix) :type gficl:matrix)
+   (inverse-transpose-view-mat :initform (gficl:make-matrix) :type gficl:matrix)
    (cam-target :initarg :cam-target :type gficl:vec)
    (cam-fov :initform 0.3 :type float)
    (cam-near :initform 0.05 :type float)
@@ -50,9 +52,13 @@
     (setf proj (gficl:screen-perspective-matrix w h (* pi fov) near 100))))
 
 (defmethod update-scene :after ((obj scene-3d) (dt number))
-  (with-slots ((vp view-projection) (proj projection-mat) cam-pos cam-target light-dir light-view light-proj light-vp) obj
-    (let ((view (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+)))
-      (setf vp (gficl:*mat proj view)))
+  (with-slots ((vp view-projection) (proj projection-mat)
+	       (view view-mat) (it-view inverse-transpose-view-mat)
+	       cam-pos cam-target light-dir light-view light-proj light-vp)
+      obj
+    (setf view (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+))
+    (setf it-view (gficl:transpose-matrix (gficl:inverse-matrix view)))
+    (setf vp (gficl:*mat proj view))
     (setf light-view (gficl:view-matrix (gficl:*vec 20 light-dir)
 					(gficl:-vec light-dir)
 					+world-up+))

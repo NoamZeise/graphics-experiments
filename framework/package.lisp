@@ -54,6 +54,8 @@
    ;; specialised scene types
    #:scene-3d
    #:projection-mat
+   #:view-mat
+   #:inverse-transpose-view-mat
    #:cam-target
    #:cam-fov
    #:cam-near

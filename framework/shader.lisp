@@ -77,7 +77,7 @@ Uses GFICL/LOAD:COMPUTE-SHADER to load the shader."
 (defmethod draw :before ((obj shader) arg)
   (gficl:bind-gl (slot-value obj 'shader)))
 
-(defmethod draw ((shader shader) (scene scene))
+(defmethod draw ((shader shader) scene)
   (draw scene shader))
 
 (defmethod free ((obj shader))

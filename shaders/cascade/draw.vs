@@ -6,7 +6,10 @@ layout (location = 2) in vec2 uv;
 
 uniform mat4 model;
 uniform mat4 norm_mat;
+uniform mat4 it_view;
 uniform mat4 viewproj;
+uniform mat4 view;
+uniform mat4 proj;
 
 out vec4 fpos;
 out vec3 fnorm;
@@ -16,6 +19,6 @@ void main() {
   vec4 world = model * vec4(pos, 1);
   fpos = viewproj * world;
   fuv = uv;
-  fnorm = vec3(norm_mat * vec4(normal, 1));
+  fnorm = vec3(it_view * norm_mat * vec4(normal, 0));
   gl_Position = fpos;
 }

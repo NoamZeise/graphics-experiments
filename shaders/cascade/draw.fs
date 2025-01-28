@@ -29,5 +29,5 @@ void main() {
     light = vec4(0, 0, 0, 1);
   }
   position = fpos/fpos.w;
-  normal = vec4(fnorm, 1);
+  normal = vec4(normalize(fnorm), 1);
 }

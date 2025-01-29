@@ -99,7 +99,7 @@ vec4 trace(vec3 pos, vec3 dir) {
 	float angle = start_to_pos.z*-1;	
 	if(angle > angle_interval && frag_pos.z < 1) {
 	  float angle_diff = (angle - angle_interval)/2;
-	  vec4 sample_colour = sample_tex(pos, light_buff);
+	  vec4 sample_colour = sample_tex(pos, colour_buff);
 	  if(prev_col.r == -1)	   
 	    ray_col += sample_colour*angle_diff;
 	  else

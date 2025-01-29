@@ -262,7 +262,7 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-					;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
 )
    :description
    (make-framebuffer-description

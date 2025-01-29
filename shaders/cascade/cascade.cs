@@ -76,16 +76,16 @@ vec3 ray_dir(uint id) {
 
 vec4 trace(vec3 pos, vec3 dir) {  
     int factor = int(exp2(cascade_level));
-    float step_scale = (1 + 1 * cascade_level);
     float sz = params.steps * params.step_size * factor;
     int steps = params.steps * factor;
-    float step_size = params.step_size*2;
+    float step_size = params.step_size;// * factor;
     float offset = sz - (params.step_size * params.steps)
       * (cascade_level < 1 ? 1 : cascade_level);
 
     vec3 normal = sample_tex(pos, normal_buff).xyz;
-    pos += dir * offset;
     vec3 start = sample_tex(pos, depth_buff).xyz + vec3(0, 0, -0.01);
+    start += dir * offset;
+    pos += dir * offset;
     vec4 ray_col = vec4(0);
     ray_col.a = -1;
     vec4 prev_col = vec4(-1);
@@ -99,11 +99,12 @@ vec4 trace(vec3 pos, vec3 dir) {
 	float angle = start_to_pos.z*-1;	
 	if(angle > angle_interval && frag_pos.z < 1) {
 	  float angle_diff = (angle - angle_interval)/2;
-	  vec4 sample_colour = sample_tex(pos, colour_buff);
+	  vec4 sample_colour = sample_tex(pos, light_buff);
 	  if(prev_col.r == -1)	   
 	    ray_col += sample_colour*angle_diff;
 	  else
 	    ray_col += (sample_colour + prev_col)*0.5*angle_diff;
+	  //ray_col += sample_colour*angle_diff;
 	  prev_col = sample_colour;
 	  angle_interval = angle;
 	  ray_col.a = angle;
@@ -133,7 +134,7 @@ vec4 interpolate_ray(uvec3 pcd,
 
 vec4 avg_prev_cascade(vec4 ray1, vec4 ray2) {
   vec4 m = vec4(0);
-  m.rgb = (ray1.rgb+ray2.rgb)/2;
+  m.rgb = ray1.rgb+ray2.rgb;
   m.a = max(ray1.a, ray2.a);
   return m;
 }

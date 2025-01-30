@@ -5,26 +5,32 @@
 
 ;; initial pass
 
-(defclass cascade-light-shader (normals-cam-shader) ())
+(defclass cascade-light-shader (normals-cam-shader)
+  ((shadow-map)))
 
 (defmethod reload ((s cascade-light-shader))
   (shader-reload-files
    (s (#p"draw.vs" #p"draw.fs") :folder (shader-subfolder #p"cascade/")) shader
-   (gl:uniformi (gficl:shader-loc shader "tex") 0)))
+   (gl:uniformi (gficl:shader-loc shader "tex") 0)
+   (gl:uniformi (gficl:shader-loc shader "shadow_map") 1)))
 
 (defmethod draw ((obj cascade-light-shader) scene)
+   (gl:active-texture :texture1)
+   (gl:bind-texture :texture-2d (slot-value obj 'shadow-map))
    (gl:active-texture :texture0)
    (call-next-method))
 
 (defmethod shader-scene-props ((obj cascade-light-shader) (scene scene-3d))
   (call-next-method)
   (with-slots ((it-view inverse-transpose-view-mat) (view view-mat)
-	       (proj projection-mat))
+	       (proj projection-mat)
+	       light-vp)
       scene
     (with-slots (shader) obj
       (gficl:bind-matrix shader "it_view" it-view)
       (gficl:bind-matrix shader "view" view)
-      (gficl:bind-matrix shader "proj" proj))))
+      (gficl:bind-matrix shader "proj" proj)
+      (gficl:bind-matrix shader "light_vp" light-vp))))
 
 (defmethod shader-mesh-props ((obj cascade-light-shader) props)
   (with-slots (shader) obj
@@ -285,30 +291,39 @@
 (defun make-cascade-2d-pipeline ()
   (let* ((props (make-instance 'cascade-properties))
 	 (params (make-instance 'cascade-params))
+	 (shadow-pass (make-vsm-pass))
 	 (cascade-shader (make-instance 'cascade2d-compute-shader
 					:cascade-props props :cascade-params params)))
+    (resize shadow-pass 1024 1024)
     (make-instance
      'cascade-2d-pipeline
-     :passes (list (cons :colour (make-cascade-colour-pass))
-		   (cons :final (make-cascade2d-post-pass props params)))
+     :passes (list
+	      (cons :shadow shadow-pass)
+	      (cons :colour (make-cascade-colour-pass))
+	      (cons :final (make-cascade2d-post-pass props params)))
      :shaders (list (cons :cascade cascade-shader))
      :post-scene
      (make-instance
       'cascade-post-scene
       :interval-buffer (slot-value cascade-shader 'interval-buffer)))))
 
+(defmethod initialize-instance :after ((pl cascade-2d-pipeline) &key &allow-other-keys)
+  (setf (slot-value (car (slot-value (get-pass pl :colour) 'shaders)) 'shadow-map)
+	(get-pass-texture (get-pass pl :shadow))))
+
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (props cascade-properties))
- (update-cascade-obj (get-pass pl :final) props)
- (update-cascade-obj (get-shader pl :cascade) props)
- (setf (slot-value (slot-value pl 'post-scene) 'interval-buffer)
-       (slot-value (get-shader pl :cascade) 'interval-buffer)))
+	   (update-cascade-obj (get-pass pl :final) props)
+	   (update-cascade-obj (get-shader pl :cascade) props)
+	   (setf (slot-value (slot-value pl 'post-scene) 'interval-buffer)
+		 (slot-value (get-shader pl :cascade) 'interval-buffer)))
 
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (params cascade-params))
   (update-cascade-obj (get-pass pl :final) params)
   (update-cascade-obj (get-shader pl :cascade) params))
 
 (defmethod resize ((pl cascade-2d-pipeline) w h)
-  (call-next-method)
+  (resize (get-pass pl :colour) w h)
+  (resize (get-pass pl :final) w h)
   (with-slots ((scene post-scene)) pl
     (resize scene w h)
     (set-post-texs scene (alist-fb-textures pl '(:colour :final)))))
@@ -321,6 +336,7 @@
 
 (defmethod draw ((pl cascade-2d-pipeline) scenes)
   (with-slots (post-scene) pl
+    (draw (get-pass pl :shadow) scenes)
     (draw (get-pass pl :colour) scenes)
     (draw (get-shader pl :cascade) post-scene)
     (draw (get-pass pl :final) post-scene)

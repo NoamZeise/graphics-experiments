@@ -11,14 +11,25 @@ uniform mat4 viewproj;
 uniform mat4 view;
 uniform mat4 proj;
 
+uniform mat4 light_vp;
+
 out vec4 fpos;
 out vec3 fnorm;
 out vec2 fuv;
+out vec4 world_pos;
+out vec3 world_norm;
+out vec4 shadow_pos;
 
 void main() {
   vec4 world = model * vec4(pos, 1);
+  vec3 world_normal = vec3(norm_mat * vec4(normal, 0));
+  
+  world_pos = world;
+  world_norm = world_normal;
+  shadow_pos = light_vp * world;
+
   fpos = viewproj * world;
   fuv = uv;
-  fnorm = vec3(it_view * norm_mat * vec4(normal, 0));
+  fnorm = vec3(it_view * vec4(world_normal, 0));
   gl_Position = fpos;
 }

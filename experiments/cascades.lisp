@@ -1,7 +1,8 @@
 (in-package :experiments)
 
 (defclass cascade-post-scene (post-scene)
-  ((interval-buffer :initarg :interval-buffer :type gficl:storage-buffer)))
+  ((interval-buffer :initarg :interval-buffer :type gficl:storage-buffer)
+   (projection-mat :initform (gficl:make-matrix) :type gficl:matrix)))
 
 ;; initial pass
 
@@ -237,7 +238,7 @@
     (gl:uniformiv (gficl:shader-loc shader "dim") (cascade-prop-vec props))))
 
 (defmethod draw ((shader cascade2d-post-shader) (scene cascade-post-scene))
-  (with-slots ((w width) (h height)) scene
+  (with-slots ((w width) (h height) projection-mat) scene
     (let ((target (get-post-tex scene :final :color-attachment0))
 	  (colour-buff (get-post-tex scene :colour :color-attachment0))
 	  (light-buff (get-post-tex scene  :colour :color-attachment1))
@@ -259,6 +260,7 @@
 	       (s (* samples factor)))	
 	  (gl:uniformi (gficl:shader-loc (slot-value shader 'shader) "dim")
 		       w h s levels)))
+      (gficl:bind-matrix (slot-value shader 'shader) "projection" projection-mat)
       (%gl:dispatch-compute w h 1)
       (%gl:memory-barrier '(:shader-image-access-barrier)))))
 
@@ -312,10 +314,10 @@
 	(get-pass-texture (get-pass pl :shadow))))
 
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (props cascade-properties))
-	   (update-cascade-obj (get-pass pl :final) props)
-	   (update-cascade-obj (get-shader pl :cascade) props)
-	   (setf (slot-value (slot-value pl 'post-scene) 'interval-buffer)
-		 (slot-value (get-shader pl :cascade) 'interval-buffer)))
+  (update-cascade-obj (get-pass pl :final) props)
+  (update-cascade-obj (get-shader pl :cascade) props)
+  (setf (slot-value (slot-value pl 'post-scene) 'interval-buffer)
+	(slot-value (get-shader pl :cascade) 'interval-buffer)))
 
 (defmethod update-cascade-obj ((pl cascade-2d-pipeline) (params cascade-params))
   (update-cascade-obj (get-pass pl :final) params)
@@ -338,6 +340,8 @@
   (with-slots (post-scene) pl
     (draw (get-pass pl :shadow) scenes)
     (draw (get-pass pl :colour) scenes)
+    (let ((proj (slot-value (car scenes) 'projection-mat)))
+      (setf (slot-value post-scene 'projection-mat) proj))
     (draw (get-shader pl :cascade) post-scene)
     (draw (get-pass pl :final) post-scene)
     (gficl:blit-framebuffers

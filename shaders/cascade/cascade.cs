@@ -14,6 +14,7 @@ uniform sampler2D normal_buff;
 uniform ivec4 dim;
 uniform int cascade_level;
 uniform int write_other_buff;
+uniform mat4 projection;
 
 struct CascadeParams {
   int steps;
@@ -25,10 +26,12 @@ uniform CascadeParams params;
 const float PI = 3.14159;
 
 vec4 sample_tex(vec3 pos, sampler2D tex) {
-    vec2 uv = vec2(pos.x, pos.y);
-    uv += vec2(1);
-    uv /= 2;
-    return texture(tex, uv);
+  vec4 ndc = projection * vec4(pos, 1);
+  ndc /= ndc.w;
+  ndc += vec4(1);
+  ndc /= 2;
+  vec2 uv = vec2(ndc.x, ndc.y);
+  return texture(tex, uv);
 }
 
 vec2 id_to_uv(uvec2 id, uvec2 sz) {
@@ -74,22 +77,23 @@ vec3 ray_dir(uint id) {
   return dir;
 }
 
-vec4 trace(vec3 pos, vec3 dir) {  
+vec4 trace(vec3 pos, vec3 dir) {
+  return vec4(pos, 1);
     int factor = int(exp2(cascade_level));
     float sz = params.steps * params.step_size * factor;
     int steps = params.steps * factor;
     float step_size = params.step_size;// * factor;
     float offset = sz - (params.step_size * params.steps)
       * (cascade_level < 1 ? 1 : cascade_level);
-
-    vec3 normal = sample_tex(pos, normal_buff).xyz;
-    vec3 start = sample_tex(pos, depth_buff).xyz + vec3(0, 0, -0.01);
-    start += dir * offset;
+    
     pos += dir * offset;
+    vec3 start = pos + vec3(0, 0, -0.01);
+    
     vec4 ray_col = vec4(0);
     ray_col.a = -1;
     vec4 prev_col = vec4(-1);
     float angle_interval = -1;
+    
     for(int i = 0; i < steps; i++) {
 	vec3 frag_pos = sample_tex(pos, depth_buff).xyz;	
 	vec3 start_to_pos = normalize(frag_pos - start);
@@ -141,11 +145,9 @@ vec4 avg_prev_cascade(vec4 ray1, vec4 ray2) {
 
 vec4 cascade_ray(uvec3 id) {
   uvec3 cd = gl_NumWorkGroups.xyz;
-  
-  vec3 probe_pos = id_to_pos(id.xy, cd.xy);
 
   vec3 dir = ray_dir(id.z);
-
+  vec3 probe_pos = id_to_pos(id.xy, cd.xy);
   vec4 ray_hit = trace(probe_pos, dir);
 
   if(cascade_level < dim.w - 1) {
@@ -163,9 +165,7 @@ vec4 cascade_ray(uvec3 id) {
     vec2 cascade_space = vec2(pndc.x * pcd.x,// + 1/(pcd.x*2.0),
 			      pndc.y * pcd.y);// + 1/(pcd.y*2.0));
     vec2 frac = vec2(fract(cascade_space.x),
-		     fract(cascade_space.y));    
-
-    float angle_interval = ray_hit.a;
+		     fract(cascade_space.y));
     
     vec4 int1 = interpolate_ray(pcd,
 				left, right, up, down, pid.z,
@@ -177,7 +177,8 @@ vec4 cascade_ray(uvec3 id) {
                                 frac);
 
     vec4 merged_cascade = avg_prev_cascade(int1, int2);
-
+    
+    float angle_interval = ray_hit.a;
     if(params.merge_rays != 0 && merged_cascade.a > angle_interval) {
       float diff = (merged_cascade.a - angle_interval)/2;
       ray_hit.rgb += merged_cascade.rgb*diff;
@@ -193,7 +194,7 @@ vec4 avg_dirs(uvec3 id) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray * ((ray.a+1)/2);
   }
-  return total;// / dim.z;
+  return total/ dim.z;
 }
 
 void main() {

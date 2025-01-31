@@ -28,8 +28,8 @@ void main() {
   world_norm = world_normal;
   shadow_pos = light_vp * world;
 
-  fpos = viewproj * world;
+  fpos = view * world;
   fuv = uv;
   fnorm = vec3(it_view * vec4(world_normal, 0));
-  gl_Position = fpos;
+  gl_Position = proj * fpos;
 }

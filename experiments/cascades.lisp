@@ -83,7 +83,7 @@
 
 (defclass cascade-params ()
   ((steps :initarg :steps :initform 5 :type integer)
-   (step-size :initarg :step-size :initform 0.003 :type float)
+   (step-size :initarg :step-size :initform 0.05 :type float)
    (merge-rays :initarg :merge :initform t :type boolean)
    (stop-at-level :initarg :stop-at :initform 0 :type integer)
    (debug-view :initarg :debug-view :initform nil :type boolean)))

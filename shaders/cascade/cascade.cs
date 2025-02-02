@@ -85,23 +85,19 @@ vec3 ray_dir(uint id) {
 }
 
 vec4 trace(vec3 pos, vec3 dir) {
-  //return vec4(pos, 1);
-  //return sample_tex(pos, depth_buff);
     int factor = int(exp2(cascade_level));
-    float sz = params.steps * params.step_size * factor;
+    float sz = (cascade_level < 1 ? 1 : 0.5) * params.steps * params.step_size * factor;
     int steps = params.steps * factor;
-    float step_size = params.step_size;// * factor;
-    float offset = sz - (params.step_size * params.steps// * (factor - 1));
+    float step_size = params.step_size;
+    float offset = sz - (params.step_size * params.steps
 			 * (cascade_level < 1 ? 1 : cascade_level));
 
     float range = offset + sz;
 
     vec3 start = pos + vec3(0, 0, -0.01);
-    //pos += dir * offset;   
+    vec3 probe_normal = normalize(texture(normal_buff, pos_to_uv(pos)).xyz);
     
     vec4 ray_col = vec4(0);
-    ray_col.a = 0;
-    vec4 prev_col = vec4(0);
     float angle_interval = 0;
     vec3 cam = normalize(-start.xyz);
     
@@ -109,33 +105,25 @@ vec4 trace(vec3 pos, vec3 dir) {
       	vec2 uv = pos_to_uv(pos);
 	vec4 frag_pos = texture(depth_buff, uv);
 	vec3 start_to_pos = frag_pos.xyz - start;
-	float dist = length(start_to_pos);	
+	float dist = length(start_to_pos);
 	start_to_pos /= dist;
-	float angle = 1 - acos(dot(start_to_pos, cam))/PI; //towrds cam
-	// equiv :
-	//float angle = start_to_pos.z*-1;	
+	float angle = 1 - acos(dot(start_to_pos, probe_normal))/PI;
 	if(dist > offset && dist < range &&
 	   angle > angle_interval
 	   && frag_pos.a != 0
 	   && uv_in_range(uv)) {
 	  float angle_diff = angle - angle_interval;
 	  vec4 sample_colour = texture(light_buff, uv);
-	  /*if(prev_col.r == -1)	   
-	    ray_col += sample_colour*angle_diff;
-	  else
-	  ray_col += (sample_colour + prev_col)*0.5*angle_diff;*/
-	  ray_col += sample_colour
-	    *angle_diff;//pow(angle_diff, 0.3);
-	  //ray_col += vec4(0.1);
-	  //if(ray_col.r < angle_diff)
-	  //  ray_col = vec4(angle_diff);
-	  prev_col = sample_colour;
+	  ray_col.xyz += sample_colour.xyz*angle_diff;
 	  angle_interval = angle;
 	  ray_col.a = angle;
 	}
 	pos += dir * step_size;
     }
     
+    ray_col.r = pow(ray_col.r, 0.01)*(cascade_level+1);
+    ray_col.g = pow(ray_col.g, 0.01)*(cascade_level+1);
+    ray_col.b = pow(ray_col.b, 0.01)*(cascade_level+1);
     return ray_col;
 }
 
@@ -206,7 +194,7 @@ vec4 cascade_ray(uvec3 id) {
     if(params.merge_rays != 0 && merged_cascade.a > angle_interval) {
       float diff = merged_cascade.a - angle_interval;
       float ratio = 1 - (angle_interval / merged_cascade.a);
-      ray_hit.rgb += merged_cascade.rgb*ratio;//*(cascade_level + 1);
+      ray_hit.rgb += merged_cascade.rgb*pow(ratio, 0.5)*(cascade_level+1);
       ray_hit.a = merged_cascade.a;
     }
   }
@@ -219,7 +207,7 @@ vec4 avg_dirs(uvec3 id) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray * ray.a;
   }
-  return total /dim.z;
+  return total / dim.z;
 }
 
 void main() {

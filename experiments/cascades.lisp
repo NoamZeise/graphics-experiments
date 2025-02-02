@@ -85,7 +85,8 @@
   ((steps :initarg :steps :initform 5 :type integer)
    (step-size :initarg :step-size :initform 0.003 :type float)
    (merge-rays :initarg :merge :initform t :type boolean)
-   (stop-at-level :initarg :stop-at :initform 0 :type integer)))
+   (stop-at-level :initarg :stop-at :initform 0 :type integer)
+   (debug-view :initarg :debug-view :initform nil :type boolean)))
 
 (defun set-params-in-shader (shader params)
   (with-slots (steps step-size merge-rays) params
@@ -169,6 +170,8 @@
 	    (gl:active-texture :texture1) (gl:bind-texture :texture-2d light-buff)
 	    (gl:active-texture :texture2) (gl:bind-texture :texture-2d depth-buff)
 	    (gl:active-texture :texture3) (gl:bind-texture :texture-2d normal-buff)
+	    (with-slots (projection-mat) scene
+	      (gficl:bind-matrix (slot-value shader 'shader) "projection" projection-mat))
 	    (gl:uniformi (gficl:shader-loc shader-obj "dim") w h s levels)
 	    (loop for level from (- levels 1) downto stop-at-level
 		  for write-other = (mod (+ level 1 (mod stop-at-level 2)) 2)
@@ -202,22 +205,26 @@
     (gficl:bind-gl shader)
     (gl:uniformiv (gficl:shader-loc shader "dim") (cascade-prop-vec props))))
 
-(defmethod draw ((obj cascade2d-debug-shader) (scene cascade-post-scene))
-  (gl:active-texture :texture0)
-  (gl:bind-texture :texture-2d (get-post-tex scene :colour :color-attachment2))
+(defmethod draw ((obj cascade2d-debug-shader) (scene cascade-post-scene))  
   (with-slots (width height samples levels) (slot-value obj 'cascade-props)
-    (with-slots (stop-at-level) (slot-value obj 'cascade-params)
-      (let* ((level stop-at-level)
-	     (factor (expt 2 level))
-	     (w (/ width factor))
-	     (h (/ height factor))
-	     (s (* samples factor)))
-	(gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "dim") w h s levels)
-	(gficl:bind-storage-buffer (slot-value scene 'interval-buffer) 0)
-	(gficl:draw-vertex-data
-	 (get-asset 'cube)
-	 :instances
-	 (* w h))))))
+    (with-slots (stop-at-level debug-view) (slot-value obj 'cascade-params)
+      (with-slots (projection-mat) scene
+	(gficl:bind-matrix (slot-value obj 'shader) "projection" projection-mat))
+      (cond
+       (debug-view
+	(gl:active-texture :texture0)
+	(gl:bind-texture :texture-2d (get-post-tex scene :colour :color-attachment2))
+	(let* ((level stop-at-level)
+	       (factor (expt 2 level))
+	       (w (/ width factor))
+	       (h (/ height factor))
+	       (s (* samples factor)))
+	  (gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "dim") w h s levels)
+	  (gficl:bind-storage-buffer (slot-value scene 'interval-buffer) 0)
+	  (gficl:draw-vertex-data
+	   (get-asset 'cube)
+	   :instances
+	   (* w h))))))))
 
 ;; post shader cascade2d
 
@@ -270,8 +277,8 @@
   (make-instance
    'cascade2d-post-pass
    :shaders (list (make-instance 'cascade2d-post-shader :cascade-props cascade-props :cascade-params cascade-params)
-		  ;(make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
-)
+		  (make-instance 'cascade2d-debug-shader :cascade-props cascade-props :cascade-params cascade-params)
+		  )
    :description
    (make-framebuffer-description
     (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))

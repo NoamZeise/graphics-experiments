@@ -56,7 +56,7 @@
    (list
     (make-object (get-asset 'bunny) (object-matrix '(-0.5 0 -0.5) '(1 1 1))
 		 :colour (gficl:make-vec '(0.2 0.8 0 1)))
-    (make-object (get-asset 'plane) (object-matrix '(0 -0.38 0) '(3 1 3))
+    (make-object (get-asset 'plane) (object-matrix '(0 -0.38 0) '(6 1 6))
 		 :colour (gficl:make-vec '(0.7 0 0 1)))
     (make-object (get-asset 'cube) (object-matrix '(-1 -0.28 -1) '(0.1 0.1 0.1)) :light t)
     (make-object (get-asset 'cube) (object-matrix '(-1.1 0 -1.5) '(0.8 0.6 0.02)))

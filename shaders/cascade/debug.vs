@@ -3,7 +3,7 @@
 layout (location = 0) in vec3 pos;
 
 uniform ivec4 dim;
-
+uniform mat4 projection;
 uniform sampler2D depth_buff;
 
 layout(std430, binding = 0) buffer Radiance_Intervals {
@@ -30,7 +30,8 @@ void main() {
 		    ids.y / float(dim.y) + 1/float(dim.y*2),
 		    0,
 		    1);
-  vec3 buff_pos = texture(depth_buff, sspos.xy).xyz;
+  vec4 buff_pos = projection *texture(depth_buff, sspos.xy);
+  buff_pos /= buff_pos.w;
   sspos *= 2;
   sspos -= vec4(1);
   sspos.z = buff_pos.z;

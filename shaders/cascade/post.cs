@@ -43,6 +43,11 @@ vec4 mixIntervals(vec4 int1, vec4 int2, float t) {
   return mix(int1, int2, t);
 }
 
+float d2(vec3 p1, vec3 p2) {
+  vec3 diff = p1 - p2;
+  return dot(diff, diff);
+}
+
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 pixel_pos = vec2(float(coord.x)/float(gl_NumWorkGroups.x),
@@ -71,6 +76,28 @@ void main() {
     vec3 l = project_to_line(ld, lu, fpos.xyz);
     vec3 r = project_to_line(rd, ru, fpos.xyz);
     vec3 mid = project_to_line(l, r, fpos.xyz);
+
+    /*float ld_dist = d2(ld, fpos.xyz);
+    float lu_dist = d2(lu, fpos.xyz);
+    float rd_dist = d2(rd, fpos.xyz);
+    float ru_dist = d2(ru, fpos.xyz);
+    float total = ld_dist +
+      lu_dist +
+      rd_dist +
+      ru_dist;
+    ld_dist = 1 - (ld_dist / 3*total);
+    lu_dist = 1 - (lu_dist / 3*total);
+    rd_dist = 1 - (rd_dist / 3*total);
+    ru_dist = 1 - (ru_dist / 3*total);
+      
+    vec4 final_sample =
+      getInterval(left, down) * ld_dist +
+      getInterval(left, up) * lu_dist +
+      getInterval(right, down) * rd_dist +
+      getInterval(right, up) * ru_dist;*/
+      
+    
+    
     //float du_frac = project_to_fract(ld, lu, mid);
     //float lr_frac = project_to_fract(ld, rd, mid);
     
@@ -81,6 +108,8 @@ void main() {
     //float r = clamp(project_to_fract(rd, ru, fpos.xyz), 0, 1);
     //float u = clamp(project_to_fract(lu, ru, fpos.xyz), 0, 1);
     //float d = clamp(project_to_fract(ld, rd, fpos.xyz), 0, 1);
+
+    //cascade_fract = vec2(1, 1);
     
     vec4 l_sample = mixIntervals(
 	getInterval(left, down),
@@ -98,17 +127,18 @@ void main() {
 	cascade_fract.x);
 
     //  if(fpos.z == 1)
-    //  final_sample = vec4(1);
+    //  final_sample = vec4(1);o
     
     vec4 frag_col = texture(colour_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    vec4 col = final_sample;// * frag_col;
+    vec4 col = final_sample;
+    col += frag_col*0.5;
     //vec4 col = final_sample;
     //col = (vec4(1) + texture(normal_buff, uv))/2;
     //col = vec4(texture(depth_buff, uv).xyz, 1);
     //col = texture(depth_buff, uv) - col + vec4(0.5);
     //col = vec4(cascade_fract.x, cascade_fract.y, 0, 1);
-    col = vec4(mid, 1);
+    //col = vec4(mid, 1);
     /*col = vec4(
 	       mid.xyz//project_to_line(ru, lu, fpos.xyz)
 	       - texture(depth_buff, uv).xyz, 1)*3;

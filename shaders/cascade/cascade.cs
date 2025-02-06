@@ -94,36 +94,61 @@ vec4 trace(vec3 pos, vec3 dir) {
 
     float range = offset + sz;
 
-    vec3 start = pos + vec3(0, 0, -0.01);
-    vec3 probe_normal = normalize(texture(normal_buff, pos_to_uv(pos)).xyz);
-    
-    vec4 ray_col = vec4(0);
-    float angle_interval = 0;
+    vec3 start = pos;// + vec3(0, 0, -0.01);
+    vec2 probe_uv = pos_to_uv(pos);
+    vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
     vec3 cam = normalize(-start.xyz);
+    float ndv = dot(probe_normal, cam);
+
+    // begin with emitted light
+    vec4 ray_col = texture(light_buff, probe_uv);
+    float prev_cos2 = 0; // = cos(PI/2)^2
+    float max_pdv = -1;
     
     for(int i = 0; i < steps; i++) {
       	vec2 uv = pos_to_uv(pos);
 	vec4 frag_pos = texture(depth_buff, uv);
+
+	bool infront = frag_pos.z < start.z;
+	float thickness = 0.6;
+	
 	vec3 start_to_pos = frag_pos.xyz - start;
 	float dist = length(start_to_pos);
 	start_to_pos /= dist;
-	float angle = 1 - acos(dot(start_to_pos, probe_normal))/PI;
-	if(dist > offset && dist < range &&
-	   angle > angle_interval
-	   && frag_pos.a != 0
-	   && uv_in_range(uv)) {
-	  float angle_diff = angle - angle_interval;
-	  vec4 sample_colour = texture(light_buff, uv);
-	  ray_col.xyz += sample_colour.xyz*angle_diff;
-	  angle_interval = angle;
-	  ray_col.a = angle;
+
+	float pdv = dot(start_to_pos, cam);
+	if(pdv > ndv) {
+	  // above normal
+	  // TODO: handle this case
+	  //continue;
+	}
+	if(pdv > max_pdv) {
+	   max_pdv = pdv;
+	}
+	
+	float cos_a2 = dot(start_to_pos, probe_normal);
+	cos_a2 *= cos_a2;
+
+	bool inrange = dist > offset && dist < range;
+	if(inrange &&
+	   cos_a2 > prev_cos2 &&
+	   frag_pos.a != 0 &&
+	   uv_in_range(uv)) {
+
+	  float d_phi = (2*PI) / dim.z;
+	  float d_theta = cos_a2 - prev_cos2;
+	  float brdf = 2*PI;
+	  vec4 incoming_radiance = texture(light_buff, uv);
+	  ray_col += (1.0/2) * d_phi * d_theta * brdf * incoming_radiance;
+	  prev_cos2 = cos_a2;
 	}
 	pos += dir * step_size;
     }
+    ray_col.a = max_pdv;
     
-    ray_col.r = pow(ray_col.r, 0.01)*(cascade_level+1);
-    ray_col.g = pow(ray_col.g, 0.01)*(cascade_level+1);
-    ray_col.b = pow(ray_col.b, 0.01)*(cascade_level+1);
+    //ray_col.r = pow(ray_col.r, 0.01)*(cascade_level+1);
+    //ray_col.g = pow(ray_col.g, 0.01)*(cascade_level+1);
+    // ray_col.b = pow(ray_col.b, 0.01)*(cascade_level+1);
     return ray_col;
 }
 
@@ -205,9 +230,9 @@ vec4 avg_dirs(uvec3 id) {
   vec4 total = vec4(0);
   for(uint i = 0; i < dim.z; i++) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
-    total += ray * ray.a;
+    total += ray;
   }
-  return total / dim.z;
+  return total;
 }
 
 void main() {

@@ -18,7 +18,7 @@ uniform mat4 projection;
 vec4 getInterval(int x, int y) {
     vec4 iv =  interval[y * dim.x * dim.z
 			+ x * dim.z];
-    if(iv.a > 0) iv.a = 1;
+    if(iv.a >= 0) iv.a = 1;
     return iv;
 }
 

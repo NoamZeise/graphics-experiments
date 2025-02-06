@@ -96,18 +96,20 @@ vec4 trace(vec3 pos, vec3 dir) {
     
     float range = offset + sz;
 
-    vec3 start = pos;// + vec3(0, 0, -0.01);
+    vec3 start = pos;// + vec3(0, 0, -0.01)*factor;
     vec2 probe_uv = pos_to_uv(pos);
     vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
     vec3 cam = normalize(-start.xyz);
-    float ndv = dot(probe_normal, cam);
+
+    vec3 ncd = normalize(cross(probe_normal, dir));
+    vec3 proj_dir = normalize(cross(ncd, probe_normal));
     
     // begin with emitted light for cascade 0
     vec4 ray_col =
 	cascade_level == 0 ? texture(light_buff, probe_uv)
 	: vec4(0);
     float prev_cos2 = 0; // = cos(PI/2)^2
-    float max_pdv = -1;
+    float prev_pdd = -1;
     
     for(int i = 0; i < steps; i++) {
       	vec2 uv = pos_to_uv(pos);
@@ -126,15 +128,9 @@ vec4 trace(vec3 pos, vec3 dir) {
 			      - start);
 	}
 
-	float pdv = dot(start_to_pos, cam);
-	if(pdv > ndv) {
-	  // above normal
-	  // TODO: handle this case
-	  //continue;
-	}
-	if(pdv > max_pdv) {
-	   max_pdv = pdv;
-	}
+	float pdd = dot(start_to_pos, proj_dir);
+	bool above_normal = pdd < 0;
+	bool swapped_normal_sides = above_normal && prev_pdd >= 0;
 	
 	float cos_a2 = dot(start_to_pos, probe_normal);
 	cos_a2 *= cos_a2;
@@ -142,23 +138,31 @@ vec4 trace(vec3 pos, vec3 dir) {
 	bool inrange =
 	    (dist > offset && dist < range) ||
 	    (min_dist > offset && min_dist < range) ||
-	    (min_dist < offset && dist > range);
+	    (min_dist <= offset && dist >= range);
 	if(inrange &&
 	   cos_a2 > prev_cos2 &&
 	   frag_pos.a != 0 &&
 	   uv_in_range(uv)) {
 
-	  float d_phi = (2*PI) / dim.z;
-	  float d_theta = cos_a2 - prev_cos2;
+	  float d_phi = (2*PI) / dim.z;	  
+	  float d_theta;
+	  if(!above_normal)
+	      d_theta = cos_a2 - prev_cos2;
+	  else if(!swapped_normal_sides)
+	      d_theta = prev_cos2 - cos_a2;
+	  else // 1 = cos(1)^2
+	      d_theta = 1 - prev_cos2
+		  + 1 - cos_a2;
 	  float brdf = 2*PI;
 	  vec4 incoming_radiance = texture(light_buff, uv);
 	  ray_col += (1.0/2) * d_phi * d_theta
 	      * brdf * incoming_radiance;
 	  prev_cos2 = cos_a2;
+	  prev_pdd = pdd;
 	}
 	pos += dir * step_size;
     }
-    ray_col.a = max_pdv;
+    //ray_col.a = max_pdv;
     
     return ray_col;
 }

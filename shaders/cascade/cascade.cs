@@ -17,8 +17,9 @@ uniform int write_other_buff;
 uniform mat4 projection;
 
 struct CascadeParams {
-  int steps;
   float step_size;
+  float thickness;
+  int steps;
   int merge_rays;
 };
 uniform CascadeParams params;
@@ -86,12 +87,13 @@ vec3 ray_dir(uint id) {
 
 vec4 trace(vec3 pos, vec3 dir) {
     int factor = int(exp2(cascade_level));
-    float sz = (cascade_level < 1 ? 1 : 0.5) * params.steps * params.step_size * factor;
+    float sz = (cascade_level < 1 ? 1 : 0.5) *
+	params.steps * params.step_size * factor;
     int steps = params.steps * factor;
     float step_size = params.step_size;
     float offset = sz - (params.step_size * params.steps
 			 * (cascade_level < 1 ? 1 : cascade_level));
-
+    
     float range = offset + sz;
 
     vec3 start = pos;// + vec3(0, 0, -0.01);
@@ -99,22 +101,30 @@ vec4 trace(vec3 pos, vec3 dir) {
     vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
     vec3 cam = normalize(-start.xyz);
     float ndv = dot(probe_normal, cam);
-
-    // begin with emitted light
-    vec4 ray_col = texture(light_buff, probe_uv);
+    
+    // begin with emitted light for cascade 0
+    vec4 ray_col =
+	cascade_level == 0 ? texture(light_buff, probe_uv)
+	: vec4(0);
     float prev_cos2 = 0; // = cos(PI/2)^2
     float max_pdv = -1;
     
     for(int i = 0; i < steps; i++) {
       	vec2 uv = pos_to_uv(pos);
 	vec4 frag_pos = texture(depth_buff, uv);
-
-	bool infront = frag_pos.z < start.z;
-	float thickness = 0.6;
 	
+	float zdiff = start.z - frag_pos.z;
 	vec3 start_to_pos = frag_pos.xyz - start;
 	float dist = length(start_to_pos);
 	start_to_pos /= dist;
+	float min_dist = dist;
+
+	if(zdiff > 0) { // sample frag infront of start
+	    float max_thickness = params.thickness * factor;
+	    float thickness = min(max_thickness, zdiff);
+	    min_dist = length((frag_pos.xyz + vec3(0, 0, thickness))
+			      - start);
+	}
 
 	float pdv = dot(start_to_pos, cam);
 	if(pdv > ndv) {
@@ -129,7 +139,10 @@ vec4 trace(vec3 pos, vec3 dir) {
 	float cos_a2 = dot(start_to_pos, probe_normal);
 	cos_a2 *= cos_a2;
 
-	bool inrange = dist > offset && dist < range;
+	bool inrange =
+	    (dist > offset && dist < range) ||
+	    (min_dist > offset && min_dist < range) ||
+	    (min_dist < offset && dist > range);
 	if(inrange &&
 	   cos_a2 > prev_cos2 &&
 	   frag_pos.a != 0 &&
@@ -139,16 +152,14 @@ vec4 trace(vec3 pos, vec3 dir) {
 	  float d_theta = cos_a2 - prev_cos2;
 	  float brdf = 2*PI;
 	  vec4 incoming_radiance = texture(light_buff, uv);
-	  ray_col += (1.0/2) * d_phi * d_theta * brdf * incoming_radiance;
+	  ray_col += (1.0/2) * d_phi * d_theta
+	      * brdf * incoming_radiance;
 	  prev_cos2 = cos_a2;
 	}
 	pos += dir * step_size;
     }
     ray_col.a = max_pdv;
     
-    //ray_col.r = pow(ray_col.r, 0.01)*(cascade_level+1);
-    //ray_col.g = pow(ray_col.g, 0.01)*(cascade_level+1);
-    // ray_col.b = pow(ray_col.b, 0.01)*(cascade_level+1);
     return ray_col;
 }
 

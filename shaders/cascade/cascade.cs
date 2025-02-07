@@ -87,7 +87,7 @@ vec3 ray_dir(uint id) {
 
 vec4 trace(vec3 pos, vec3 dir) {
     int factor = int(exp2(cascade_level));
-    float sz = (cascade_level < 1 ? 1 : 0.5) *
+    float sz = //(cascade_level < 1 ? 1 : 0.5) *
 	params.steps * params.step_size * factor;
     int steps = params.steps * factor;
     float step_size = params.step_size;
@@ -96,55 +96,52 @@ vec4 trace(vec3 pos, vec3 dir) {
     
     float range = offset + sz;
 
-    vec3 start = pos;// + vec3(0, 0, -0.01)*factor;
-    vec2 probe_uv = pos_to_uv(pos);
+    vec3 probe_pos = pos;// + vec3(0, 0, -0.01)*factor;
+    vec2 probe_uv = pos_to_uv(probe_pos);
     vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
-    vec3 cam = normalize(-start.xyz);
 
     vec3 ncd = normalize(cross(probe_normal, dir));
-    vec3 proj_dir = normalize(cross(ncd, probe_normal));
+    vec3 surface_dir = normalize(cross(probe_normal, ncd));
     
-    // begin with emitted light for cascade 0
-    vec4 ray_col =
-	cascade_level == 0 ? texture(light_buff, probe_uv)
-	: vec4(0);
-    float prev_cos2 = 0; // = cos(PI/2)^2
-    float prev_pdd = -1;
+    vec4 ray_col = vec4(0);
+    float prev_cos2 = 0;// = cos(PI/2)^2
+    float prev_pdd = 1;
     
-    for(int i = 0; i < steps; i++) {
-      	vec2 uv = pos_to_uv(pos);
-	vec4 frag_pos = texture(depth_buff, uv);
+    for(int i = 0; i < steps; i++){
+      	vec2 sample_uv = pos_to_uv(pos);
+	vec4 sample_pos = texture(depth_buff, sample_uv);
 	
-	float zdiff = start.z - frag_pos.z;
-	vec3 start_to_pos = frag_pos.xyz - start;
-	float dist = length(start_to_pos);
-	start_to_pos /= dist;
-	float min_dist = dist;
+	float zdiff = probe_pos.z - sample_pos.z;
+	vec3 probe_to_sample = sample_pos.xyz - probe_pos;
+	float sample_dist = length(probe_to_sample);
+	probe_to_sample /= sample_dist;
+	float min_dist = sample_dist;
 
-	if(zdiff > 0) { // sample frag infront of start
+	if(zdiff > 0) { // if sample infront of probe
 	    float max_thickness = params.thickness * factor;
 	    float thickness = min(max_thickness, zdiff);
-	    min_dist = length((frag_pos.xyz + vec3(0, 0, thickness))
-			      - start);
+	    min_dist = length(sample_pos.xyz + vec3(0, 0, thickness)
+			      - probe_pos);
 	}
 
-	float pdd = dot(start_to_pos, proj_dir);
+	float pdd = dot(probe_to_sample, surface_dir);
 	bool above_normal = pdd < 0;
 	bool swapped_normal_sides = above_normal && prev_pdd >= 0;
 	
-	float cos_a2 = dot(start_to_pos, probe_normal);
+	float cos_a2 = dot(probe_to_sample, probe_normal);
+	bool visible = cos_a2 > 0;
 	cos_a2 *= cos_a2;
 
 	bool inrange =
-	    (dist > offset && dist < range) ||
-	    (min_dist > offset && min_dist < range) ||
-	    (min_dist <= offset && dist >= range);
-	if(inrange &&
-	   cos_a2 > prev_cos2 &&
-	   frag_pos.a != 0 &&
-	   uv_in_range(uv)) {
+	    (sample_dist > offset && sample_dist < range) ||
+	  (min_dist > offset && min_dist < range) ||
+	  (min_dist <= offset && sample_dist >= range);
+	if(inrange && visible &&
+	   pdd < prev_pdd && 
+	   sample_pos.a != 0 &&
+	   uv_in_range(sample_uv)) {
 
-	  float d_phi = (2*PI) / dim.z;	  
+	  float d_phi = (2*PI) / dim.z;
 	  float d_theta;
 	  if(!above_normal)
 	      d_theta = cos_a2 - prev_cos2;
@@ -152,10 +149,10 @@ vec4 trace(vec3 pos, vec3 dir) {
 	      d_theta = prev_cos2 - cos_a2;
 	  else // 1 = cos(1)^2
 	      d_theta = 1 - prev_cos2
-		  + 1 - cos_a2;
+		+ 1 - cos_a2;
 	  float brdf = 2*PI;
-	  vec4 incoming_radiance = texture(light_buff, uv);
-	  ray_col += (1.0/2) * d_phi * d_theta
+	  vec4 incoming_radiance = texture(light_buff, sample_uv);
+	  ray_col += 0.5 * d_phi * d_theta
 	      * brdf * incoming_radiance;
 	  prev_cos2 = cos_a2;
 	  prev_pdd = pdd;
@@ -255,6 +252,9 @@ void main() {
   if(cascade_level >= 0) {
     write_interval(id.x, id.y, id.z, gl_NumWorkGroups.xyz, cascade_ray(id));
   } else {
-    write_interval(id.x, id.y, id.z, uvec3(dim), avg_dirs(id));
+    vec4 rays = avg_dirs(id);
+    vec2 uv = id_to_uv(id.xy, dim.xy);
+    vec4 emitted = texture(light_buff, uv);
+    write_interval(id.x, id.y, id.z, uvec3(dim), emitted + rays);
   }
 }

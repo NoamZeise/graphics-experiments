@@ -99,13 +99,15 @@ vec4 trace(vec3 pos, vec3 dir) {
     vec3 probe_pos = pos;// + vec3(0, 0, -0.01)*factor;
     vec2 probe_uv = pos_to_uv(probe_pos);
     vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
-
-    vec3 ncd = normalize(cross(probe_normal, dir));
-    vec3 surface_dir = normalize(cross(probe_normal, ncd));
+    
+    vec3 cam = normalize(-pos);
+    float normal_dot_cam = dot(probe_normal, cam);
+    bool normal_between = false;//dot(probe_normal, dir) > 0;
     
     vec4 ray_col = vec4(0);
     float prev_cos2 = 0;// = cos(PI/2)^2
-    float prev_pdd = 1;
+    float prev_pdn = 0;
+    float prev_sample_dot_cam = -1;
     
     for(int i = 0; i < steps; i++){
       	vec2 sample_uv = pos_to_uv(pos);
@@ -122,44 +124,47 @@ vec4 trace(vec3 pos, vec3 dir) {
 	    float thickness = min(max_thickness, zdiff);
 	    min_dist = length(sample_pos.xyz + vec3(0, 0, thickness)
 			      - probe_pos);
-	}
-
-	float pdd = dot(probe_to_sample, surface_dir);
-	bool above_normal = pdd < 0;
-	bool swapped_normal_sides = above_normal && prev_pdd >= 0;
+	}	
 	
 	float cos_a2 = dot(probe_to_sample, probe_normal);
+	float pdn = cos_a2;
 	bool visible = cos_a2 > 0;
 	cos_a2 *= cos_a2;
+
+	float sample_dot_cam = dot(probe_to_sample, cam);
+
+	bool above_normal = normal_between && sample_dot_cam > normal_dot_cam;
+	bool swapped_normal_sides = above_normal && (prev_sample_dot_cam < normal_dot_cam);
 
 	bool inrange =
 	    (sample_dist > offset && sample_dist < range) ||
 	  (min_dist > offset && min_dist < range) ||
 	  (min_dist <= offset && sample_dist >= range);
 	if(inrange && visible &&
-	   pdd < prev_pdd && 
+	   pdn > prev_pdn && 
 	   sample_pos.a != 0 &&
 	   uv_in_range(sample_uv)) {
 
 	  float d_phi = (2*PI) / dim.z;
 	  float d_theta;
 	  if(!above_normal)
-	      d_theta = cos_a2 - prev_cos2;
+	    d_theta = cos_a2 - prev_cos2;
 	  else if(!swapped_normal_sides)
-	      d_theta = prev_cos2 - cos_a2;
+	    d_theta = prev_cos2 - cos_a2;
 	  else // 1 = cos(1)^2
-	      d_theta = 1 - prev_cos2
-		+ 1 - cos_a2;
+	    d_theta = 1 - prev_cos2
+	      + 1 - cos_a2;
 	  float brdf = 2*PI;
 	  vec4 incoming_radiance = texture(light_buff, sample_uv);
 	  ray_col += 0.5 * d_phi * d_theta
 	      * brdf * incoming_radiance;
 	  prev_cos2 = cos_a2;
-	  prev_pdd = pdd;
+	  prev_pdn = pdn;
+	  prev_sample_dot_cam = sample_dot_cam;
 	}
 	pos += dir * step_size;
     }
-    //ray_col.a = max_pdv;
+    //ray_col.a = prev_pdd;
     
     return ray_col;
 }

@@ -48,6 +48,16 @@ float d2(vec3 p1, vec3 p2) {
   return dot(diff, diff);
 }
 
+float light_correction(float v) {
+  return pow(v, 0.5);
+}
+
+vec4 correct_light(vec4 final_sample) {
+  for(int i = 0; i < 3; i++)
+    final_sample[i] = light_correction(final_sample[i]);
+  return final_sample;
+}
+
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 pixel_pos = vec2(float(coord.x)/float(gl_NumWorkGroups.x),
@@ -125,6 +135,8 @@ void main() {
 	l_sample,
 	r_sample,
 	cascade_fract.x);
+
+    final_sample = correct_light(final_sample);
 
     //  if(fpos.z == 1)
     //  final_sample = vec4(1);o

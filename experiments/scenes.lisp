@@ -60,6 +60,7 @@
 		 :colour (gficl:make-vec '(0.7 0 0 1)))
     (make-object (get-asset 'cube) (object-matrix '(-1 -0.28 -1) '(0.1 0.1 0.1)))
     (make-object (get-asset 'cube) (object-matrix '(-1.1 0 -1.5) '(0.8 0.6 0.02)))
+    (make-object (get-asset 'cube) (object-matrix '(1.5 0 -1.5) '(0.8 0.6 0.02)))
     (make-object (get-asset 'cube) (object-matrix '(1.5 -0.28 1.5) '(0.1 0.1 0.1)) :light t))))
 
 (defclass street-scene (camera-scene)

@@ -86,14 +86,18 @@
    (step-size :initarg :step-size :initform 0.05 :type float)
    (merge-rays :initarg :merge :initform t :type boolean)
    (stop-at-level :initarg :stop-at :initform 0 :type integer)
+   (trace-after-level :initarg :trace-after :initform 0 :type integer)
+   (trace-before-level :initarg :trace-before :initform 0 :type integer)
    (thickness :initarg :thickness :initform 0.1 :type float)
    (debug-view :initarg :debug-view :initform nil :type boolean)))
 
 (defun set-params-in-shader (shader params)
-  (with-slots (steps step-size merge-rays thickness) params
+  (with-slots (steps step-size merge-rays thickness trace-after-level trace-before-level) params
     (gl:uniformi (gficl:shader-loc shader "params.steps") steps)
     (gl:uniformf (gficl:shader-loc shader "params.step_size") step-size)
     (gl:uniformi (gficl:shader-loc shader "params.merge_rays") (if merge-rays 1 0))
+    (gl:uniformi (gficl:shader-loc shader "params.trace_after") trace-after-level)
+    (gl:uniformi (gficl:shader-loc shader "params.trace_before") trace-before-level)
     (gl:uniformf (gficl:shader-loc shader "params.thickness") thickness )))
 
 (defclass cascade-obj ()

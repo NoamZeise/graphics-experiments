@@ -156,7 +156,7 @@ vec4 trace(vec3 pos, vec3 dir) {
 	  else // 1 = cos(1)^2
 	    d_theta = 1 - prev_cos2
 	      + 1 - cos_a2;
-	  float brdf = 1.0/PI;
+	  float brdf = 2.0/(PI*PI);
 	  vec4 incoming_radiance = texture(light_buff, sample_uv);
 	  ray_col += 0.5 * d_phi * d_theta
 	      * brdf * incoming_radiance;
@@ -190,7 +190,7 @@ vec4 interpolate_ray(uvec3 pcd,
 
 vec4 avg_prev_cascade(vec4 ray1, vec4 ray2) {
   vec4 m = vec4(0);
-  m.rgb = ray1.rgb+ray2.rgb;
+  m.rgb = (ray1.rgb+ray2.rgb);
   m.a = max(ray1.a, ray2.a);
   return m;
 }
@@ -242,6 +242,8 @@ vec4 cascade_ray(uvec3 id) {
       //float diff = angle_interval - merged_cascade.a;
       //float ratio = 1 - (angle_interval / merged_cascade.a);
       ray_hit.rgb += merged_cascade.rgb;//*diff;//pow(ratio, 0.5)*(cascade_level+1);
+      //ray_hit.rgb += read_interval(right, up, pid.z, pcd).rgb
+      //+ read_interval(right, up, r2, pcd).rgb;
       //ray_hit.a = merged_cascade.a;
     }
   }

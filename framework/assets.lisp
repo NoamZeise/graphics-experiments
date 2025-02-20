@@ -2,7 +2,11 @@
 
 (defun setup-asset-table ()
   (setf *assets* (make-hash-table))
-  (setf *asset-objects* (list)))
+  (setf *asset-objects* (list))
+  (add-asset
+   'dummy-data
+   (gficl:make-vertex-data
+    (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0))))
 
 (defun cleanup-assets ()
   (loop for vd in *asset-objects* do
@@ -20,6 +24,7 @@
   (setf *asset-objects* (cons obj *asset-objects*)))
 
 (defun add-asset (key asset)
+  (format t  "added ~a~%" key)
   (add-asset-object asset)
   (add-to-asset-table key asset))
 

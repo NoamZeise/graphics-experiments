@@ -24,4 +24,5 @@
 			  (:file "halftone")
 			  (:file "pbr")
 			  (:file "lit-sphere")
-			  (:file "cascades")))))
+			  (:file "cascades")
+			  (:file "ssao")))))

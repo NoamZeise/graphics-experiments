@@ -24,9 +24,6 @@
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
   ;;(load-model+texs 'street #p"street/street.obj")
-  (add-asset  'dummy-data
-	      (gficl:make-vertex-data
-	       (gficl:make-vertex-form (list (gficl:make-vertex-slot 1 :int))) '(((0))) '(0 0 0)))
   ;;(load-image 'test #p"assets/test.png")
   ;;(load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
@@ -42,6 +39,7 @@
 
 (defun create-pipelines ()
   (setf *pipelines* (list
+		     (cons "ssao" (make-ssao-pipeline))
 		     (cons "cascade2d" (make-cascade-2d-pipeline))
 		     ;;(cons "cascade3d" (make-cascade3d-pipeline))
 		     (cons "pbr" (make-pbr-pipeline))

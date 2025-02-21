@@ -190,7 +190,7 @@ vec4 interpolate_ray(uvec3 pcd,
 
 vec4 avg_prev_cascade(vec4 ray1, vec4 ray2) {
   vec4 m = vec4(0);
-  m.rgb = (ray1.rgb+ray2.rgb);
+  m.rgb = (ray1.rgb+ray2.rgb)/2;
   m.a = max(ray1.a, ray2.a);
   return m;
 }
@@ -203,6 +203,9 @@ vec4 cascade_ray(uvec3 id) {
   vec4 ray_hit =
     probe_pos.a > 0 ? trace(probe_pos.xyz, dir) : vec4(0);
 
+  if(ray_hit.r > 0)
+    ray_hit = vec4(1);
+  
   if(params.trace_after > cascade_level)
     ray_hit = vec4(0, 0, 0, -1);
 

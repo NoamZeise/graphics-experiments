@@ -113,3 +113,7 @@ Uses GFICL/LOAD:COMPUTE-SHADER to load the shader."
   (draw scene shader)
   (gficl:bind-gl (get-asset 'dummy-data))
   (gl:draw-arrays :triangles 0 3))
+
+(defmethod shader-scene-props ((s post-shader) (scene post-scene))
+  (with-slots (transform) scene
+    (gficl:bind-matrix (slot-value s 'shader) "transform" transform)))

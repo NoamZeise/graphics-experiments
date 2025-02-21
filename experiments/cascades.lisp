@@ -259,7 +259,7 @@
 	  (normal-buff (get-post-tex scene  :colour :color-attachment3)))
       (gl:active-texture :texture0)
       (gl:bind-texture :texture-2d target)
-      (gl:bind-image-texture 0 target 0 nil 0 :read-write :rgba32f)      
+      (gl:bind-image-texture 0 target 0 nil 0 :read-write :rgba32f)
       (gficl:bind-storage-buffer (slot-value scene 'interval-buffer) 1)      
       (gl:active-texture :texture1) (gl:bind-texture :texture-2d colour-buff)
       (gl:active-texture :texture2) (gl:bind-texture :texture-2d light-buff)

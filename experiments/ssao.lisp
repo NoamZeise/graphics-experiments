@@ -62,14 +62,15 @@
   ((noise-tex :type gficl:texture)))
 
 (defmethod initialize-instance :after ((s ssao-shader) &key &allow-other-keys)
-  (cffi:with-foreign-pointer (data (* 4 4 2 (cffi:foreign-type-size :float)))
+  (cffi:with-foreign-pointer (data (* 16 2 (cffi:foreign-type-size :float)))
     (loop for i from 0 to 15 do
 	  (let ((v (gficl:make-vec
 		    (list (- (random 2.0) 1) (- (random 2.0) 1)))))
 	    (setf v (gficl:normalise v))
 	    (loop for j from 0 to 1 do
-		  (setf (cffi:mem-aref data :float (+ j (* i 3)))
-			(gficl:vec-ref v j)))))
+		  (setf (cffi:mem-aref data :float (+ j (* i 2)))
+			(gficl:vec-ref v j)))
+	    ))
     (setf
      (slot-value
       s 'noise-tex)

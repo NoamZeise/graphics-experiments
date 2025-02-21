@@ -39,5 +39,4 @@ void main() {
   }
   occlusion = 1.0 - (occlusion / KERNEL_SIZE);
   colour = vec4(vec3(occlusion), 1);
-  //colour = texture(bposition, uv);
 }

@@ -15,7 +15,7 @@ uniform vec3 light_dir;
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2(float(coord.x + 0.5)/float(gl_NumWorkGroups.x),
-		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));    
+		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));
 
     vec3 pos = texture(bposition, uv).xyz;
     vec3 norm = texture(bnormal, uv).xyz;
@@ -26,7 +26,8 @@ void main() {
     vec3 lighting = ambient;
     vec3 view = normalize(-pos);
 
-    vec3 diffuse = vec3(max(dot(norm, light_dir), 0.0));
+    vec3 diffuse = max(dot(norm, light_dir), 0.0)
+	* col;
     vec3 halfvec = normalize(light_dir + view);
     vec3 spec = vec3(0.7*pow(max(dot(norm, halfvec), 0.0), 8.0));
 

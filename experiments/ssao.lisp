@@ -85,12 +85,12 @@
   (call-next-method))
 
 (defmethod reload ((s ssao-shader))
-  (shader-reload-files
-   (s (#p"post.vs" #p"ssao/ssao.fs"))
+  (compute-shader-reload-files
+   (s #p"ssao/ssao.cs")
    shader
-   (gl:uniformi (gficl:shader-loc shader "bposition") 0)
-   (gl:uniformi (gficl:shader-loc shader "bnormal") 1)
-   (gl:uniformi (gficl:shader-loc shader "bnoise") 2)
+   (gl:uniformi (gficl:shader-loc shader "bposition") 1)
+   (gl:uniformi (gficl:shader-loc shader "bnormal") 2)
+   (gl:uniformi (gficl:shader-loc shader "bnoise") 3)
    (gl:uniformf (gficl:shader-loc shader "radius") 0.5)
    (let ((kernel-size 64))
      (loop for i from 0 to (- kernel-size 1) do
@@ -106,21 +106,26 @@
 		    (concatenate 'string "samples[" (format nil "~a" i) "]")
 		    v)))))))
 
-(defmethod shader-scene-props ((s ssao-shader) (scene ssao-post-scene))
-  (call-next-method)
-  (with-slots (shader) s    
+(defmethod draw ((s ssao-shader) (scene ssao-post-scene))
+  (with-slots (shader) s
     (gficl:bind-vec shader "screen_res"
 		    (gficl:make-vec (list (gficl:window-width) (gficl:window-height))))
     (gficl:bind-matrix shader "proj" (slot-value scene 'projection-mat)))
+  (let ((target-tex (get-post-tex scene :ssao :color-attachment0)))
+    (gl:active-texture :texture0)
+    (gl:bind-texture :texture-2d target-tex)
+    (gl:bind-image-texture 0 target-tex 0 nil 0 :write-only :rgba32f))
     
-  (gl:active-texture :texture0)
-  (gl:bind-texture :texture-2d
-		   (get-post-tex scene :deferred :color-attachment0))
   (gl:active-texture :texture1)
   (gl:bind-texture :texture-2d
-		   (get-post-tex scene :deferred :color-attachment1))
+		   (get-post-tex scene :deferred :color-attachment0))
   (gl:active-texture :texture2)
-  (gficl:bind-gl (slot-value s 'noise-tex)))
+  (gl:bind-texture :texture-2d
+		   (get-post-tex scene :deferred :color-attachment1))
+  (gl:active-texture :texture3)
+  (gficl:bind-gl (slot-value s 'noise-tex))
+  (%gl:dispatch-compute (gficl:window-width) (gficl:window-height) 1)
+  (%gl:memory-barrier '(:shader-image-access-barrier)))
 
 (defclass ssao-pass (post-pass) ())
 
@@ -130,19 +135,18 @@
    :shaders (list (make-instance 'ssao-shader))
    :description
    (make-framebuffer-description
-    (list (gficl:make-attachment-description :type :texture)))))
+    (list (gficl:make-attachment-description :type :texture :internal-format :rgba32f)))))
 
 ;;; blur pass
 
-(defclass ssao-blur-shader (post-shader)
-  (target-tex))
+(defclass ssao-blur-shader (post-shader) ())
 
 (defmethod reload ((s ssao-blur-shader))
   (compute-shader-reload-files (s #p"ssao/blur.cs") shader
     (gl:uniformi (gficl:shader-loc shader "ssao_buff") 1)))
 
 (defmethod draw ((s ssao-blur-shader) (scene ssao-post-scene))
-  (with-slots (target-tex) s
+  (let ((target-tex (get-post-tex scene :blur :color-attachment0)))
     (gl:active-texture :texture0)
     (gl:bind-texture :texture-2d target-tex)
     (gl:bind-image-texture 0 target-tex 0 nil 0 :write-only :rgba32f))
@@ -161,15 +165,9 @@
 		 (list (gficl:make-attachment-description :type :texture
 							  :internal-format :rgba32f)))))
 
-(defmethod resize ((obj ssao-blur-pass) (w integer) (h integer))
-  (call-next-method)
-  (with-slots (shaders) obj
-    (setf (slot-value (car shaders) 'target-tex) (get-pass-texture obj))))
-
 ;;; deferred lighting
 
-(defclass ssao-lighting-shader (post-shader)
-  (target-tex))
+(defclass ssao-lighting-shader (post-shader) ())
 
 (defmethod reload ((s ssao-lighting-shader))
   (compute-shader-reload-files (s #p"ssao/post.cs") shader
@@ -179,7 +177,7 @@
     (gl:uniformi (gficl:shader-loc shader "bssao") 4)))
 
 (defmethod draw ((s ssao-lighting-shader) (scene ssao-post-scene))
-  (with-slots (target-tex) s
+  (let ((target-tex (get-post-tex scene :lighting :color-attachment0))) s
     (gl:active-texture :texture0)
     (gl:bind-texture :texture-2d target-tex)
     (gl:bind-image-texture 0 target-tex 0 nil 0 :write-only :rgba32f))
@@ -206,11 +204,6 @@
 		 (list (gficl:make-attachment-description :type :texture
 							  :internal-format :rgba32f)))))
 
-(defmethod resize ((obj ssao-lighting-pass) (w integer) (h integer))
-  (call-next-method)
-  (with-slots (shaders) obj
-    (setf (slot-value (car shaders) 'target-tex) (get-pass-texture obj))))
-
 ;;; ssao pipeline 
 
 (defclass ssao-pipeline (pipeline)
@@ -229,7 +222,7 @@
   (call-next-method)
   (with-slots (post-scene) pl
     (resize post-scene w h)
-    (set-post-texs post-scene (alist-fb-textures pl '(:deferred :ssao :blur)))))
+    (set-post-texs post-scene (alist-fb-textures pl '(:deferred :ssao :blur :lighting)))))
 
 (defmethod draw ((pl ssao-pipeline) scenes)
   (with-slots (post-scene) pl

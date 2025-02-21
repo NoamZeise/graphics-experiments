@@ -1,7 +1,7 @@
 #version 460
+layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-in vec2 uv;
-out vec4 colour;
+layout(rgba32f, binding = 0) uniform image2D img_result;
 
 uniform sampler2D bposition;
 uniform sampler2D bnormal;
@@ -13,8 +13,11 @@ uniform vec2 screen_res;
 #define KERNEL_SIZE 64
 uniform vec3 samples[KERNEL_SIZE];
 
-void main() { 
-  if(uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0) discard;
+void main() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    vec2 uv = vec2(float(coord.x + 0.5)/float(gl_NumWorkGroups.x),
+		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));
+
   vec3 pos = texture(bposition, uv).xyz;
   vec3 normal = texture(bnormal, uv).xyz;
   vec3 rand = texture(bnoise, uv * (screen_res / 4.0)).xyz;
@@ -38,5 +41,5 @@ void main() {
       * range;
   }
   occlusion = 1.0 - (occlusion / KERNEL_SIZE);
-  colour = vec4(vec3(occlusion), 1);
+  imageStore(img_result, coord, vec4(vec3(occlusion), 1));
 }

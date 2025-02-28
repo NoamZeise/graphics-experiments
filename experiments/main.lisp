@@ -39,7 +39,7 @@
 
 (defun create-pipelines ()
   (setf *pipelines* (list
-		     (cons "ssao" (make-ssao-pipeline))
+		     ;;(cons "ssao" (make-ssao-pipeline))
 		     (cons "cascade2d" (make-cascade-2d-pipeline))
 		     ;;(cons "cascade3d" (make-cascade3d-pipeline))
 		     (cons "pbr" (make-pbr-pipeline))

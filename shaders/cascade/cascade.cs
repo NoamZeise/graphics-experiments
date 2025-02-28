@@ -89,13 +89,13 @@ vec3 ray_dir(uint id) {
 
 vec4 trace(vec3 pos, vec3 dir) {
     int factor = int(exp2(cascade_level));
-    float sz = (cascade_level < 1 ? 1 : 0.5) *
-	params.steps * params.step_size * factor;
+    float sz = 0.5*params.steps * params.step_size * factor;
     int steps = params.steps * factor;
     float step_size = params.step_size;
-    float offset = sz - (params.step_size * params.steps);
-			 //* (cascade_level < 1 ? 1 : cascade_level));
-    
+
+    float overlap = 0.8;
+    float prev_range_factor = factor - 1;    
+    float offset = overlap*prev_range_factor*(0.5*params.step_size * params.steps);    
     float range = offset + sz;
 
     vec3 probe_pos = pos;// + vec3(0, 0, -0.01)*factor;
@@ -238,16 +238,12 @@ vec4 cascade_ray(uvec3 id) {
     vec4 int2 = interpolate_ray(pcd, left, right, up, down, r2, frac);
 
     vec4 merged_cascade = avg_prev_cascade(int1, int2);
-    
-    float angle_interval = ray_hit.a;
-    if(params.merge_rays != 0 //&& merged_cascade.a < angle_interval
-       ) {
-      //float diff = angle_interval - merged_cascade.a;
-      //float ratio = 1 - (angle_interval / merged_cascade.a);
-      ray_hit.rgb += merged_cascade.rgb;//*diff;//pow(ratio, 0.5)*(cascade_level+1);
-      //ray_hit.rgb += read_interval(right, up, pid.z, pcd).rgb
-      //+ read_interval(right, up, r2, pcd).rgb;
-      //ray_hit.a = merged_cascade.a;
+    if(params.merge_rays != 0 && merged_cascade.a > ray_hit.a) {
+      //float a = probe cos2a
+      //float b = merged cos2a
+      float factor = 1;//(a*a)/(b*b);
+      ray_hit.rgb += merged_cascade.rgb*factor;
+      ray_hit.a = merged_cascade.a;
     }
   }
   return ray_hit;
@@ -255,7 +251,6 @@ vec4 cascade_ray(uvec3 id) {
 
 vec4 avg_dirs(uvec3 id) {
   vec4 total = vec4(0);
-  //return read_interval(id.x, id.y, , uvec3(dim));
   for(uint i = 0; i < dim.z; i++) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray;

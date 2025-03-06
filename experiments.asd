@@ -25,4 +25,5 @@
 			  (:file "pbr")
 			  (:file "lit-sphere")
 			  (:file "cascades")
-			  (:file "ssao")))))
+			  (:file "ssao")
+			  (:file "performance")))))

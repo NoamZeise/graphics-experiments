@@ -12,7 +12,7 @@
 	   :opengl-version-minor 6)
    (setup)
    (loop until (gficl:closedp)
-	 do (update)
+	 do (update-step)
 	 do (render))
    (cleanup)))
 
@@ -50,7 +50,10 @@
 		     ;; (cons "halftone" (make-halftone-pipeline))
 		     ;; (cons "lit-sphere" (make-lit-sphere-pipeline))
 		     ))
-  (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*))))
+  (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
+
+  (setf *performance-analyser*
+	(make-performace-analyser *pipelines* *analysed-scenes*)))
 
 (defun create-scenes ()
   (setf *active-scenes*
@@ -58,25 +61,24 @@
 	 (make-simple-3d-scene)
 	 ;;(make-street-scene)
 	 ;;(make-square-scene)
-	 )))
+	 ))
+  (setf *analysed-scenes*
+	(list (cons "basic" *active-scenes*))))
 
 (defun setup ()
   (init-watched)
   (load-assets)
   (setf *signal-fn* nil)
   (setf *active-pipeline* nil)
-  (create-pipelines)
   (create-scenes)
+  (create-pipelines)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test)
   (gl:front-face :cw)
   (gl:cull-face :front))
 
-(defmacro foreach-v (alist (pipeline-var) &body body)
-  `(loop for (_ . ,pipeline-var) in ,alist do (progn ,@body)))
-
 (defun cleanup-pipelines ()
-  (foreach-v *pipelines* (p) (free p)))
+  (foreach-al *pipelines* (p) (free p)))
   
 (defun cleanup ()
   (cleanup-pipelines)
@@ -85,33 +87,43 @@
 (defun resize-callback (w h)
   (loop for scene in *active-scenes* do
 	(resize scene w h))
-  (foreach-v *pipelines* (p) (resize p w h)))
+  (foreach-al *pipelines* (p) (resize p w h)))
 
-(defun update ()
+(defun update-step ()
   (gficl:with-update (dt)
     (gficl:map-keys-pressed
      (:escape (glfw:set-window-should-close))
      (:f (gficl:toggle-fullscreen t))
      (:m
-      (setf *active-pipeline*
-	    (loop for ((k . _) . r) on *pipelines*
-		  when (equalp k *active-pipeline*)
-		  return
-		  (if r (caar r) (caar *pipelines*))))
-      (format t "using ~a pipeline~%" *active-pipeline*)))
+      (cond ((not *run-performance-analyser*)
+	     (setf *active-pipeline*
+		   (loop for ((k . _) . r) on *pipelines*
+			 when (equalp k *active-pipeline*)
+			 return
+			 (if r (caar r) (caar *pipelines*))))	     
+	     (format t "using ~a pipeline~%" *active-pipeline*))))
+     (:p
+      (setf *run-performance-analyser* (not *run-performance-analyser*))
+      (if *run-performance-analyser*
+	  (start-performance-analyser *performance-analyser*)
+	(print (end-performance-analyser *performance-analyser*)))))
     ;(format t "fps: ~d~%" (round (/ 1 (float dt))))
-    (loop for scene in *active-scenes* do
-	  (update-scene scene dt))    
+    (if *run-performance-analyser*
+	(update *performance-analyser* dt)
+      (loop for scene in *active-scenes* do
+	    (update-scene scene dt)))
     (cond (*signal-fn*
 	   (funcall *signal-fn*)
 	   (setf *signal-fn* nil)))
     (cond ((process-watched)
-	   (foreach-v *pipelines* (p) (reload p))
+	   (foreach-al *pipelines* (p) (reload p))
 	   (set-all-unmodified)))))
 
 (defun render ()
   (gficl:with-render
-   (draw (cdr (assoc *active-pipeline* *pipelines*)) *active-scenes*)))
+   (if *run-performance-analyser*
+       (draw *performance-analyser* nil)
+     (draw (cdr (assoc *active-pipeline* *pipelines*)) *active-scenes*))))
 
 ;;; signal running program functions
 
@@ -143,6 +155,12 @@
 ;;; Global Variables
 
 (defparameter *pipelines* nil)
+
+(defparameter *performance-analyser* nil)
+
+(defparameter *run-performance-analyser* nil)
+
+(defparameter *analysed-scenes* nil)
 
 (defparameter *active-pipeline* nil)
 

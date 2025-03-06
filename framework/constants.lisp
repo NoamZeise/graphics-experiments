@@ -8,3 +8,7 @@
 
 (defun shader-subfolder (folder)
   (merge-pathnames folder (merge-pathnames +shader-folder+)))
+
+(defmacro foreach-al (alist (var) &body body)
+  "run body with cdr of each alist entry bound to var."
+  `(loop for (_ . ,var) in ,alist do (progn ,@body)))

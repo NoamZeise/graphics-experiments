@@ -10,12 +10,14 @@
    (time 0.0))
 
 (defstruct final-performance
+   (pipeline "")
+   (scene "")
    (avg-fps 0.0)
    (1%-low 0.0)
    (peak-fps 0.0)
    (runtime 0.0))
 
-(defun generate-final-performance (scene-performance)
+(defun generate-final-performance (scene-performance pipeline-name scene-name)
   (let* ((final (make-final-performance))
 	 (frames (scene-performance-frames scene-performance))
 	 (frame-count (length frames))
@@ -37,6 +39,8 @@
 		 (length frames))))
     (setf (final-performance-runtime final)
 	  (scene-performance-time scene-performance))
+    (setf (final-performance-pipeline final) pipeline-name)
+    (setf (final-performance-scene final) scene-name)
     final))
 
 ;;; Performance Analyser
@@ -50,8 +54,8 @@
 
 (defmethod initialize-instance :after ((a performance-analyser) &key &allow-other-keys)
   (with-slots (pipelines scenes current-pipeline current-scene) a
-    (setf current-pipeline (print (car pipelines)))
-    (setf current-scene (print (car scenes)))))
+    (setf current-pipeline (car pipelines))
+    (setf current-scene (car scenes))))
 
 (defun make-performace-analyser (pipelines scenes)
   (make-instance
@@ -87,4 +91,8 @@
 (defgeneric end-performance-analyser (obj))
 
 (defmethod end-performance-analyser ((a performance-analyser))
-	   (generate-final-performance (slot-value a 'scene-performance)))
+   (with-slots (scene-performance current-pipeline current-scene) a
+     (generate-final-performance
+      scene-performance
+      (car current-pipeline)
+      (car current-scene))))

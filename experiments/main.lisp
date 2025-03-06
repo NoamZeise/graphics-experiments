@@ -37,23 +37,39 @@
   ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
+(defun get-pipeline (pl)
+  (if (listp pl) (car pl) pl))
+
+(defun reused-pipeline (pl)
+  (and (listp pl) (equalp :reused (caddr pl))))
+
 (defun create-pipelines ()
-  (setf *pipelines* (list
-		     ;;(cons "ssao" (make-ssao-pipeline))
-		     (cons "cascade2d" (make-cascade-2d-pipeline))
-		     ;;(cons "cascade3d" (make-cascade3d-pipeline))
-		     (cons "pbr" (make-pbr-pipeline))
-		     ;; (cons "aos" (make-aos-pipeline))
-		     ;; (cons "outline" (make-outline-pipeline))
-		     ;; (cons "xtoon" (make-xtoon-pipeline))
-		     ;; (cons "brush" (make-brush-pipeline))
-		     ;; (cons "halftone" (make-halftone-pipeline))
-		     ;; (cons "lit-sphere" (make-lit-sphere-pipeline))
-		     ))
+  (setf *pipelines*
+	(let ((cascade-pipeline (make-cascade-2d-pipeline)))
+	  (list
+	   ;;(cons "ssao" (make-ssao-pipeline))
+	   (cons "cascade2d" cascade-pipeline)
+	   (cons "cascade2d-alt"
+		 (list cascade-pipeline
+		       #'(lambda (pl)
+			   (update-cascade-obj
+			    pl (make-instance 'cascade-properties :levels 2)))
+		       :reused))
+	   ;;(cons "cascade3d" (make-cascade3d-pipeline))
+	   (cons "pbr" (make-pbr-pipeline))
+	   ;;(cons "aos" (make-aos-pipeline))
+	   ;; (cons "outline" (make-outline-pipeline))
+	   ;; (cons "xtoon" (make-xtoon-pipeline))
+	   ;; (cons "brush" (make-brush-pipeline))
+	   ;; (cons "halftone" (make-halftone-pipeline))
+	   ;; (cons "lit-sphere" (make-lit-sphere-pipeline))
+	   )))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *performance-analyser*
-	(make-performace-analyser *pipelines* *analysed-scenes*)))
+	(make-performace-analyser
+	 *pipelines*
+	 *analysed-scenes*)))
 
 (defun create-scenes ()
   (setf *active-scenes*
@@ -78,7 +94,9 @@
   (gl:cull-face :front))
 
 (defun cleanup-pipelines ()
-  (foreach-al *pipelines* (p) (free p)))
+  (foreach-al *pipelines* (p)
+    (if (not (reused-pipeline p))
+	(free (get-pipeline p)))))
   
 (defun cleanup ()
   (cleanup-pipelines)
@@ -87,7 +105,7 @@
 (defun resize-callback (w h)
   (loop for scene in *active-scenes* do
 	(resize scene w h))
-  (foreach-al *pipelines* (p) (resize p w h)))
+  (foreach-al *pipelines* (p) (resize (get-pipline p) w h)))
 
 (defun update-step ()
   (gficl:with-update (dt)
@@ -116,14 +134,14 @@
 	   (funcall *signal-fn*)
 	   (setf *signal-fn* nil)))
     (cond ((process-watched)
-	   (foreach-al *pipelines* (p) (reload p))
+	   (foreach-al *pipelines* (p) (reload (get-pipeline p)))
 	   (set-all-unmodified)))))
 
 (defun render ()
   (gficl:with-render
    (if *run-performance-analyser*
        (draw *performance-analyser* nil)
-     (draw (cdr (assoc *active-pipeline* *pipelines*)) *active-scenes*))))
+     (draw (get-pipline (cdr (assoc *active-pipeline* *pipelines*))) *active-scenes*))))
 
 ;;; signal running program functions
 

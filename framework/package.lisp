@@ -103,4 +103,6 @@
    #:get-pl
    #:get-pass
    #:get-shader
-   #:alist-fb-textures))
+   #:alist-fb-textures
+
+   #:foreach-al))

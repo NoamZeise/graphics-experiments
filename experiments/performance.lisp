@@ -15,7 +15,8 @@
    (avg-fps 0.0)
    (1%-low 0.0)
    (peak-fps 0.0)
-   (runtime 0.0))
+   (runtime 0.0)
+   (resolution (cons 0 0)))
 
 (defun generate-final-performance (scene-performance pipeline-name scene-name)
   (let* ((final (make-final-performance))
@@ -41,6 +42,8 @@
 	  (scene-performance-time scene-performance))
     (setf (final-performance-pipeline final) pipeline-name)
     (setf (final-performance-scene final) scene-name)
+    (setf (final-performance-resolution final)
+	  (cons (gficl:window-width) (gficl:window-height)))
     final))
 
 ;;; Performance Analyser
@@ -50,20 +53,30 @@
    (scenes :initarg :scenes)
    (current-pipeline :initform nil)
    (current-scene :initform nil)
-   (scene-performance :initform (make-scene-performance))))
+   (scene-performance :initform (make-scene-performance))
+   (performance-list :initform (list))
+   (finished-performance-analysis :initform nil :accessor finished)))
+
+(defgeneric update (obj dt))
+
+(defgeneric start-performance-analyser (obj))
+
+(defgeneric end-performance-analyser (obj))
+
+(defgeneric end-current-scene (obj))
+
+(defgeneric get-performance-report (obj))
+
+;;; performance analyser implementation
 
 (defmethod initialize-instance :after ((a performance-analyser) &key &allow-other-keys)
-  (with-slots (pipelines scenes current-pipeline current-scene) a
-    (setf current-pipeline (car pipelines))
-    (setf current-scene (car scenes))))
+	   (start-performance-analyser a))
 
 (defun make-performace-analyser (pipelines scenes)
   (make-instance
    'performance-analyser
    :pipelines pipelines
    :scenes scenes))
-
-(defgeneric update (obj dt))
 
 (defun update-scene-performance (scene-performance dt)
   (setf (scene-performance-time scene-performance)
@@ -75,20 +88,22 @@
 
 (defmethod update ((a performance-analyser) dt)
   (with-slots (current-scene scene-performance) a
-    (loop for s in (cdr current-scene) do (update-scene s dt))
-    (update-scene-performance scene-performance dt)))
+    (loop for s in (getf (cdr current-scene) :scenes) do (update-scene s dt))
+    (update-scene-performance scene-performance dt)
+    (if (> (scene-performance-time scene-performance) (getf (cdr current-scene) :duration))
+	(end-current-scene a))))
 
 (defmethod draw ((a performance-analyser) _)
   (with-slots (current-pipeline current-scene) a
-      (draw (cdr current-pipeline) (cdr current-scene))))
-
-(defgeneric start-performance-analyser (obj))
+    (draw (cdr current-pipeline) (getf (cdr current-scene) :scenes))))
 
 (defmethod start-performance-analyser ((a performance-analyser))
-  (with-slots (scene-performance) a
-    (setf scene-performance (make-scene-performance))))
-
-(defgeneric end-performance-analyser (obj))
+  (with-slots (scene-performance current-scene scenes current-pipeline pipelines finished-performance-analysis performance-list) a
+    (setf scene-performance (make-scene-performance))
+    (setf current-pipeline (car pipelines))
+    (setf current-scene (car scenes))
+    (setf finished-performance-analysis nil)
+    (setf performance-list nil)))
 
 (defmethod end-performance-analyser ((a performance-analyser))
    (with-slots (scene-performance current-pipeline current-scene) a
@@ -96,3 +111,28 @@
       scene-performance
       (car current-pipeline)
       (car current-scene))))
+
+(defmethod end-current-scene ((a performance-analyser))
+  (with-slots (performance-list scene-performance current-scene scenes current-pipeline pipelines finished-performance-analysis) a
+    (let ((performance (end-performance-analyser a)))
+      (format t "ran analyser - pipeline: ~a - scene: ~a ~%~a~%"
+	      current-pipeline current-scene performance)
+      (setf performance-list (cons performance performance-list)))
+    (setf scene-performance (make-scene-performance))
+    (destructuring-bind
+     (s . p)
+     (loop for (scene . rest) on scenes
+	   when (equal scene current-scene)
+	   return (if rest (cons (car rest) current-pipeline)
+		    (cons (car scenes)
+			  (loop for (pipeline . rest) on pipelines
+				when (equal pipeline current-pipeline)
+				return (if rest (car rest)
+					 (progn
+					   (setf finished-performance-analysis t)
+					   (car pipelines)))))))
+     (setf current-scene s)
+     (setf current-pipeline p))))
+
+(defmethod get-performance-report ((a performance-analyser))
+  (slot-value a 'performance-list))

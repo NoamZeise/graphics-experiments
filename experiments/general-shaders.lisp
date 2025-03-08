@@ -11,14 +11,14 @@
 (defmethod draw ((obj standard-colour-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'uv))
+  (gficl:bind-gl (car (get-asset 'uv)))
   (call-next-method))
 
 (defmethod shader-mesh-props ((obj standard-colour-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
-    (cond (dt (gficl:bind-gl dt))
-	  (t  (gficl:bind-gl (get-asset 'uv))))))
+    (cond (dt (gficl:bind-gl (car dt)))
+	  (t  (gficl:bind-gl (car (get-asset 'uv)))))))
 
 ;;; View Normals Shader
 
@@ -42,14 +42,14 @@
 (defmethod draw ((obj cel-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'colours))
+  (gficl:bind-gl (car (get-asset 'colours)))
   (call-next-method))
 
 (defmethod shader-mesh-props ((obj cel-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
-    (cond (dt (gficl:bind-gl dt))
-	  (t  (gficl:bind-gl (get-asset 'colours))))))
+    (cond (dt (gficl:bind-gl (car dt)))
+	  (t  (gficl:bind-gl (car (get-asset 'colours)))))))
 
 ;; backface shader - for outlines
 

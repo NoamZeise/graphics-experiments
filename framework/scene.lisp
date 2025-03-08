@@ -5,7 +5,9 @@
    (view-projection :accessor view-projection :initform (gficl:make-matrix) :type gficl:matrix)
    (cam-pos :accessor cam-pos :initarg :cam-pos :type gficl:vec)
    (width :initform 0)
-   (height :initform 0))
+   (height :initform 0)
+;;   (scene-length :initform 15.0 :documentation "Scene duration in seconds")
+   )
   (:documentation "A state to be drawn by a shader. Usually a list of objects and a camera. Also encapsulates updating the scene each frame (ie in response to user input)."))
 
 (defgeneric update-scene (scene dt)

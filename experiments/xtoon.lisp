@@ -11,7 +11,7 @@
 (defmethod draw ((obj xtoon-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'xtoon))
+  (gficl:bind-gl (car (get-asset 'xtoon)))
   (call-next-method))
 
 ;; xtoon pipeline

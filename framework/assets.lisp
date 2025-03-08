@@ -71,9 +71,7 @@
   (add-to-asset-table key
     (multiple-value-bind (tex w h) (gficl/load:image filename)
       (add-asset-object tex)
-      ;(pairlis '(:tex :width :height) (list tex w h))
-      tex
-      )))
+      (list tex :width w :height h))))
 
 (defun get-asset (key)
   (let ((a (gethash key *assets*)))

@@ -22,7 +22,7 @@
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
     (cond (dt (gficl:bind-gl dt))
-	  (t  (gficl:bind-gl (get-asset 'light-colours))))))
+	  (t  (gficl:bind-gl (car (get-asset 'light-colours)))))))
 
 (defmethod shader-scene-props ((obj halftone-shader) (scene scene-3d))
   (call-next-method)

@@ -12,16 +12,16 @@
 (defmethod draw ((obj brush-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'uv))
+  (gficl:bind-gl (car (get-asset 'uv)))
   (gl:active-texture :texture1)
-  (gficl:bind-gl (get-asset 'brush2))
+  (gficl:bind-gl (car (get-asset 'brush2)))
   (call-next-method))
 
 (defmethod shader-mesh-props ((obj brush-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
     (cond (dt (gficl:bind-gl dt))
-	  (t  (gficl:bind-gl (get-asset 'uv))))))
+	  (t  (gficl:bind-gl (car (get-asset 'uv)))))))
 
 ;;; brush pipeline
 

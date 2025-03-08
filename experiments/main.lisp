@@ -25,9 +25,9 @@
   (load-model 'plane #p"plane.obj")
   ;;(load-model+texs 'street #p"street/street.obj")
   ;;(load-image 'test #p"assets/test.png")
-  ;;(load-image 'metatexture-noise #p"assets/noise.png")
+  (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
-  ;;(load-image 'colours #p"assets/colours.png")
+  (load-image 'colours #p"assets/colours.png")
   ;;(load-image 'light-colours #p"assets/light-colours.png")
   ;;(load-image 'xtoon #p"assets/xtoon.png")
   ;;(load-image 'brush #p"assets/brush-test.png")
@@ -45,20 +45,21 @@
 
 (defun create-pipelines ()
   (setf *pipelines*
-	(let ((cascade-pipeline (make-cascade-2d-pipeline)))
+	(let (;(cascade-pipeline (make-cascade-2d-pipeline))
+	      )
 	  (list
-	   ;;(cons "ssao" (make-ssao-pipeline))
-	   (cons "cascade2d" cascade-pipeline)
-	   (cons "cascade2d-alt"
-		 (list cascade-pipeline
-		       #'(lambda (pl)
-			   (update-cascade-obj
-			    pl (make-instance 'cascade-properties :levels 2)))
-		       :reused))
+	   (cons "ssao" (make-ssao-pipeline))
+	   ;;(cons "cascade2d" cascade-pipeline)
+	   ;; (cons "cascade2d-alt"
+	   ;; 	 (list cascade-pipeline
+	   ;; 	       #'(lambda (pl)
+	   ;; 		   (update-cascade-obj
+	   ;; 		    pl (make-instance 'cascade-properties :levels 2)))
+	   ;; 	       :reused))
 	   ;;(cons "cascade3d" (make-cascade3d-pipeline))
 	   (cons "pbr" (make-pbr-pipeline))
-	   ;;(cons "aos" (make-aos-pipeline))
-	   ;; (cons "outline" (make-outline-pipeline))
+	   (cons "aos" (make-aos-pipeline))
+	   (cons "outline" (make-outline-pipeline))
 	   ;; (cons "xtoon" (make-xtoon-pipeline))
 	   ;; (cons "brush" (make-brush-pipeline))
 	   ;; (cons "halftone" (make-halftone-pipeline))
@@ -79,7 +80,7 @@
 	 ;;(make-square-scene)
 	 ))
   (setf *analysed-scenes*
-	(list (cons "basic" *active-scenes*))))
+	(list (cons "basic" (list :scenes *active-scenes* :duration 15.0)))))
 
 (defun setup ()
   (init-watched)
@@ -105,7 +106,7 @@
 (defun resize-callback (w h)
   (loop for scene in *active-scenes* do
 	(resize scene w h))
-  (foreach-al *pipelines* (p) (resize (get-pipline p) w h)))
+  (foreach-al *pipelines* (p) (resize (get-pipeline p) w h)))
 
 (defun update-step ()
   (gficl:with-update (dt)
@@ -123,11 +124,17 @@
      (:p
       (setf *run-performance-analyser* (not *run-performance-analyser*))
       (if *run-performance-analyser*
-	  (start-performance-analyser *performance-analyser*)
+	  (progn
+	    (format t "starting performance analyser~%")
+	    (start-performance-analyser *performance-analyser*))
 	(print (end-performance-analyser *performance-analyser*)))))
     ;(format t "fps: ~d~%" (round (/ 1 (float dt))))
     (if *run-performance-analyser*
-	(update *performance-analyser* dt)
+	(progn
+	  (update *performance-analyser* dt)
+	  (cond ((finished *performance-analyser*)
+		 (setf *run-performance-analyser* nil)
+		 ())))
       (loop for scene in *active-scenes* do
 	    (update-scene scene dt)))
     (cond (*signal-fn*
@@ -141,7 +148,7 @@
   (gficl:with-render
    (if *run-performance-analyser*
        (draw *performance-analyser* nil)
-     (draw (get-pipline (cdr (assoc *active-pipeline* *pipelines*))) *active-scenes*))))
+     (draw (get-pipeline (cdr (assoc *active-pipeline* *pipelines*))) *active-scenes*))))
 
 ;;; signal running program functions
 

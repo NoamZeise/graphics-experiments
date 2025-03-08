@@ -12,9 +12,9 @@
 (defmethod draw ((obj lit-sphere-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'uv))
+  (gficl:bind-gl (car (get-asset 'uv)))
   (gl:active-texture :texture1)
-  (gficl:bind-gl (get-asset 'rust-matcap))
+  (gficl:bind-gl (car (get-asset 'rust-matcap)))
   (call-next-method))
 
 (defmethod shader-mesh-props ((obj lit-sphere-shader) props)
@@ -22,7 +22,7 @@
     (gl:active-texture :texture0)
     (let ((enable-mc 0))
       (cond (dt (gficl:bind-gl dt))
-	    (t  (gficl:bind-gl (get-asset 'uv))
+	    (t  (gficl:bind-gl (car (get-asset 'uv)))
 		(setf enable-mc 1)))
       (gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "enableMC") enable-mc))))
 

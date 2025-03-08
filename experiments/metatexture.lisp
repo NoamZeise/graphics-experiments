@@ -24,13 +24,13 @@
 		       shader
     (gl:uniformi (gficl:shader-loc shader "tex") 0)
     (gficl:bind-vec shader "tex_dim"
-		    (list (get-asset-prop 'metatexture-noise :width)
-			  (get-asset-prop 'metatexture-noise :height)))))
+		    (list (getf (cdr (get-asset 'metatexture-noise)) :width)
+			  (getf (cdr (get-asset 'metatexture-noise)) :height)))))
 
 (defmethod draw ((obj metatexture-shader) scene)
   (gl:enable :depth-test :cull-face)
   (gl:active-texture :texture0)
-  (gficl:bind-gl (get-asset 'metatexture-noise))
+  (gficl:bind-gl (car (get-asset 'metatexture-noise)))
   (call-next-method))
 
 (defclass metatexture-pass (pass)

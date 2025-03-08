@@ -12,13 +12,14 @@
 
 (defmethod reload ((s backface-mt-shader))
   (call-next-method)
-  (gficl:bind-gl (slot-value s 'shader))
-  (gficl:bind-vec (slot-value s 'shader) "tex_dim"
-		  (list (get-asset-prop 'metatexture-noise :width)
-			(get-asset-prop 'metatexture-noise :height))))
+  (let ((noise-props (cdr (get-asset 'metatexture-noise))))
+    (gficl:bind-gl (slot-value s 'shader))
+    (gficl:bind-vec (slot-value s 'shader) "tex_dim"
+		    (list (getf noise-props :width)
+			  (getf noise-props :height)))))
 
 (defmethod draw ((obj backface-mt-shader) scene)
-  (gficl:bind-gl (get-asset 'metatexture-noise))
+  (gficl:bind-gl (car (get-asset 'metatexture-noise)))
   (call-next-method))
 
 ;; colour + backfaces pass

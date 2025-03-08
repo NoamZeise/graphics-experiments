@@ -51,6 +51,7 @@
    #:cam-pos
    #:width
    #:height
+   #:transform
    ;; specialised scene types
    #:scene-3d
    #:projection-mat
@@ -93,6 +94,7 @@
    #:get-pass-texture
    #:get-final-framebuffer
    #:shaders
+   #:framebuffer
    ;; specialised pass types
    #:post-pass
 

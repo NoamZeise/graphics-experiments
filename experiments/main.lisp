@@ -23,12 +23,12 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
-  ;;(load-model+texs 'street #p"street/street.obj")
+  (load-model+texs 'street #p"street/street.obj")
   ;;(load-image 'test #p"assets/test.png")
   (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
   (load-image 'colours #p"assets/colours.png")
-  ;;(load-image 'light-colours #p"assets/light-colours.png")
+  (load-image 'light-colours #p"assets/light-colours.png")
   ;;(load-image 'xtoon #p"assets/xtoon.png")
   ;;(load-image 'brush #p"assets/brush-test.png")
   ;;(load-image 'brush2 #p"assets/brush-test2.png")
@@ -37,32 +37,31 @@
   ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
-(defun get-pipeline (pl)
-  (if (listp pl) (car pl) pl))
-
-(defun reused-pipeline (pl)
-  (and (listp pl) (equalp :reused (caddr pl))))
-
 (defun create-pipelines ()
   (setf *pipelines*
-	(let (;(cascade-pipeline (make-cascade-2d-pipeline))
-	      )
+	(let ((cascade-pipeline (make-cascade-2d-pipeline)))
 	  (list
 	   (cons "ssao" (make-ssao-pipeline))
-	   ;;(cons "cascade2d" cascade-pipeline)
-	   ;; (cons "cascade2d-alt"
-	   ;; 	 (list cascade-pipeline
-	   ;; 	       #'(lambda (pl)
-	   ;; 		   (update-cascade-obj
-	   ;; 		    pl (make-instance 'cascade-properties :levels 2)))
-	   ;; 	       :reused))
+	   (cons "cascade2d"
+		 (list cascade-pipeline
+		       :init-fn
+		       #'(lambda (pl)
+			   (update-cascade-obj pl (make-instance 'cascade-properties))
+			   (update-cascade-obj pl (make-instance 'cascade-params)))))
+	   (cons "cascade2d-alt"
+		 (list cascade-pipeline
+		       :init-fn
+		       #'(lambda (pl)
+			   (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
+			   (update-cascade-obj pl (make-instance 'cascade-params)))
+		       :reused t))
 	   ;;(cons "cascade3d" (make-cascade3d-pipeline))
 	   (cons "pbr" (make-pbr-pipeline))
 	   (cons "aos" (make-aos-pipeline))
 	   (cons "outline" (make-outline-pipeline))
 	   ;; (cons "xtoon" (make-xtoon-pipeline))
 	   ;; (cons "brush" (make-brush-pipeline))
-	   ;; (cons "halftone" (make-halftone-pipeline))
+	   (cons "halftone" (make-halftone-pipeline))
 	   ;; (cons "lit-sphere" (make-lit-sphere-pipeline))
 	   )))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
@@ -80,7 +79,9 @@
 	 ;;(make-square-scene)
 	 ))
   (setf *analysed-scenes*
-	(list (cons "basic" (list :scenes *active-scenes* :duration 15.0)))))
+	(list (cons "basic" (list :scenes *active-scenes* :duration 10.0))
+	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))
+	      )))
 
 (defun setup ()
   (init-watched)
@@ -95,9 +96,7 @@
   (gl:cull-face :front))
 
 (defun cleanup-pipelines ()
-  (foreach-al *pipelines* (p)
-    (if (not (reused-pipeline p))
-	(free (get-pipeline p)))))
+  (foreach-al *pipelines* (p) (if (not (reused-pipeline p)) (free (get-pipeline p)))))
   
 (defun cleanup ()
   (cleanup-pipelines)
@@ -119,22 +118,24 @@
 		   (loop for ((k . _) . r) on *pipelines*
 			 when (equalp k *active-pipeline*)
 			 return
-			 (if r (caar r) (caar *pipelines*))))	     
-	     (format t "using ~a pipeline~%" *active-pipeline*))))
+			 (if r (caar r) (caar *pipelines*))))     
+	     (format t "using ~a pipeline~%" *active-pipeline*)
+	     (init-pipeline (assoc *active-pipeline* *pipelines*)))))
      (:p
       (setf *run-performance-analyser* (not *run-performance-analyser*))
       (if *run-performance-analyser*
 	  (progn
 	    (format t "starting performance analyser~%")
 	    (start-performance-analyser *performance-analyser*))
-	(print (end-performance-analyser *performance-analyser*)))))
+	(format t "ended performance analyser early~%"))))
     ;(format t "fps: ~d~%" (round (/ 1 (float dt))))
     (if *run-performance-analyser*
 	(progn
 	  (update *performance-analyser* dt)
 	  (cond ((finished *performance-analyser*)
 		 (setf *run-performance-analyser* nil)
-		 ())))
+		 (format t "final performance results:~%~a~%"
+			 (get-performance-report *performance-analyser*)))))
       (loop for scene in *active-scenes* do
 	    (update-scene scene dt)))
     (cond (*signal-fn*

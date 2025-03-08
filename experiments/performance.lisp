@@ -73,10 +73,29 @@
 	   (start-performance-analyser a))
 
 (defun make-performace-analyser (pipelines scenes)
+  "pipelines have the following format - a list of:
+('pipeline-name' . pipeline-obj)
+or
+('pipeline-name' . (pipeline-obj :init-fn fn :reused ?))
+where :init-fn and :reused are optional
+
+scenes have the following format - a list of:
+('scene-name' . (list :scenes list-of-scene-objs :duration XX))"  
   (make-instance
    'performance-analyser
    :pipelines pipelines
    :scenes scenes))
+
+(defun init-pipeline (pl)
+  (if (listp (cdr pl))
+      (let ((f (getf (cddr pl) :init-fn)))
+	(if f (funcall f (cadr pl))))))
+
+(defun reused-pipeline (pl)
+  (and (listp pl) (getf (cdr pl) :reused)))
+
+(defun get-pipeline (pl)
+  (if (listp pl) (car pl) pl))
 
 (defun update-scene-performance (scene-performance dt)
   (setf (scene-performance-time scene-performance)
@@ -95,15 +114,16 @@
 
 (defmethod draw ((a performance-analyser) _)
   (with-slots (current-pipeline current-scene) a
-    (draw (cdr current-pipeline) (getf (cdr current-scene) :scenes))))
+    (draw (get-pipeline (cdr current-pipeline)) (getf (cdr current-scene) :scenes))))
 
 (defmethod start-performance-analyser ((a performance-analyser))
-  (with-slots (scene-performance current-scene scenes current-pipeline pipelines finished-performance-analysis performance-list) a
-    (setf scene-performance (make-scene-performance))
-    (setf current-pipeline (car pipelines))
-    (setf current-scene (car scenes))
-    (setf finished-performance-analysis nil)
-    (setf performance-list nil)))
+	   (with-slots (scene-performance current-scene scenes current-pipeline pipelines finished-performance-analysis performance-list) a
+  (setf scene-performance (make-scene-performance))
+  (setf current-pipeline (car pipelines))
+  (init-pipeline current-pipeline)
+  (setf current-scene (car scenes))
+  (setf finished-performance-analysis nil)
+  (setf performance-list nil)))
 
 (defmethod end-performance-analyser ((a performance-analyser))
    (with-slots (scene-performance current-pipeline current-scene) a
@@ -115,7 +135,7 @@
 (defmethod end-current-scene ((a performance-analyser))
   (with-slots (performance-list scene-performance current-scene scenes current-pipeline pipelines finished-performance-analysis) a
     (let ((performance (end-performance-analyser a)))
-      (format t "ran analyser - pipeline: ~a - scene: ~a ~%~a~%"
+      (format t "ran analyser - pipeline:~%~a~%scene:~%~a~%~%performance:~%~a~%"
 	      current-pipeline current-scene performance)
       (setf performance-list (cons performance performance-list)))
     (setf scene-performance (make-scene-performance))
@@ -132,7 +152,8 @@
 					   (setf finished-performance-analysis t)
 					   (car pipelines)))))))
      (setf current-scene s)
-     (setf current-pipeline p))))
+     (setf current-pipeline p)
+     (init-pipeline current-pipeline))))
 
 (defmethod get-performance-report ((a performance-analyser))
   (slot-value a 'performance-list))

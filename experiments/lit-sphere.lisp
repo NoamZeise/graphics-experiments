@@ -21,7 +21,7 @@
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
     (let ((enable-mc 0))
-      (cond (dt (gficl:bind-gl dt))
+      (cond (dt (gficl:bind-gl (if (listp dt) (car dt) dt)))
 	    (t  (gficl:bind-gl (car (get-asset 'uv)))
 		(setf enable-mc 1)))
       (gl:uniformi (gficl:shader-loc (slot-value obj 'shader) "enableMC") enable-mc))))

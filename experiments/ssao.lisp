@@ -15,18 +15,23 @@
   (shader-reload-files
    (s (#p"deferred.vs" #p"deferred.fs")
       :folder (shader-subfolder #p"ssao/"))
-   shader))
+   shader
+   (gl:uniformi (gficl:shader-loc shader "tex") 0)))
+
+(defmethod draw ((s deferred-shader) scene)
+  (gl:active-texture :texture0)
+  (call-next-method))
 
 (defmethod shader-scene-props ((obj deferred-shader) (scene scene-3d))
-  (call-next-method)
-  (with-slots ((it-view inverse-transpose-view-mat)
-	       (view view-mat)
-	       (proj projection-mat))
-      scene
-    (with-slots (shader) obj
-      (gficl:bind-matrix shader "norm_view" it-view)
-      (gficl:bind-matrix shader "view" view)
-      (gficl:bind-matrix shader "proj" proj))))
+	   (call-next-method)
+	   (with-slots ((it-view inverse-transpose-view-mat)
+			(view view-mat)
+			(proj projection-mat))
+	       scene
+	     (with-slots (shader) obj
+	       (gficl:bind-matrix shader "norm_view" it-view)
+	       (gficl:bind-matrix shader "view" view)
+	       (gficl:bind-matrix shader "proj" proj))))
 
 (defmethod shader-mesh-props ((obj deferred-shader) props)
   (with-slots (shader) obj
@@ -34,7 +39,7 @@
 	  (col (obj-prop props :colour)))
       (gl:uniformi (gficl:shader-loc shader "use_texture") (if dt 1 0))
       (gficl:bind-vec shader "obj_colour" col)
-      (if dt (gficl:bind-gl dt)))))
+      (if dt (gficl:bind-gl (if (listp dt) (car dt) dt))))))
 
 (defclass deferred-pass (pass) ())
 

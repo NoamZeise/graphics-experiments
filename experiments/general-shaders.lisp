@@ -17,7 +17,7 @@
 (defmethod shader-mesh-props ((obj standard-colour-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
-    (cond (dt (gficl:bind-gl (car dt)))
+    (cond (dt (gficl:bind-gl (if (listp dt) (car dt) dt)))
 	  (t  (gficl:bind-gl (car (get-asset 'uv)))))))
 
 ;;; View Normals Shader
@@ -48,7 +48,7 @@
 (defmethod shader-mesh-props ((obj cel-shader) props)
   (let ((dt (cdr (assoc :diffuse props))))
     (gl:active-texture :texture0)
-    (cond (dt (gficl:bind-gl (car dt)))
+    (cond (dt (gficl:bind-gl (if (listp dt) (car dt) dt)))
 	  (t  (gficl:bind-gl (car (get-asset 'colours)))))))
 
 ;; backface shader - for outlines

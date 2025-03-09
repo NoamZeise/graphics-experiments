@@ -157,3 +157,48 @@ scenes have the following format - a list of:
 
 (defmethod get-performance-report ((a performance-analyser))
   (slot-value a 'performance-list))
+
+(defun table-row (performance columns &key (seperator "&"))
+  (format nil
+	  (concatenate 'string "~{~a~^" seperator "~}")
+   (loop for c in columns collecting
+	 (funcall (cdr c) performance))))
+
+(defun data-table (performance-report stream
+				       &key
+				       (seperator ",")
+				       (format-string
+					"~{~*~}~{~a~^,~}~%~{~a~^~%~}"))
+  (let ((columns '(("pipeline" . final-performance-pipeline)
+		   ;("scene" . final-performance-scene)
+		   ("average" . final-performance-avg-fps)
+		   ("1\\% low" . final-performance-1%-low)
+		   ("peak fps" . final-performance-peak-fps)
+		   ;("runtime" . final-performance-runtime)
+		   ;("resolution" . final-performance-resolution
+		   )))
+    (format stream
+	    format-string
+	    (cdr columns)
+	    (loop for c in columns collecting (car c))
+	    (loop for performance in performance-report
+		  collecting (table-row performance columns :seperator seperator)))))
+
+(defun save-performance-table (filename performance-analyser
+					&key
+					(seperator "&")
+					(format-string "\\begin{center}
+\\begin{tabular}{| c |~{ c~*~} |}
+\\hline
+% headers
+~{ ~a & ~}
+\\hline
+% table data
+~{ ~a \\\\~^~%~}
+\\hline
+\\end{tabular}
+\\end{center}"))
+  (with-open-file (f filename :direction :output :if-exists :overwrite
+		     :if-does-not-exist :create)
+		  (data-table (reverse (get-performance-report performance-analyser)) f
+		:seperator seperator :format-string format-string)))

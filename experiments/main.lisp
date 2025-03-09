@@ -23,7 +23,7 @@
   (load-model 'cone #p"cone.obj")
   (load-model 'bunny #p"bunny.obj")
   (load-model 'plane #p"plane.obj")
-  (load-model+texs 'street #p"street/street.obj")
+  ;;(load-model+texs 'street #p"street/street.obj")
   ;;(load-image 'test #p"assets/test.png")
   (load-image 'metatexture-noise #p"assets/noise.png")
   (load-image 'uv #p"assets/uv.png")
@@ -41,27 +41,34 @@
   (setf *pipelines*
 	(let ((cascade-pipeline (make-cascade-2d-pipeline)))
 	  (list
-	   (cons "ssao" (make-ssao-pipeline))
-	   (cons "cascade2d"
+	   (cons "cascade 1 level"
 		 (list cascade-pipeline
 		       :init-fn
 		       #'(lambda (pl)
-			   (update-cascade-obj pl (make-instance 'cascade-properties))
-			   (update-cascade-obj pl (make-instance 'cascade-params)))))
-	   (cons "cascade2d-alt"
+			   (update-cascade-obj pl (make-instance 'cascade-properties :levels 1))
+			   (update-cascade-obj pl (make-instance 'cascade-params)))
+		       :reused t))
+	   (cons "cascade 2 levels"
 		 (list cascade-pipeline
 		       :init-fn
 		       #'(lambda (pl)
 			   (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
 			   (update-cascade-obj pl (make-instance 'cascade-params)))
 		       :reused t))
+	   (cons "cascade 6 levels"
+		 (list cascade-pipeline
+		       :init-fn
+		       #'(lambda (pl)
+			   (update-cascade-obj pl (make-instance 'cascade-properties))
+			   (update-cascade-obj pl (make-instance 'cascade-params)))))
+	   (cons "ssao" (make-ssao-pipeline))
 	   ;;(cons "cascade3d" (make-cascade3d-pipeline))
-	   (cons "pbr" (make-pbr-pipeline))
-	   (cons "aos" (make-aos-pipeline))
-	   (cons "outline" (make-outline-pipeline))
+	   (cons "simple" (make-pbr-pipeline))
+	   ;;(cons "age of sail" (make-aos-pipeline))
+	   ;;(cons "outline" (make-outline-pipeline))
 	   ;; (cons "xtoon" (make-xtoon-pipeline))
 	   ;; (cons "brush" (make-brush-pipeline))
-	   (cons "halftone" (make-halftone-pipeline))
+	   (cons "shadow mapping" (make-halftone-pipeline))
 	   ;; (cons "lit-sphere" (make-lit-sphere-pipeline))
 	   )))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
@@ -79,8 +86,8 @@
 	 ;;(make-square-scene)
 	 ))
   (setf *analysed-scenes*
-	(list (cons "basic" (list :scenes *active-scenes* :duration 10.0))
-	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))
+	(list (cons "basic" (list :scenes *active-scenes* :duration 15.0))
+	      ;(cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))
 	      )))
 
 (defun setup ()
@@ -92,6 +99,7 @@
   (create-pipelines)
   (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test)
+  (glfw:swap-interval 0) ; disable vsync - better for checking performance
   (gl:front-face :cw)
   (gl:cull-face :front))
 
@@ -134,8 +142,13 @@
 	  (update *performance-analyser* dt)
 	  (cond ((finished *performance-analyser*)
 		 (setf *run-performance-analyser* nil)
-		 (format t "final performance results:~%~a~%"
-			 (get-performance-report *performance-analyser*)))))
+		 (let ((filename #p"performance.tex"))
+		   (format t "finished performance test, saving to ~a~%"
+			   filename)
+		   (save-performance-table filename *performance-analyser*)
+		   (save-performance-table #p"performance.csv" *performance-analyser*
+					   :seperator ","
+					   :format-string "~{~*~}~{~a~^,~}~%~{~a~^~%~}")))))
       (loop for scene in *active-scenes* do
 	    (update-scene scene dt)))
     (cond (*signal-fn*

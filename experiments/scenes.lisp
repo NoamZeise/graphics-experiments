@@ -1,7 +1,9 @@
 (in-package :experiments)
 
+;;; A base 3d scene with basic camera controls and controllable light
+
 (defclass camera-scene (scene-3d)
-  ((rotating :initform nil :type boolean)))
+  ((rotating :initform t :type boolean)))
 
 (defmethod update-scene ((obj camera-scene) dt)
   (with-slots (cam-pos cam-target cam-fov rotating) obj
@@ -45,12 +47,14 @@
 		    (setf target (gficl:+vec cam-pos))))
       (setf cam-target (gficl:-vec cam-pos target)))))
 
+;;; scene with simple 3d shapes
+
 (defclass simple-3d-scene (camera-scene) ())
 
 (defun make-simple-3d-scene ()
   (make-instance
    'simple-3d-scene
-   :cam-pos (gficl:make-vec '(-2.8 0.5 -0.5))
+   :cam-pos (gficl:make-vec '(-1 3 -2))
    :cam-target (gficl:make-vec '(-1 0 -1))
    :objects
    (list
@@ -61,7 +65,10 @@
     (make-object (get-asset 'cube) (object-matrix '(-1 -0.28 -1) '(0.1 0.1 0.1)))
     (make-object (get-asset 'cube) (object-matrix '(-1.1 0 -1.5) '(0.8 0.6 0.02)))
     (make-object (get-asset 'cube) (object-matrix '(1.5 0 -1.5) '(0.8 0.6 0.1)))
-    (make-object (get-asset 'cube) (object-matrix '(1.5 -0.28 -0.7) '(0.1 0.1 0.1)) :light t))))
+    (make-object (get-asset 'cube) (object-matrix '(1.5 -0.28 -0.7) '(0.1 0.1 0.1))
+		 :light t))))
+
+;;; street scene
 
 (defclass street-scene (camera-scene)
   ((bunny-x :initform -2)
@@ -70,7 +77,7 @@
 (defun make-street-scene ()  
   (make-instance
    'street-scene
-   :cam-pos (gficl:make-vec '(10 10 10))
+   :cam-pos (gficl:make-vec '(5 9 0))
    :cam-target (gficl:-vec '(0 0 0))
    :objects
    (list
@@ -89,6 +96,8 @@
        (:k (setf bunny-z (+ bunny-z (* dt))))
        (:l (setf bunny-z (- bunny-z (* dt)))))
       (update-model bunny (object-matrix (list bunny-x 1 bunny-z) '(2 2 2))))))
+
+;;; a scene with a 2d square
 
 (defclass square-scene (scene-2d)
   ((quad-size :initform 100 :type number)))

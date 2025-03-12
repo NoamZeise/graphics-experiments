@@ -157,7 +157,7 @@ vec4 trace(vec3 pos, vec3 dir) {
 	    d_theta = 1 - prev_cos2
 	      + 1 - cos_a2;
 	  float brdf = 2.0/(PI*PI);
-	  vec4 incoming_radiance = texture(light_buff, sample_uv);
+	  vec4 incoming_radiance = texture(light_buff, sample_uv)*10;
 	  ray_col += 0.5 * d_phi * d_theta
 	      * brdf * incoming_radiance;
 	  prev_cos2 = cos_a2;
@@ -203,8 +203,8 @@ vec4 cascade_ray(uvec3 id) {
   vec4 ray_hit =
     probe_pos.a > 0 ? trace(probe_pos.xyz, dir) : vec4(0);
 
-  if(ray_hit.r > 0)
-    ray_hit = vec4(1);
+  //if(ray_hit.r > 0)
+  // ray_hit.rgb = vec3(1);
   
   if(params.trace_after > cascade_level)
     ray_hit = vec4(0, 0, 0, -1);

@@ -23,12 +23,12 @@
 
 (defmethod shader-scene-props ((obj cascade-light-shader) (scene scene-3d))
   (call-next-method)
-  (with-slots ((it-view inverse-transpose-view-mat) (view view-mat)
+  (with-slots ((norm-view inverse-transpose-view-mat) (view view-mat)
 	       (proj projection-mat)
 	       light-vp)
       scene
     (with-slots (shader) obj
-      (gficl:bind-matrix shader "it_view" it-view)
+      (gficl:bind-matrix shader "norm_view" norm-view)
       (gficl:bind-matrix shader "view" view)
       (gficl:bind-matrix shader "proj" proj)
       (gficl:bind-matrix shader "light_vp" light-vp))))
@@ -52,7 +52,8 @@
    :description
    (make-framebuffer-description
     (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
-	  (gficl:make-attachment-description :position :color-attachment1 :type :texture)
+	  (gficl:make-attachment-description :position :color-attachment1 :type :texture
+					     :internal-format :rgba32f)
 	  (gficl:make-attachment-description :position :color-attachment2 :type :texture
 					     :internal-format :rgba32f)
 	  (gficl:make-attachment-description :position :color-attachment3 :type :texture

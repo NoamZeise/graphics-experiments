@@ -53,7 +53,7 @@ void main() {
   if(use_texture == 1)
     c_obj = texture(tex, fuv);
   
-  colour = c_obj;// * lambertian; 
+  colour = c_obj * lambertian; 
   
   if(is_light == 1) {
     light = c_obj;

@@ -43,23 +43,30 @@ float vsm_shadow(vec3 n, vec3 l) {
 }
 
 void main() {
-  vec3 wn = normalize(world_norm);
+  vec3 norm = normalize(world_norm);
+  vec3 pos = fpos.xyz/fpos.w;
+  vec3 view = normalize(-pos);
   
-  float in_shadow = vsm_shadow(wn, light_dir);
+  float in_shadow = vsm_shadow(norm, light_dir);
 
-  float lambertian = min(dot(light_dir, wn), in_shadow);
+  float lambertian = min(dot(light_dir, norm), in_shadow);
   
-  vec4 c_obj = obj_colour;    
+  vec4 c_obj = obj_colour;
   if(use_texture == 1)
     c_obj = texture(tex, fuv);
   
-  colour = c_obj * lambertian; 
+  colour = c_obj;
+
+  vec3 halfvec = normalize(light_dir + view);
+  vec3 spec = vec3(0.7*pow(max(dot(norm, halfvec), 0.0), 28.0));
   
-  if(is_light == 1) {
+  /*if(is_light == 1) {
     light = c_obj;
   } else {
     light = vec4(0, 0, 0, 1);
-  }
-  position = fpos/fpos.w;
+    }*/
+  light = c_obj * lambertian + vec4(spec, 0)*lambertian;
+  
+  position = vec4(pos, 1);
   normal = vec4(normalize(fnorm), 1);
 }

@@ -39,7 +39,7 @@
 
 (defun create-pipelines ()
   (setf *pipelines*
-	(let ((cascade-pipeline (make-cascade-2d-pipeline)))
+	(let ((cascade-pipeline (make-cascade-pipeline)))
 	  (list
 	   (cons "cascade 1 level"
 		 (list cascade-pipeline

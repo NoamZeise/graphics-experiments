@@ -95,3 +95,65 @@
 	 (gficl:screen-perspective-matrix (gficl:window-width) (gficl:window-height)
 					  (* pi fov) (* near (slot-value obj 'near-factor)) 100)
 	 (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+))))))
+
+;;; partially deferred lighting shader with shadow maps
+
+(defclass deferred-shader (normals-cam-shader)
+  ((shadow-map)))
+
+(defmethod reload ((s deferred-shader))
+  (shader-reload-files
+   (s (#p"deferred.vs" #p"deferred.fs") :folder (shader-subfolder #p"deferred/")) shader
+   (gl:uniformi (gficl:shader-loc shader "tex") 0)
+   (gl:uniformi (gficl:shader-loc shader "shadow_map") 1)))
+
+(defmethod draw ((obj deferred-shader) scene)
+   (gl:active-texture :texture1)
+   (gl:bind-texture :texture-2d (slot-value obj 'shadow-map))
+   (gl:active-texture :texture0)
+   (call-next-method))
+
+(defmethod shader-scene-props ((obj deferred-shader) (scene scene-3d))
+  (call-next-method)
+  (with-slots ((norm-view inverse-transpose-view-mat) (view view-mat)
+	       (proj projection-mat)
+	       light-vp)
+      scene
+    (with-slots (shader) obj
+      (gficl:bind-matrix shader "norm_view" norm-view)
+      (gficl:bind-matrix shader "view" view)
+      (gficl:bind-matrix shader "proj" proj)
+      (gficl:bind-matrix shader "light_vp" light-vp))))
+
+(defmethod shader-mesh-props ((obj deferred-shader) props)
+  (with-slots (shader) obj
+    (let ((dt (obj-prop props :diffuse))
+	  (col (obj-prop props :colour))
+	  (light? (obj-prop props :light)))
+      (gl:uniformi (gficl:shader-loc shader "use_texture") (if dt 1 0))
+      (gl:uniformi (gficl:shader-loc shader "is_light") (if light? 1 0))
+      (gficl:bind-vec shader "obj_colour" col)
+      (if dt (gficl:bind-gl dt)))))
+
+(defclass deferred-pass (pass) ())
+
+(defun make-deferred-pass ()
+  (make-instance
+   'deferred-pass
+   :shaders (list (make-instance 'deferred-shader))
+   :description
+   (make-framebuffer-description
+    (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
+	  (gficl:make-attachment-description :position :color-attachment1 :type :texture
+					     :internal-format :rgba32f)
+	  (gficl:make-attachment-description :position :color-attachment2 :type :texture
+					     :internal-format :rgba32f)
+	  (gficl:make-attachment-description :position :color-attachment3 :type :texture
+					     :internal-format :rgba32f)
+	  (gficl:make-attachment-description :position :depth-attachment))
+    :samples 1)))
+
+(defmethod draw ((obj deferred-pass) scenes)
+  (gl:clear-tex-image (cdar (get-textures obj)) 0 :rgba :float #(0 0 0 0))
+  (gl:enable :cull-face :depth-test)
+  (call-next-method))

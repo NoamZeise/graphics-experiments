@@ -6,61 +6,6 @@
   ((projection-mat :initform (gficl:make-matrix) :type gficl:matrix)
    (light-dir-view :initform (gficl:make-vec (list 0 0 0)))))
 
-;;; deferred shader
-
-(defclass deferred-shader (normals-cam-shader)
-  ())
-
-(defmethod reload ((s deferred-shader))
-  (shader-reload-files
-   (s (#p"deferred.vs" #p"deferred.fs")
-      :folder (shader-subfolder #p"ssao/"))
-   shader
-   (gl:uniformi (gficl:shader-loc shader "tex") 0)))
-
-(defmethod draw ((s deferred-shader) scene)
-  (gl:active-texture :texture0)
-  (call-next-method))
-
-(defmethod shader-scene-props ((obj deferred-shader) (scene scene-3d))
-	   (call-next-method)
-	   (with-slots ((it-view inverse-transpose-view-mat)
-			(view view-mat)
-			(proj projection-mat))
-	       scene
-	     (with-slots (shader) obj
-	       (gficl:bind-matrix shader "norm_view" it-view)
-	       (gficl:bind-matrix shader "view" view)
-	       (gficl:bind-matrix shader "proj" proj))))
-
-(defmethod shader-mesh-props ((obj deferred-shader) props)
-  (with-slots (shader) obj
-    (let ((dt (obj-prop props :diffuse))
-	  (col (obj-prop props :colour)))
-      (gl:uniformi (gficl:shader-loc shader "use_texture") (if dt 1 0))
-      (gficl:bind-vec shader "obj_colour" col)
-      (if dt (gficl:bind-gl (if (listp dt) (car dt) dt))))))
-
-(defclass deferred-pass (pass) ())
-
-(defun make-deferred-pass ()
-  (make-instance
-   'deferred-pass
-   :shaders (list (make-instance 'deferred-shader))
-   :description
-   (make-framebuffer-description
-    (list (gficl:make-attachment-description :type :texture
-	   :position :color-attachment0 :internal-format :rgba32f)
-	  (gficl:make-attachment-description :type :texture
-	   :position :color-attachment1 :internal-format :rgba32f)
-	  (gficl:make-attachment-description :type :texture
-	   :position :color-attachment2 :internal-format :rgba32f)
-	  (gficl:make-attachment-description :position :depth-attachment)))))
-
-(defmethod draw ((obj deferred-pass) scenes)
-  (gl:enable :cull-face :depth-test)
-  (call-next-method))
-
 ;;; ssao shader
 
 (defclass ssao-shader (post-shader)
@@ -120,13 +65,15 @@
     (gl:active-texture :texture0)
     (gl:bind-texture :texture-2d target-tex)
     (gl:bind-image-texture 0 target-tex 0 nil 0 :write-only :rgba32f))
-    
+
+  ;; position texture
   (gl:active-texture :texture1)
   (gl:bind-texture :texture-2d
-		   (get-post-tex scene :deferred :color-attachment0))
+		   (get-post-tex scene :deferred :color-attachment2))
+  ;; normal texture
   (gl:active-texture :texture2)
   (gl:bind-texture :texture-2d
-		   (get-post-tex scene :deferred :color-attachment1))
+		   (get-post-tex scene :deferred :color-attachment3))
   (gl:active-texture :texture3)
   (gficl:bind-gl (slot-value s 'noise-tex))
   (%gl:dispatch-compute (gficl:window-width) (gficl:window-height) 1)
@@ -176,10 +123,9 @@
 
 (defmethod reload ((s ssao-lighting-shader))
   (compute-shader-reload-files (s #p"ssao/post.cs") shader
-    (gl:uniformi (gficl:shader-loc shader "bposition") 1)
-    (gl:uniformi (gficl:shader-loc shader "bnormal") 2)
-    (gl:uniformi (gficl:shader-loc shader "bcolour") 3)
-    (gl:uniformi (gficl:shader-loc shader "bssao") 4)))
+    (gl:uniformi (gficl:shader-loc shader "bcolour") 1)
+    (gl:uniformi (gficl:shader-loc shader "blight") 2)
+    (gl:uniformi (gficl:shader-loc shader "bssao") 3)))
 
 (defmethod draw ((s ssao-lighting-shader) (scene ssao-post-scene))
   (let ((target-tex (get-post-tex scene :lighting :color-attachment0))) s
@@ -191,8 +137,6 @@
   (gl:active-texture :texture2)
   (gl:bind-texture :texture-2d (get-post-tex scene :deferred :color-attachment1))
   (gl:active-texture :texture3)
-  (gl:bind-texture :texture-2d (get-post-tex scene :deferred :color-attachment2))
-  (gl:active-texture :texture4)
   (gl:bind-texture :texture-2d (get-post-tex scene :blur :color-attachment0))
   (with-slots (light-dir-view) scene    
     (gficl:bind-vec (slot-value s 'shader) "light_dir" light-dir-view))
@@ -218,19 +162,28 @@
   (make-instance
    'ssao-pipeline
    :post-scene (make-instance 'ssao-post-scene)
-   :passes (list (cons :deferred (make-deferred-pass))
+   :passes (list (cons :shadow (let ((s (make-vsm-pass))) (resize s 1024 1024) s))
+	         (cons :deferred (make-deferred-pass))
 		 (cons :ssao (make-ssao-pass))
 		 (cons :blur (make-ssao-blur-pass))
 		 (cons :lighting (make-ssao-lighting-pass)))))
 
+(defmethod initialize-instance :after ((pl ssao-pipeline) &key &allow-other-keys)
+  (setf (slot-value (car (slot-value (get-pass pl :deferred) 'shaders)) 'shadow-map)
+	(get-pass-texture (get-pass pl :shadow))))
+
 (defmethod resize ((pl ssao-pipeline) w h)
-  (call-next-method)
+  (resize (get-pass pl :deferred) w h)
+  (resize (get-pass pl :ssao) w h)
+  (resize (get-pass pl :blur) w h)
+  (resize (get-pass pl :lighting) w h)
   (with-slots (post-scene) pl
     (resize post-scene w h)
     (set-post-texs post-scene (alist-fb-textures pl '(:deferred :ssao :blur :lighting)))))
 
 (defmethod draw ((pl ssao-pipeline) scenes)
   (with-slots (post-scene) pl
+    (draw (get-pass pl :shadow) scenes)
     (draw (get-pass pl :deferred) scenes)
     (with-slots (post-scene) pl
       (with-slots (projection-mat light-dir-view) post-scene

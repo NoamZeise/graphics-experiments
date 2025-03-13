@@ -57,7 +57,7 @@
 
 (defmethod reload ((s outline-mt-post-shader))
   (call-next-method)
-  (gl:uniformf (gficl:shader-loc (slot-value s 'shader) "offset_intensity") 0.02))
+  (gl:uniformf (gficl:shader-loc (slot-value s 'shader) "offset_intensity") 0.0))
 
 (defclass outline-mt-post-pass (post-pass) ())
 

@@ -50,6 +50,7 @@ void main() {
   float in_shadow = vsm_shadow(norm, light_dir);
 
   float lambertian = min(dot(light_dir, norm), in_shadow);
+  //lambertian = max(lambertian, 0.01);
   
   vec4 c_obj = obj_colour;
   if(use_texture == 1)

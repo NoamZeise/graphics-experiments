@@ -144,7 +144,7 @@ void main() {
     vec4 frag_col = texture(colour_buff, uv);
     vec4 light_col = texture(light_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    vec4 col = final_sample * frag_col;
+    vec4 col = final_sample;// * frag_col;
     //vec4 col = final_sample;
     //col = (vec4(1) + texture(normal_buff, uv))/2;
     //col = vec4(texture(depth_buff, uv).xyz, 1);

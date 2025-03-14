@@ -37,39 +37,69 @@
   ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
+(defun different-methods ()
+  (let ((cascade-pipeline (make-cascade-pipeline)))
+    (list (cons "cascade 1 level"
+		(list cascade-pipeline
+		      :init-fn
+		      #'(lambda (pl)
+			  (update-cascade-obj pl (make-instance 'cascade-properties :levels 1))
+			  (update-cascade-obj pl (make-instance 'cascade-params)))
+		      :reused t))
+	  (cons "cascade 2 levels"
+		(list cascade-pipeline
+		      :init-fn
+		      #'(lambda (pl)
+			  (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
+			  (update-cascade-obj pl (make-instance 'cascade-params)))
+		      :reused t))
+	  (cons "cascade 6 levels"
+		(list cascade-pipeline
+		      :init-fn
+		      #'(lambda (pl)
+			  (update-cascade-obj pl (make-instance 'cascade-properties))
+			  (update-cascade-obj pl (make-instance 'cascade-params)))))
+	  (cons "ssao" (make-ssao-pipeline))	   
+	  (cons "simple" (make-pbr-pipeline))
+	  (cons "shadow mapping" (make-halftone-pipeline))
+	  (cons "age of sail" (make-aos-pipeline))
+	  (cons "outline" (make-outline-pipeline)))))
+
+(defun resolution-comparison ()
+  (let ((cascade-pipeline (make-cascade-pipeline)))
+    (list
+     (cons "cascade 64x64"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 64 :h 64))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     (cons "cascade 128x128"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 128 :h 128))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     (cons "cascade 256x256"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     (cons "cascade 512x512"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 512 :h 512))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t)))))
+
 (defun create-pipelines ()
   (setf *pipelines*
-	(let ((cascade-pipeline (make-cascade-pipeline)))
-	  (list
-	   (cons "cascade 1 level"
-		 (list cascade-pipeline
-		       :init-fn
-		       #'(lambda (pl)
-			   (update-cascade-obj pl (make-instance 'cascade-properties :levels 1))
-			   (update-cascade-obj pl (make-instance 'cascade-params)))
-		       :reused t))
-	   (cons "cascade 2 levels"
-		 (list cascade-pipeline
-		       :init-fn
-		       #'(lambda (pl)
-			   (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
-			   (update-cascade-obj pl (make-instance 'cascade-params)))
-		       :reused t))
-	   (cons "cascade 6 levels"
-		 (list cascade-pipeline
-		       :init-fn
-		       #'(lambda (pl)
-			   (update-cascade-obj pl (make-instance 'cascade-properties))
-			   (update-cascade-obj pl (make-instance 'cascade-params)))))
-	   (cons "ssao" (make-ssao-pipeline))	   
-	   (cons "simple" (make-pbr-pipeline))
-	   (cons "shadow mapping" (make-halftone-pipeline))
-	   (cons "age of sail" (make-aos-pipeline))
-	   (cons "outline" (make-outline-pipeline))
-	   ;;(cons "xtoon" (make-xtoon-pipeline))
-	   ;;(cons "brush" (make-brush-pipeline))
-	   ;;(cons "lit-sphere" (make-lit-sphere-pipeline))
-	   )))
+	(resolution-comparison))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *analyser*

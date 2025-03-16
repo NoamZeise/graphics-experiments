@@ -19,8 +19,7 @@
 	    (setf v (gficl:normalise v))
 	    (loop for j from 0 to 1 do
 		  (setf (cffi:mem-aref data :float (+ j (* i 2)))
-			(gficl:vec-ref v j)))
-	    ))
+			(gficl:vec-ref v j)))))
     (setf
      (slot-value
       s 'noise-tex)

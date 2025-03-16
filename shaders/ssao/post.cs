@@ -11,12 +11,12 @@ void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2(float(coord.x + 0.5)/float(gl_NumWorkGroups.x),
 		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));
-
-    vec3 col = texture(bcolour, uv).xyz;
+    
+    vec4 col = texture(bcolour, uv);
     vec3 light = texture(blight, uv).xyz;
     float ao = texture(bssao, uv).r;
-
-    vec3 ambient = 0.5 * ao * col;
+    
+    vec3 ambient = col.a > 0 ? 0.5 * ao * col.xyz : vec3(0);
     
     imageStore(img_result, coord, vec4(light + ambient, 1));
 }  

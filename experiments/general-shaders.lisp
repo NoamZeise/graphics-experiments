@@ -1,6 +1,6 @@
 (in-package :experiments)
 
-;;; 3D Lambertian shader with uv texture
+;;; simple lambertian shader with uv texture
 
 (defclass standard-colour-shader (normals-cam-shader) ())
 
@@ -20,7 +20,7 @@
     (cond (dt (gficl:bind-gl (if (listp dt) (car dt) dt)))
 	  (t  (gficl:bind-gl (car (get-asset 'uv)))))))
 
-;;; View Normals Shader
+;;; normals debug shader
 
 (defclass show-normals-shader (normals-shader) ())
 
@@ -84,8 +84,9 @@
     (gl:cull-face :front)
     (gl:disable :polygon-offset-fill)))
 
-;; dont draw outline for 2d scenes
-(defmethod draw ((obj backface-shader) (scene scene-2d)))
+(defmethod draw ((obj backface-shader) (scene scene-2d))
+  ;; dont draw outline for 2d scenes
+  )
 
 (defmethod shader-scene-props ((obj backface-shader) (scene scene-3d))
   (if (and (> (gficl:window-width) 0) (> (gficl:window-height) 0))
@@ -96,7 +97,7 @@
 					  (* pi fov) (* near (slot-value obj 'near-factor)) 100)
 	 (gficl:view-matrix cam-pos (gficl:-vec cam-target cam-pos) +world-up+))))))
 
-;;; partially deferred lighting shader with shadow maps
+;;; partially deferred lighting shader with a shadow map
 
 (defclass deferred-shader (normals-cam-shader)
   ((shadow-map)))
@@ -154,6 +155,7 @@
     :samples 1)))
 
 (defmethod draw ((obj deferred-pass) scenes)
-  (gl:clear-tex-image (cdar (get-textures obj)) 0 :rgba :float #(0 0 0 0))
+  (gl:clear-buffer-fv :color 0 #(0 0 0 0)) ; colour
+  (gl:clear-buffer-fv :color 3 #(0 0 0 0)) ; position
   (gl:enable :cull-face :depth-test)
   (call-next-method))

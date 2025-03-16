@@ -11,8 +11,7 @@
 	   (move-speed (* 2.5 speed)) (fov-speed (* speed 1.2))
 	   (fw (gficl:normalise (gficl:-vec cam-target cam-pos)))
 	   (rw (gficl:normalise (gficl:cross fw +world-up+)))
-	   (target (gficl:-vec cam-pos cam-target))
-	   (rotate rotating))
+	   (target (gficl:-vec cam-pos cam-target)))
       (gficl:map-keys-down
        ;; raise/lower camera
        (:space (setf cam-pos (gficl:+vec cam-pos (gficl:*vec move-speed +world-up+))))
@@ -39,12 +38,18 @@
        (:y
 	(setf (light-dir obj) (gficl:rotate-vec (light-dir obj) speed
 						(gficl:make-vec '(0 1 0))))))
-      ;; toggle rotate
       (gficl:map-keys-pressed
-       (:r (setf rotating (not rotating))))
+       ;; toggle rotate
+       (:r (setf rotating (not rotating)))
+       ;; change to set pos
+       (:b (setf rotating nil)
+	   (setf cam-pos (gficl:make-vec '(2.3 1.8 5.4)))
+	   (setf target (gficl:make-vec '(6 1 3)))
+	   (setf cam-fov 0.3)
+	   (resize obj (gficl:window-width) (gficl:window-height))))
       
-      (cond (rotate (setf cam-pos (gficl:rotate-vec cam-pos (* (- speed) 0.1) +world-up+))
-		    (setf target (gficl:+vec cam-pos))))
+      (cond (rotating (setf cam-pos (gficl:rotate-vec cam-pos (* (- speed) 0.1) +world-up+))
+		      (setf target (gficl:+vec cam-pos))))
       (setf cam-target (gficl:-vec cam-pos target)))))
 
 ;;; scene with simple 3d shapes

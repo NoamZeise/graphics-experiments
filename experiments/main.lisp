@@ -59,9 +59,9 @@
 		      #'(lambda (pl)
 			  (update-cascade-obj pl (make-instance 'cascade-properties))
 			  (update-cascade-obj pl (make-instance 'cascade-params)))))
-	  (cons "ssao" (make-ssao-pipeline))	   
+	  (cons "shadow mapping" (make-shadow-deferred-pipeline))
+	  (cons "ssao" (make-ssao-pipeline))	  
 	  (cons "simple" (make-pbr-pipeline))
-	  (cons "shadow mapping" (make-halftone-pipeline))
 	  (cons "age of sail" (make-aos-pipeline))
 	  (cons "outline" (make-outline-pipeline)))))
 
@@ -73,8 +73,7 @@
 		 :init-fn
 		 #'(lambda (pl)
 		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 64 :h 64))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))))
      (cons "cascade 128x128"
 	   (list cascade-pipeline
 		 :init-fn
@@ -97,9 +96,41 @@
 		     (update-cascade-obj pl (make-instance 'cascade-params)))
 		 :reused t)))))
 
+(defun samples-comparison ()
+  (let ((cascade-pipeline (make-cascade-pipeline)))
+    (list
+     (cons "cascade 4 samples"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 4))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))))
+     (cons "cascade 8 samples"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 8))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     (cons "cascade 12 samples"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 12))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     (cons "cascade 16 samples"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 16))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))
+		 :reused t))
+     
+     )))
+
 (defun create-pipelines ()
-  (setf *pipelines*
-	(resolution-comparison))
+  (setf *pipelines* (different-methods))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *analyser*
@@ -110,7 +141,8 @@
 (defun create-scenes ()
   (setf *scenes*
 	(list (cons "basic" (list :scenes (list (make-simple-3d-scene)) :duration 15.0))
-	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))))
+	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))
+	      ))
   (setf *active-scene* (getf (cdr (assoc "street" *scenes*)) :scenes)))
 
 (defun setup ()
@@ -134,8 +166,7 @@
   (cleanup-assets))
 
 (defun resize-callback (w h)
-  (loop for scene in *active-scene* do
-	(resize scene w h))
+  (loop for scene in *active-scene* do (resize scene w h))
   (foreach-al *pipelines* (p) (resize (get-pipeline p) w h)))
 
 (defun update-step ()
@@ -181,7 +212,7 @@
   (init-pipeline (assoc active pipelines))
   active)
 
-(defun update-performance-analyser (pa dt &key (filename #p"performance.csv"))
+(defun update-performance-analyser (pa dt &key (filename #p"performance.tex"))
   "returns nil when performance analyser has finished running."
   (update pa dt)
   (cond ((finished pa)

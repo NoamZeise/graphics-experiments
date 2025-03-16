@@ -138,8 +138,6 @@
   (gl:bind-texture :texture-2d (get-post-tex scene :deferred :color-attachment1))
   (gl:active-texture :texture3)
   (gl:bind-texture :texture-2d (get-post-tex scene :blur :color-attachment0))
-  (with-slots (light-dir-view) scene    
-    (gficl:bind-vec (slot-value s 'shader) "light_dir" light-dir-view))
   (%gl:dispatch-compute (gficl:window-width) (gficl:window-height) 1)
   (%gl:memory-barrier '(:shader-image-access-barrier)))
 
@@ -185,17 +183,12 @@
   (with-slots (post-scene) pl
     (draw (get-pass pl :shadow) scenes)
     (draw (get-pass pl :deferred) scenes)
-    (with-slots (post-scene) pl
-      (with-slots (projection-mat light-dir-view) post-scene
-	(with-slots ((it-view inverse-transpose-view-mat)
-		     light-dir (proj projection-mat))
-	    (car scenes)
-	  (setf projection-mat proj)
-	  (setf light-dir-view
-		(gficl:get-n-vec 3 (gficl:mat*vec it-view (gficl:get-n-vec 4 light-dir))))))
-      (draw (get-pass pl :ssao) post-scene)
-      (draw (get-pass pl :blur) post-scene)
-      (draw (get-pass pl :lighting) post-scene))
+    (with-slots (projection-mat) post-scene
+      (with-slots ((it-view inverse-transpose-view-mat) (proj projection-mat)) (car scenes)
+	(setf projection-mat proj)))
+    (draw (get-pass pl :ssao) post-scene)
+    (draw (get-pass pl :blur) post-scene)
+    (draw (get-pass pl :lighting) post-scene)
     (gficl:blit-framebuffers
      (get-final-framebuffer (get-pass pl :lighting))
      nil

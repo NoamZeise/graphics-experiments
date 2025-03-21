@@ -26,4 +26,5 @@
 			  (:file "lit-sphere")
 			  (:file "cascades")
 			  (:file "ssao")
-			  (:file "performance")))))
+			  (:file "performance")
+			  (:file "pipeline-comparisons")))))

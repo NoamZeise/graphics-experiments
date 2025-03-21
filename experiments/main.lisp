@@ -37,100 +37,8 @@
   ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
-(defun different-methods ()
-  (let ((cascade-pipeline (make-cascade-pipeline)))
-    (list (cons "cascade 1 level"
-		(list cascade-pipeline
-		      :init-fn
-		      #'(lambda (pl)
-			  (update-cascade-obj pl (make-instance 'cascade-properties :levels 1))
-			  (update-cascade-obj pl (make-instance 'cascade-params)))
-		      :reused t))
-	  (cons "cascade 2 levels"
-		(list cascade-pipeline
-		      :init-fn
-		      #'(lambda (pl)
-			  (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
-			  (update-cascade-obj pl (make-instance 'cascade-params)))
-		      :reused t))
-	  (cons "cascade 6 levels"
-		(list cascade-pipeline
-		      :init-fn
-		      #'(lambda (pl)
-			  (update-cascade-obj pl (make-instance 'cascade-properties))
-			  (update-cascade-obj pl (make-instance 'cascade-params)))))
-	  (cons "shadow mapping" (make-shadow-deferred-pipeline))
-	  (cons "ssao" (make-ssao-pipeline))	  
-	  (cons "simple" (make-pbr-pipeline))
-	  (cons "age of sail" (make-aos-pipeline))
-	  (cons "outline" (make-outline-pipeline)))))
-
-(defun resolution-comparison ()
-  (let ((cascade-pipeline (make-cascade-pipeline)))
-    (list
-     (cons "cascade 64x64"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 64 :h 64))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))))
-     (cons "cascade 128x128"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 128 :h 128))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "cascade 256x256"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "cascade 512x512"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 512 :h 512))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t)))))
-
-(defun samples-comparison ()
-  (let ((cascade-pipeline (make-cascade-pipeline)))
-    (list
-     (cons "cascade 4 samples"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 4))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))))
-     (cons "cascade 8 samples"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 8))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "cascade 12 samples"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 12))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "cascade 16 samples"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6 :w 256 :h 256 :s 16))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     
-     )))
-
 (defun create-pipelines ()
-  (setf *pipelines* (different-methods))
+  (setf *pipelines* (levels-comparison))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *analyser*
@@ -140,9 +48,8 @@
 
 (defun create-scenes ()
   (setf *scenes*
-	(list (cons "basic" (list :scenes (list (make-simple-3d-scene)) :duration 15.0))
-	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))
-	      ))
+	(list ;(cons "basic" (list :scenes (list (make-simple-3d-scene)) :duration 15.0))
+	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))))
   (setf *active-scene* (getf (cdr (assoc "street" *scenes*)) :scenes)))
 
 (defun setup ()

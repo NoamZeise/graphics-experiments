@@ -7,11 +7,11 @@
 ;;; modifiable cascade parameters
 
 (defclass cascade-properties ()
-  ((width :initarg :w :initform 512
+  ((width :initarg :w :initform 256
 	  :type integer)
-   (height :initarg :h :initform 512
+   (height :initarg :h :initform 256
 	   :type integer)
-   (samples :initarg :s :initform 8
+   (samples :initarg :s :initform 4
 	    :type integer)
    (levels :initarg :levels :initform 6
 	   :type integer)))

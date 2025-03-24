@@ -79,38 +79,13 @@
 
 (defun levels-comparison ()
   (let ((cascade-pipeline (make-cascade-pipeline)))
-    (list
-     (cons "8 levels"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 8))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))))
-     (cons "6 levels"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 6))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "4 levels"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 4))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "2 levels"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 2))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t))
-     (cons "1 level"
-	   (list cascade-pipeline
-		 :init-fn
-		 #'(lambda (pl)
-		     (update-cascade-obj pl (make-instance 'cascade-properties :levels 1))
-		     (update-cascade-obj pl (make-instance 'cascade-params)))
-		 :reused t)))))
+    (loop for i from 1 to 9 collecting
+	  (cons (format nil "~a" i)
+		(list cascade-pipeline
+		      :init-fn
+		      (let ((x i))
+			#'(lambda (pl)
+			    (update-cascade-obj pl (make-instance 'cascade-properties
+								  :levels x :w 512 :h 512))
+			    (update-cascade-obj pl (make-instance 'cascade-params))))
+		      :reused (not (= i 1)))))))

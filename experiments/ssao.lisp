@@ -189,6 +189,7 @@
     (draw (get-pass pl :blur) post-scene)
     (draw (get-pass pl :lighting) post-scene)
     (gficl:blit-framebuffers
-     (get-final-framebuffer (get-pass pl :lighting))
+     (get-final-framebuffer (get-pass pl :ssao ;:lighting
+				      ))
      nil
      (gficl:window-width) (gficl:window-height))))

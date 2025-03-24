@@ -18,7 +18,6 @@ uniform mat4 projection;
 vec4 getInterval(int x, int y) {
     vec4 iv =  interval[y * dim.x * dim.z
 			+ x * dim.z];
-    if(iv.a >= 0) iv.a = 1;
     return iv;
 }
 
@@ -47,17 +46,6 @@ float d2(vec3 p1, vec3 p2) {
   vec3 diff = p1 - p2;
   return dot(diff, diff);
 }
-
-float light_correction(float v) {
-  return pow(v, 0.5);
-}
-
-vec4 correct_light(vec4 final_sample) {
-  for(int i = 0; i < 3; i++)
-    final_sample[i] = light_correction(final_sample[i]);
-  return final_sample;
-}
-
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 pixel_pos = vec2(float(coord.x)/float(gl_NumWorkGroups.x),
@@ -78,7 +66,7 @@ void main() {
     int down = int(trunc(cascade_space.y));
     int up = down + int((down < dim.y - 1) && cascade_space.y >= 0);
 
-    vec3 ld = intervalPos(left, down);
+    /*vec3 ld = intervalPos(left, down);
     vec3 lu = intervalPos(left, up);
     vec3 rd = intervalPos(right, down);
     vec3 ru = intervalPos(right, up);
@@ -87,7 +75,7 @@ void main() {
     vec3 r = project_to_line(rd, ru, fpos.xyz);
     vec3 mid = project_to_line(l, r, fpos.xyz);
 
-    /*float ld_dist = d2(ld, fpos.xyz);
+    float ld_dist = d2(ld, fpos.xyz);
     float lu_dist = d2(lu, fpos.xyz);
     float rd_dist = d2(rd, fpos.xyz);
     float ru_dist = d2(ru, fpos.xyz);
@@ -104,9 +92,7 @@ void main() {
       getInterval(left, down) * ld_dist +
       getInterval(left, up) * lu_dist +
       getInterval(right, down) * rd_dist +
-      getInterval(right, up) * ru_dist;*/
-      
-    
+      getInterval(right, up) * ru_dist;*/      
     
     //float du_frac = project_to_fract(ld, lu, mid);
     //float lr_frac = project_to_fract(ld, rd, mid);
@@ -136,15 +122,13 @@ void main() {
 	r_sample,
 	cascade_fract.x);
 
-    final_sample = correct_light(final_sample);
-
     //  if(fpos.z == 1)
     //  final_sample = vec4(1);o
     
     vec4 frag_col = texture(colour_buff, uv);
     vec4 light_col = texture(light_buff, uv);
     //final_sample = vec4(pndc.x, pndc.y, pndc.z, 1);
-    vec4 col = final_sample;// * frag_col;
+    vec4 col = vec4(1 - final_sample.a);//getInterval(left, down);//final_sample;//final_sample;// * frag_col;
     //vec4 col = final_sample;
     //col = (vec4(1) + texture(normal_buff, uv))/2;
     //col = vec4(texture(depth_buff, uv).xyz, 1);

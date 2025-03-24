@@ -98,18 +98,17 @@ vec4 trace(vec3 pos, vec3 dir) {
     float offset = overlap*prev_range_factor*(0.5*params.step_size * params.steps);    
     float range = offset + sz;
 
-    vec3 probe_pos = pos;// + vec3(0, 0, -0.01)*factor;
+    vec3 probe_pos = pos + vec3(0, 0, -0.01)*factor;
     vec2 probe_uv = pos_to_uv(probe_pos);
     vec3 probe_normal = normalize(texture(normal_buff, probe_uv).xyz);
     
-    vec3 cam = normalize(-pos);
+    vec3 cam = normalize(-probe_pos);
     float normal_dot_cam = dot(probe_normal, cam);
     bool normal_between = false;//dot(probe_normal, dir) > 0;
     
     vec4 ray_col = vec4(0);
     float prev_cos2 = 0;// = cos(PI/2)^2
     float prev_pdn = 0;
-    float prev_sample_dot_cam = -1;
     
     for(int i = 0; i < steps; i++){
       	vec2 sample_uv = pos_to_uv(pos);
@@ -127,46 +126,29 @@ vec4 trace(vec3 pos, vec3 dir) {
 	    min_dist = length(sample_pos.xyz + vec3(0, 0, thickness)
 			      - probe_pos);
 	}	
-	
-	float cos_a2 = dot(probe_to_sample, probe_normal);
-	float pdn = cos_a2;
-	bool visible = cos_a2 > 0;
-	cos_a2 *= cos_a2;
 
-	float sample_dot_cam = dot(probe_to_sample, cam);
-
-	bool above_normal = normal_between && sample_dot_cam > normal_dot_cam;
-	bool swapped_normal_sides = above_normal && (prev_sample_dot_cam < normal_dot_cam);
-
+	float cam_angle = 1 - acos(dot(probe_to_sample, cam))/PI;
+	 
 	bool inrange =
 	    (sample_dist > offset && sample_dist < range) ||
 	  (min_dist > offset && min_dist < range) ||
 	  (min_dist <= offset && sample_dist >= range);
-	if(inrange && visible &&
-	   pdn > prev_pdn && 
+	
+	if(inrange &&
+	   cam_angle > ray_col.a && 
 	   sample_pos.a != 0 &&
 	   uv_in_range(sample_uv)) {
 
 	  float d_phi = (2*PI) / dim.z;
-	  float d_theta;
-	  if(!above_normal)
-	    d_theta = cos_a2 - prev_cos2;
-	  else if(!swapped_normal_sides)
-	    d_theta = prev_cos2 - cos_a2;
-	  else // 1 = cos(1)^2
-	    d_theta = 1 - prev_cos2
-	      + 1 - cos_a2;
-	  float brdf = 2.0/(PI*PI);
+	  float d_theta = cam_angle - ray_col.a;//cos_a2 - prev_cos2;
+	  float brdf = 4.0/(PI*PI);
 	  vec4 incoming_radiance = texture(light_buff, sample_uv)*10;
 	  ray_col += 0.5 * d_phi * d_theta
 	      * brdf * incoming_radiance;
-	  prev_cos2 = cos_a2;
-	  prev_pdn = pdn;
-	  prev_sample_dot_cam = sample_dot_cam;
+	  ray_col.a = cam_angle;
 	}
 	pos += dir * step_size;
     }
-    ray_col.a = prev_sample_dot_cam;
     
     return ray_col;
 }
@@ -191,7 +173,7 @@ vec4 interpolate_ray(uvec3 pcd,
 vec4 avg_prev_cascade(vec4 ray1, vec4 ray2) {
   vec4 m = vec4(0);
   m.rgb = (ray1.rgb+ray2.rgb)/2;
-  m.a = max(ray1.a, ray2.a);
+  m.a = (ray1.a+ray2.a)/2;
   return m;
 }
 
@@ -207,10 +189,10 @@ vec4 cascade_ray(uvec3 id) {
   // ray_hit.rgb = vec3(1);
   
   if(params.trace_after > cascade_level)
-    ray_hit = vec4(0, 0, 0, -1);
+    ray_hit = vec4(0, 0, 0, 0);
 
   if(params.trace_before != 0 && params.trace_before < cascade_level)
-    ray_hit = vec4(0, 0, 0, -1);
+    ray_hit = vec4(0, 0, 0, 0);
  
   //if(cascade_level < dim.w - 1)
   //  ray_hit = vec4(0);
@@ -239,10 +221,9 @@ vec4 cascade_ray(uvec3 id) {
 
     vec4 merged_cascade = avg_prev_cascade(int1, int2);
     if(params.merge_rays != 0 && merged_cascade.a > ray_hit.a) {
-      //float a = probe cos2a
-      //float b = merged cos2a
-      float factor = 1;//(a*a)/(b*b);
-      ray_hit.rgb += merged_cascade.rgb*factor;
+      float a = ray_hit.a; // probe cos2a
+      float b = merged_cascade.a;// merged cos2a
+      ray_hit.rgb += merged_cascade.rgb*(b-a);
       ray_hit.a = merged_cascade.a;
     }
   }
@@ -255,7 +236,7 @@ vec4 avg_dirs(uvec3 id) {
     vec4 ray = read_interval(id.x, id.y, i, uvec3(dim));
     total += ray;
   }
-  return total;
+  return total / dim.z;
 }
 
 void main() {
@@ -266,6 +247,8 @@ void main() {
     vec4 rays = avg_dirs(id);
     vec2 uv = id_to_uv(id.xy, dim.xy);
     vec4 emitted = texture(light_buff, uv);
-    write_interval(id.x, id.y, id.z, uvec3(dim), emitted + rays);
+    vec4 light = rays;
+    light.rgb += emitted.rgb;
+    write_interval(id.x, id.y, id.z, uvec3(dim), light);
   }
 }

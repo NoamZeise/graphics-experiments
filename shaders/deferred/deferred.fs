@@ -50,7 +50,6 @@ void main() {
   float in_shadow = vsm_shadow(norm, light_dir);
 
   float lambertian = min(dot(light_dir, norm), in_shadow);
-  lambertian = max(lambertian, 0.1);
   
   vec4 c_obj = obj_colour;
   if(use_texture == 1)
@@ -61,11 +60,11 @@ void main() {
   vec3 halfvec = normalize(light_dir + view);
   vec3 spec = vec3(0.7*pow(max(dot(norm, halfvec), 0.0), 28.0));
   
-  /*if(is_light == 1) {
+  if(is_light == 1) {
     light = c_obj;
   } else {
     light = vec4(0, 0, 0, 1);
-    }*/
+  }
   light = c_obj * lambertian + vec4(spec, 0)*lambertian;
   
   position = vec4(pos, 1);

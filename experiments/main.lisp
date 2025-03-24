@@ -38,7 +38,7 @@
   )
 
 (defun create-pipelines ()
-  (setf *pipelines* (levels-comparison))
+  (setf *pipelines* (different-methods))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *analyser*

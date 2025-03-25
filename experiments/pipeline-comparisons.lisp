@@ -9,11 +9,12 @@
 		(list cascade-pipeline
 		      :init-fn
 		      #'(lambda (pl)
-			  (update-cascade-obj pl (make-instance 'cascade-properties))
+			  (update-cascade-obj pl (make-instance 'cascade-properties :w 512 :h 512 :s 8))
 			  (update-cascade-obj pl (make-instance 'cascade-params)))))
 	  (cons "shadow mapping" (make-shadow-deferred-pipeline))
 	  (cons "ssao" (make-ssao-pipeline))	  
-	  (cons "simple" (make-pbr-pipeline)))))
+	  ;;(cons "simple" (make-pbr-pipeline))
+	  )))
 
 (defun resolution-comparison ()
   (let ((cascade-pipeline (make-cascade-pipeline)))

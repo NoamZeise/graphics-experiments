@@ -11,7 +11,7 @@
 	  :type integer)
    (height :initarg :h :initform 256
 	   :type integer)
-   (samples :initarg :s :initform 4
+   (samples :initarg :s :initform 8
 	    :type integer)
    (levels :initarg :levels :initform 6
 	   :type integer)))

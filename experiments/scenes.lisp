@@ -84,6 +84,8 @@
    'street-scene
    :cam-pos (gficl:make-vec '(5 9 0))
    :cam-target (gficl:-vec '(0 0 0))
+   :light-proj
+   (gficl:orthographic-matrix 16 -12 16 -16 -5 -40)
    :objects
    (list
     (make-object (get-asset 'bunny) (object-matrix '(-2 1 0.5) '(2 2 2)) :light t)

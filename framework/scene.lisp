@@ -42,8 +42,9 @@
 	      :type gficl:vec)
    (light-view :type gficl:matrix)
    (light-proj :type gficl:matrix
+	       :initarg light-proj
 	       :initform
-	       (gficl:orthographic-matrix 16 -12 16 -16 0 -200))
+	       (gficl:orthographic-matrix 16 -12 16 -16 -1 -100))
    (light-vp :type gficl:matrix :initform (gficl:make-matrix))
    (light-near :initform 1)
    (light-far :initform 50)))

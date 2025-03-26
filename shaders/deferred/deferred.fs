@@ -55,17 +55,19 @@ void main() {
   if(use_texture == 1)
     c_obj = texture(tex, fuv);
   
-  colour = c_obj;
+  //colour = c_obj;
 
   vec3 halfvec = normalize(light_dir + view);
   vec3 spec = vec3(0.7*pow(max(dot(norm, halfvec), 0.0), 28.0));
   
-  if(is_light == 1) {
+  /*if(is_light == 1) {
     light = c_obj;
   } else {
     light = vec4(0, 0, 0, 1);
-  }
-  light = c_obj * lambertian + vec4(spec, 0)*lambertian;
+    }*/
+  light = vec4(c_obj.rgb * lambertian + vec3(spec)*lambertian, 1);
+
+  colour = vec4(c_obj.rgb, 0);
   
   position = vec4(pos, 1);
   normal = vec4(normalize(fnorm), 1);

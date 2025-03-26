@@ -159,7 +159,9 @@
   (make-instance
    'ssao-pipeline
    :post-scene (make-instance 'ssao-post-scene)
-   :passes (list (cons :shadow (let ((s (make-vsm-pass))) (resize s 1024 1024) s))
+   :passes (list (cons :shadow
+		       (let ((s (make-vsm-pass)))
+			 (resize s *default-shadow-map-size* *default-shadow-map-size*) s))
 	         (cons :deferred (make-deferred-pass))
 		 (cons :ssao (make-ssao-pass))
 		 (cons :blur (make-ssao-blur-pass))

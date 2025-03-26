@@ -49,7 +49,7 @@
 (defun create-scenes ()
   (setf *scenes*
 	(list ;(cons "basic" (list :scenes (list (make-simple-3d-scene)) :duration 15.0))
-	      (cons "street" (list :scenes (list (make-street-scene)) :duration 10.0))))
+	      (cons "street" (list :scenes (list (make-street-scene)) :duration 30.0))))
   (setf *active-scene* (getf (cdr (assoc "street" *scenes*)) :scenes)))
 
 (defun setup ()
@@ -119,12 +119,12 @@
   (init-pipeline (assoc active pipelines))
   active)
 
-(defun update-performance-analyser (pa dt &key (filename #p"performance.tex"))
+(defun update-performance-analyser (pa dt)
   "returns nil when performance analyser has finished running."
   (update pa dt)
   (cond ((finished pa)
-	 (format t "finished performance test, saving to ~a~%" filename)
-	 (save-performance-table filename pa)
+	 (format t "finished performance test, saving to performance.csv~%")
+	 ;;(save-performance-table filename pa) ;; save as .tex
 	 (save-performance-table
 	  #p"performance.csv" pa
 	  :seperator "," :format-string "~{~*~}~{~a~^,~}~%~{~a~^~%~}")

@@ -249,7 +249,7 @@
 	 (shadow-pass (make-vsm-pass))
 	 (cascade-shader (make-instance 'cascade-compute-shader
 					:cascade-props props :cascade-params params)))
-    (resize shadow-pass 1024 1024)
+    (resize shadow-pass *default-shadow-map-size* *default-shadow-map-size*)
     (make-instance
      'cascade-pipeline
      :passes (list

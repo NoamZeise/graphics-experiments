@@ -5,13 +5,14 @@
 
 (defun different-methods ()
   (let ((cascade-pipeline (make-cascade-pipeline)))
-    (list (cons "radiance cascades"
-		(list cascade-pipeline
-		      :init-fn
-		      #'(lambda (pl)
-			  (update-cascade-obj pl (make-instance 'cascade-properties :w 512 :h 512 :s 8))
-			  (update-cascade-obj pl (make-instance 'cascade-params)))))
-	  (cons "shadow mapping" (make-shadow-deferred-pipeline))
+    (list
+     (cons "shadow mapping" (make-shadow-deferred-pipeline))
+     (cons "radiance cascades"
+	   (list cascade-pipeline
+		 :init-fn
+		 #'(lambda (pl)
+		     (update-cascade-obj pl (make-instance 'cascade-properties :w 256 :h 256 :s 6))
+		     (update-cascade-obj pl (make-instance 'cascade-params)))))
 	  (cons "ssao" (make-ssao-pipeline))	  
 	  ;;(cons "simple" (make-pbr-pipeline))
 	  )))

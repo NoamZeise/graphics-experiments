@@ -18,9 +18,11 @@
    (runtime 0.0)
    (resolution (cons 0 0)))
 
+(defconstant +skip-frames+ 25)
+
 (defun generate-final-performance (scene-performance pipeline-name scene-name)
   (let* ((final (make-final-performance))
-	 (frames (scene-performance-frames scene-performance))
+	 (frames (nthcdr +skip-frames+ (scene-performance-frames scene-performance)))
 	 (frame-count (length frames))
 	 (1% (ceiling (/ frame-count 100)))
 	 (lows (subseq (sort frames (lambda (a b) (< (frame-performance-fps a)

@@ -13,10 +13,10 @@ void main() {
 		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));
     
     vec4 col = texture(bcolour, uv);
-    vec3 light = texture(blight, uv).xyz;
+    vec4 light = texture(blight, uv);
     float ao = texture(bssao, uv).r;
     
-    vec3 ambient = col.a > 0 ? 0.5 * ao * col.xyz : vec3(0);
-    
-    imageStore(img_result, coord, vec4(light + ambient, 1));
+    vec3 ambient = light.a > 0 ? (ao * col.xyz) : col.xyz;
+    vec3 final_col = light.rgb*0.8 + ambient*0.8;
+    imageStore(img_result, coord, vec4(final_col, 1));
 }  

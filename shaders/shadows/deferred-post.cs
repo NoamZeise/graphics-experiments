@@ -10,9 +10,9 @@ void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
     vec2 uv = vec2(float(coord.x + 0.5)/float(gl_NumWorkGroups.x),
 		   float(coord.y + 0.5)/float(gl_NumWorkGroups.y));
-    vec3 light = texture(blight, uv).xyz;
-
-    light += texture(bcolour, uv).xyz * 0.3;
+    vec4 light = texture(blight, uv)*0.8;
+    vec4 col = texture(bcolour, uv);
+    light += (light.a == 0) ? col : col * 0.4; // ambient light
     
-    imageStore(img_result, coord, vec4(light, 1));
+    imageStore(img_result, coord, light);
 }  

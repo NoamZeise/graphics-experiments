@@ -77,10 +77,12 @@
 (defclass shadow-deferred-pipeline (pipeline)
   ((post-scene :initform (make-instance 'shadow-deferred-post-scene))))
 
+(defparameter *default-shadow-map-size* 2048)
+
 (defun make-shadow-deferred-pipeline ()
   (make-instance
    'shadow-deferred-pipeline
-   :passes (list (cons :shadow (let ((s (make-vsm-pass))) (resize s 1024 1024) s))
+   :passes (list (cons :shadow (let ((s (make-vsm-pass))) (resize s *default-shadow-map-size* *default-shadow-map-size*) s))
 		 (cons :deferred (make-deferred-pass))
 		 (cons :post (make-shadow-deferred-post-pass)))))
 

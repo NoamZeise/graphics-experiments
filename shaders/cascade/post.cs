@@ -10,7 +10,6 @@ layout(std430, binding = 1) buffer Radiance_Intervals {
 uniform sampler2D colour_buff;
 uniform sampler2D light_buff;
 uniform sampler2D depth_buff;
-uniform sampler2D normal_buff;
 
 uniform ivec4 dim;
 uniform mat4 projection;
@@ -76,11 +75,17 @@ void main() {
     
     vec4 frag_col = texture(colour_buff, uv);
     vec4 light_col = texture(light_buff, uv);
-    vec3 ambient = frag_col.a > 0 ? (1 - final_sample.a) * frag_col.rgb : vec3(0);
+    vec3 ambient = light_col.a > 0 ? max((1 - final_sample.a), 0.1) * frag_col.rgb : vec3(0);
     
     vec4 final_colour =
-      light_col*0.5 // direct lighting
-      + vec4(final_sample.rgb*frag_col.rgb, 1)*0.5 // indirect lighting
+        0.5*light_col // direct lighting
+      + 0.25*vec4(final_sample.rgb*frag_col.rgb, 1) // indirect lighting
       + vec4(ambient, 0); // ambient lighting
+    //final_colour = vec4(texture(depth_buff, uv).z > 0);
+
+    final_colour *= 1;
+    
+    if(light_col.a == 0)
+      final_colour = frag_col;
     imageStore(imgOut, coord, final_colour);
 }  

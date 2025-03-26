@@ -141,7 +141,7 @@
 (defun make-deferred-pass ()
   (make-instance
    'deferred-pass
-   :shaders (list (make-instance 'deferred-shader))
+   :shaders (list (make-instance 'deferred-shader)) 
    :description
    (make-framebuffer-description
     (list (gficl:make-attachment-description :position :color-attachment0 :type :texture)
@@ -155,8 +155,9 @@
     :samples 16)))
 
 (defmethod draw ((obj deferred-pass) scenes)
-  (gl:clear-buffer-fv :color 0 #(0 0 0 0)) ; colour
+  (gl:clear-buffer-fv :color 0 #(0.7 0.9 1 0)) ; colour
   (gl:clear-buffer-fv :color 1 #(0 0 0 0)) ; light
-  (gl:clear-buffer-fv :color 3 #(0 0 0 0)) ; position
+  (gl:clear-buffer-fv :color 2 #(0 0 100 0)) ; position
+  (gl:clear-buffer-fv :color 3 #(0 0 0 0)) ; normal
   (gl:enable :cull-face :depth-test)
   (call-next-method))

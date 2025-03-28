@@ -1,6 +1,6 @@
 (in-package :experiments)
 
-(defun run (&key (pipelines :methods))
+(defun run (&key (pipelines :medley))
   (setf *performance-comparison* pipelines)
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
   (trivial-main-thread:with-body-in-main-thread () (program)))
@@ -30,17 +30,18 @@
   (load-image 'colours #p"assets/colours.png")
   (load-image 'light-colours #p"assets/light-colours.png")
   ;;(load-image 'test #p"assets/test.png")
-  ;;(load-image 'xtoon #p"assets/xtoon.png")
+  (load-image 'xtoon #p"assets/xtoon.png")
   ;;(load-image 'brush #p"assets/brush-test.png")
   ;;(load-image 'brush2 #p"assets/brush-test2.png")
   ;;(load-image 'sky-matcap #p"assets/sky-matcap.png")
-  ;;(load-image 'rust-matcap #p"assets/rust-matcap.png")
+  (load-image 'rust-matcap #p"assets/rust-matcap.png")
   ;;(load-image 'rim-matcap #p"assets/rim-matcap.png")
   )
 
 (defun create-pipelines ()
   (setf *pipelines*
 	(ecase *performance-comparison*
+	       (:medley (pipeline-medley))
 	       (:methods (different-methods))
 	       (:levels (levels-comparison))
 	       (:resolution (resolution-comparison))

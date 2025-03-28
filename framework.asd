@@ -12,7 +12,6 @@
   :components ((:module "framework"
 		:components
 		((:file "package")
-		 (:file "framework")
 		 (:file "constants")
 		 (:file "generic")
 		 (:file "assets")

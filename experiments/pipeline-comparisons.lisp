@@ -95,3 +95,19 @@
 			    (update-cascade-obj pl (make-instance 'cascade-params
 								  :steps (* x 3)))))
 		      :reused (not (= i 1)))))))
+
+(defun pipeline-medley ()
+  (list
+   (cons "shadow mapping" (make-shadow-deferred-pipeline))
+   (cons "radiance cascades"
+	 (list (make-cascade-pipeline)
+	       :init-fn
+	       #'(lambda (pl)
+		   (update-cascade-obj pl (make-instance 'cascade-properties :w 256 :h 256 :s 6))
+		   (update-cascade-obj pl (make-instance 'cascade-params)))))
+   (cons "ssao" (make-ssao-pipeline))
+   (cons "metatexture" (make-aos-pipeline))
+   (cons "halftone" (make-halftone-pipeline))
+   (cons "lit-sphere" (make-lit-sphere-pipeline))
+   (cons "xtoon" (make-xtoon-pipeline))
+   (cons "outline" (make-outline-pipeline))))

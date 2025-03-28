@@ -1,15 +1,16 @@
 (in-package :experiments)
 
-(defun run ()
+(defun run (&key (pipelines :methods))
+  (setf *performance-comparison* pipelines)
   (setf trivial-main-thread:*on-error* #'invoke-debugger)
   (trivial-main-thread:with-body-in-main-thread () (program)))
 
 (defun program ()
   (gficl:with-window
    (:title "experiments"
-    :resize-callback #'resize-callback
-    :opengl-version-major 4
-    :opengl-version-minor 6)
+	   :resize-callback #'resize-callback
+	   :opengl-version-major 4
+	   :opengl-version-minor 6)
    (setup)
    (loop until (gficl:closedp)
 	 do (update-step)
@@ -38,13 +39,20 @@
   )
 
 (defun create-pipelines ()
-  (setf *pipelines* (different-methods))
+  (setf *pipelines*
+	(ecase *performance-comparison*
+	       (:methods (different-methods))
+	       (:levels (levels-comparison))
+	       (:resolution (resolution-comparison))
+	       (:samples (samples-comparison))
+	       (:steps (steps-comparison))))
   (if (not *active-pipeline*) (setf *active-pipeline* (caar *pipelines*)))
 
   (setf *analyser*
 	(make-performace-analyser
 	 *pipelines*
-	 *scenes*)))
+	 *scenes*))
+  (resize-callback (gficl:window-width) (gficl:window-height)))
 
 (defun create-scenes ()
   (setf *scenes*
@@ -59,7 +67,6 @@
   (setf *active-pipeline* nil)
   (create-scenes)
   (create-pipelines)
-  (resize-callback (gficl:window-width) (gficl:window-height))
   (gl:enable :depth-test)
   (glfw:swap-interval 0) ; disable vsync - better for checking performance
   (gl:front-face :cw)
@@ -123,12 +130,16 @@
   "returns nil when performance analyser has finished running."
   (update pa dt)
   (cond ((finished pa)
-	 (format t "finished performance test, saving to performance.csv~%")
-	 ;;(save-performance-table filename pa) ;; save as .tex
-	 (save-performance-table
-	  #p"performance.csv" pa
-	  :seperator "," :format-string "~{~*~}~{~a~^,~}~%~{~a~^~%~}")
+	 (let ((filename "performance"))
+	   (format t "finished performance test, saving to ~a~%" filename)
+	   ;; save results as tex file
+	   (save-performance-table (make-pathname :name filename :type "tex") pa)
+	   ;; save results as csv file
+	   (save-performance-table
+	    (make-pathname :name filename :type "csv") pa
+	    :seperator "," :format-string "~{~*~}~{~a~^,~}~%~{~a~^~%~}"))
 	 nil)
+	;; return t if not finished
 	(t t)))
 
 ;;; signal running process from repl
@@ -159,6 +170,8 @@
 		       params/props)))
 
 ;;; global variables
+
+(defparameter *performance-comparison* :methods)
 
 (defparameter *scenes* nil)
 (defparameter *active-scene* nil)

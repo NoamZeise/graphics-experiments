@@ -152,7 +152,7 @@
 	  (gficl:make-attachment-description :position :color-attachment3 :type :texture
 					     :internal-format :rgba32f)
 	  (gficl:make-attachment-description :position :depth-attachment))
-    :samples 16)))
+    :samples 8)))
 
 (defmethod draw ((obj deferred-pass) scenes)
   (gl:clear-buffer-fv :color 0 #(0.7 0.9 1 0)) ; colour
